@@ -66,5 +66,5 @@ Las contribuciones son bienvenidas. Por favor, abre un issue para discutir cambi
 ## Contacto
 [Alexander Oviedo Fadul] - [alexander.oviedo.fadul@gmail.com]
 
-Enlace del proyecto: [https://github.com/bladealex1844/MALLO](https://github.com/bladealex1844/MALLO)
+Enlace del proyecto: [https://github.com/bladealex9848/MALLO](https://github.com/bladealex9848/MALLO)
 ```
