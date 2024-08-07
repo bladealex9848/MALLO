@@ -1,0 +1,8 @@
+streamlit
+openai
+pillow
+pytesseract
+PyPDF2
+python-docx
+duckduckgo-search
+pyyaml

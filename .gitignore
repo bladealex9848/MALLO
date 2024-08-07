@@ -1,0 +1,55 @@
+# Archivos y carpetas específicos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+env/
+.env
+
+# Archivos de Streamlit
+.streamlit/secrets.toml
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de logs
+*.log
+
+# Archivos temporales
+*.tmp
+*.bak
+*.swp
+
+# Archivos de IDE/editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de configuración local
+config.local.yaml
+
+# Archivos de caché
+.cache/
+
+# Archivos de base de datos
+*.db
+*.sqlite3
+
+# Archivos de salida
+output/
+results/
+
+# Archivos grandes o binarios
+*.pkl
+*.h5
+*.model
+
+# Archivos de documentación generados
+docs/_build/
+
+# Archivos de dependencias
+pip-lock.txt

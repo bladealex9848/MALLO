@@ -1,0 +1,55 @@
+# config.yaml
+
+# Configuración de modelos locales (Ollama)
+ollama:
+  base_url: "http://localhost:11434"
+  default_model: "phi3:latest"
+  models:
+    - "gemma2:2b"
+    - "llava:latest"
+    - "phi3:latest"
+    - "llama3.1:latest"
+    - "qwen2:latest"
+
+# Configuración de OpenAI
+openai:
+  default_model: "gpt-4o-mini"
+  models:
+    - "gpt-3.5-turbo"
+    - "gpt-4o-mini"
+
+# Configuración de asistentes especializados
+specialized_assistants:
+  - id: "asst_RfRNo5Ij76ieg7mV11CqYV9v"
+    name: "Experto en Finanzas"
+    keywords: ["finanzas", "inversiones", "bolsa", "economía"]
+  - id: "asst_RfRNo5Ij76ieg7mV11CqYV9v"
+    name: "Asistente Legal"
+    keywords: ["legal", "leyes", "contratos", "normativa"]
+  - id: "asst_RfRNo5Ij76ieg7mV11CqYV9v"
+    name: "Especialista en Tecnología"
+    keywords: ["tecnología", "programación", "inteligencia artificial", "software"]
+
+# Configuración general
+general:
+  default_language: "es"
+  max_tokens: 1000
+  temperature: 0.7
+
+# Prioridad de procesamiento
+processing_priority:
+  - ollama
+  - specialized_assistants
+  - openai
+
+# Configuración de utilidades
+utilities:
+  web_search:
+    enabled: true
+    max_results: 5
+  image_analysis:
+    enabled: false
+    model: "llava:latest"
+  file_handling:
+    enabled: false
+    allowed_extensions: [".txt", ".pdf", ".docx"]
