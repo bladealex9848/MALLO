@@ -68,20 +68,22 @@ def buscar_en_duckduckgo(consulta: str, num_results: int = 5) -> List[Dict[str, 
         st.error(f"Error al buscar en DuckDuckGo: {str(e)}")
         return []
 
-def charla_con_openai(consulta: str, contexto: str, modelo: str = "gpt-3.5-turbo") -> str:
-    """
-    Interactúa con OpenAI para generar una respuesta basada en la consulta y el contexto.
-    """
+def charla_con_openai(consulta: str, contexto: str, historial: list, modelo: str = "gpt-4o-mini") -> str:
     try:
         messages = [
-            {"role": "system", "content": "Eres un asistente de búsqueda experto que interpreta y proporciona respuestas basadas en resultados de búsqueda web proporcionados al usuario. Proporciona respuestas concisas y relevantes."},
-            {"role": "user", "content": f"Consulta: {consulta}\n\nContexto de búsqueda:\n{contexto}"}
+            {"role": "system", "content": "Eres un asistente experto que interpreta y proporciona respuestas basadas en la información proporcionada y el historial de la conversación. Ofrece respuestas concisas, relevantes y bien estructuradas."},
         ]
+        # Agregar el historial de la conversación
+        messages.extend(historial)
+        # Agregar el nuevo contexto y la consulta actual
+        messages.append({"role": "user", "content": f"Nuevo contexto:\n{contexto}\n\nConsulta actual: {consulta}"})
+        
         response = client.chat.completions.create(model=modelo, messages=messages)
         return response.choices[0].message.content
     except Exception as e:
         st.error(f"Error al comunicarse con OpenAI: {str(e)}")
         return "Lo siento, ocurrió un error al procesar tu consulta."
+
 
 def analyze_image(image_path: str) -> str:
     """
@@ -91,22 +93,21 @@ def analyze_image(image_path: str) -> str:
     text = pytesseract.image_to_string(image)
     return clean_text(text)
 
-def extract_text_from_pdf(pdf_path: str) -> str:
+def extract_text_from_pdf(pdf_file) -> str:
     """
-    Extrae texto de un archivo PDF.
+    Extrae texto de un archivo PDF cargado por Streamlit.
     """
-    with open(pdf_path, 'rb') as file:
-        reader = PyPDF2.PdfReader(file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() + "\n"
+    text = ""
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    for page in pdf_reader.pages:
+        text += page.extract_text() + "\n"
     return clean_text(text)
 
-def extract_text_from_docx(docx_path: str) -> str:
+def extract_text_from_docx(docx_file) -> str:
     """
-    Extrae texto de un archivo Word (.docx).
+    Extrae texto de un archivo Word (.docx) cargado por Streamlit.
     """
-    doc = docx.Document(docx_path)
+    doc = docx.Document(docx_file)
     text = ""
     for para in doc.paragraphs:
         text += para.text + "\n"

@@ -1,9 +1,7 @@
-# config.yaml
-
 # Configuración de modelos locales (Ollama)
 ollama:
   base_url: "http://localhost:11434"
-  default_model: "phi3:latest"
+  default_model: "gemma2:2b"
   models:
     - "gemma2:2b"
     - "llava:latest"
@@ -17,18 +15,86 @@ openai:
   models:
     - "gpt-3.5-turbo"
     - "gpt-4o-mini"
+  master_model: "gpt-4o-mini"  # Modelo para la síntesis final
+
+# Configuración de Together
+together:
+  default_model: "Qwen/Qwen2-72B-Instruct"
+  models:
+    - "Qwen/Qwen2-72B-Instruct"
+    - "google/gemma-2-27b-it"
+    - "zero-one-ai/Yi-34B-Chat"
+    - "deepseek-ai/deepseek-llm-67b-chat"
+  max_tokens: 512
+  temperature: 0.7
 
 # Configuración de asistentes especializados
 specialized_assistants:
-  - id: "asst_RfRNo5Ij76ieg7mV11CqYV9v"
-    name: "Experto en Finanzas"
-    keywords: ["finanzas", "inversiones", "bolsa", "economía"]
-  - id: "asst_RfRNo5Ij76ieg7mV11CqYV9v"
-    name: "Asistente Legal"
-    keywords: ["legal", "leyes", "contratos", "normativa"]
-  - id: "asst_RfRNo5Ij76ieg7mV11CqYV9v"
-    name: "Especialista en Tecnología"
-    keywords: ["tecnología", "programación", "inteligencia artificial", "software"]
+  - id: "asst_gRTtnBm9jH8VUhAG20l1RBo1"
+    name: "Experto en Vigilancia Judicial"
+    keywords: [
+        "vigilancia judicial administrativa",
+        "autonomía",
+        "garantía",
+        "acuerdos",
+        "ACUERDO No. PSAA11-8716",
+        "protocolos",
+        "vigiláncia judicial",
+        "aplicación",
+        "vigilancia",
+        "eficiencia",
+        "vigilancia judicial",
+        "vigiláncia judicial administrativa",
+        "celeridad",
+        "responsabilidades",
+        "moralidad",
+        "supervisión",
+        "directrices",
+        "vigiláncia",
+        "servicio judicial",
+        "eficacia",
+        "CIRCULAR PCSJC17-43 de 2017",
+        "independencia",
+        "Ley 270 de 1996",
+        "consejo",
+        "normas"
+    ]
+  - id: "asst_gpCZlh5HpWgGAjHqbzFaaVpp"
+    name: "Experto en Constitución Colombiana"
+    keywords: ["constitución", "Colombia", "derechos fundamentales", "normativa", "cambio político", "principios constitucionales", "jurisprudencia", "mecanismos de tutela", "democracia", "tutela", "derechos", "libertades", "carta magna", "preámbulo", "organización del Estado", "derechos humanos", "poder judicial", "constitucionalidad", "reforma", "poder público", "representación", "participación ciudadana", "vida", "integridad", "libertad de expresión", "derecho al trabajo", "educación", "salud", "protección del medio ambiente", "igualdad"]
+  - id: "asst_dQhjl00QPrJrJDYrwhfE0gBX"
+    name: "ProcesAI CGP" 
+    keywords: ["Código General del Proceso", "Teoría General del Proceso", "derecho procesal", "justicia", "Colombia", "leyes", "litigio", "derechos", "procedimientos", "actuación procesal", "normatividad", "garantías procesales", "principios procesales", "Ley 2213 de 2022", "Decreto 806 de 2020", "Devis Echandía", "jurisprudencia"]
+  - id: "asst_bbeLTquUNR8yFS1IVeeFff68"
+    name: "ColDisBot - Agente de Derecho Disciplinario Colombiano" 
+    keywords: ["derecho disciplinario", "Colombia", "sanciones", "faltas disciplinarias", "procedimientos disciplinarios", "Ley 734 de 2002", "Ley 1952 de 2019", "Ley 2094 de 2021", "Decreto 1081 de 2015", "sujetos disciplinables", "garantías procesales", "falta", "sanción", "proceso disciplinario", "normativa disciplinaria", "justicia administrativa", "código disciplinario", "transparencia", "ética administrativa", "responsabilidad disciplinaria", "tutela de derechos fundamentales"]
+  - id: "asst_u0MhHeXqHiDztxdLLYrQeeQr"
+    name: "Parte Especial de los Delitos en Particular" 
+    keywords: ["Código Penal", "delitos", "parte especial", "capítulos", "artículos", "tipo penal", "responsabilidad", "infracciones", "sanciones", "tipificación", "penalizaciones", "delitos comunes", "delitos especiales", "agresión", "robo", "homicidio", "estupro", "violencia", "tráfico de drogas", "fraude", "cohecho", "corrupción", "delitos económicos", "delitos contra la vida", "delitos contra el patrimonio", "delitos sexuales", "delitos informáticos", "delitos contra la libertad", "delitos contra la integridad", "delitos contra la administración pública"]
+  - id: "asst_XA5fS0wvyifI3afm1TnRooEQ"
+    name: "Experto en Reclasificaciones" 
+    keywords: ["reclasificación", "experiencia", "análisis", "documentación", "validación", "comparación", "duplicación", "aportaciones", "estudios", "revisión meticulosa", "datos actualizados", "etapas", "validación de información", "evaluación exhaustiva", "proceso", "categorías", "metodología", "documentos", "información previa", "nuevos aportes", "información relevante", "estudios reportados"]
+  - id: "asst_Y0zt3gjDRD1T0ZBuyJpMB48R"
+    name: "Asesor Ético Educativo Colombiano"
+    keywords: ["ética", "educación", "Colombia", "normativas", "legislación", "prácticas éticas", "conflictos de interés", "dilemas morales", "comportamiento inapropiado", "instituciones educativas", "profesores", "administradores", "ambiente seguro", "respeto", "guía", "asesoramiento", "cumplimiento", "situaciones éticas", "análisis de casos", "recomendaciones", "mejores prácticas", "códigos deontológicos", "formación", "prevención", "bienestar", "transparencia"]
+  - id: "asst_hd43w2kRFA7VWNxIBy9Mgy8j"
+    name: "Guía de Resiliencia y Manifestación"
+    keywords: ["resiliencia", "manifestación", "apoyo emocional", "autodescubrimiento", "adaptación", "crecimiento personal", "visualización", "afirmaciones", "motivación", "superación", "cambio", "autoconocimiento", "estrategias", "bienestar", "mentalidad positiva", "sueños", "objetivos", "empoderamiento", "conexiones", "fábulas", "moralejas", "técnicas de manifestación", "flexibilidad", "transformación"]
+  - id: "asst_1AWeWoJvYpz7DpYvlaNb0pgk"
+    name: "Guía Tributaria Colombia"
+    keywords: ["impuestos", "DIAN", "recaudo", "devoluciones", "gestión de cartera", "obligaciones fiscales", "declaraciones tributarias", "regímenes especiales", "agentes de retención", "regímenes tributarios especiales", "cumplimiento fiscal", "mecanismos de recaudo", "obligaciones formales", "emprendimiento", "ejercicio de derechos", "normativa tributaria", "asesoramiento tributario", "planificación fiscal", "contribuyentes", "diligencia", "responsabilidad tributaria", "declaración de renta", "impuestos nacionales", "impuestos locales"]
+  - id: "asst_iHVYk93ksnQKHuN02XIktkMT"
+    name: "Artífice de Palabras"
+    keywords: ["copywriting", "redacción", "escritura creativa", "optimización de contenidos", "SEO", "gramática", "ortografía", "estilo", "técnicas narrativas", "persuasión", "contenido digital", "artículos", "blogging", "redacción publicitaria", "creación de copys", "edición", "mejora de textos", "estrategia de contenidos", "análisis de audiencia", "tono de voz", "revisión de textos", "contenido atractivo", "estructura de texto", "eficacia comunicativa", "imágenes hiperrealistas"]
+  - id: "asst_PAYD2AmBDTTat7F8bpFxOvXg"
+    name: "Asistente Profesional de Alexander"
+    keywords: ["Alexander", "Alexander Oviedo", "Alexander Oviedo Fadul"]
+  - id: "asst_g62x4oFzLFqB2Ncmj5YlDbBr"
+    name: "Asistente Lingüístico"
+    keywords: ["gramática", "vocabulario", "uso del idioma", "redacción", "escritura", "pronunciación", "comprensión", "estilo", "sinónimos", "antónimos", "expresiones idiomáticas", "análisis de textos", "corrrección", "claridad", "coherencia", "contexto", "lengua inglesa", "lenguaje técnico", "comunicación efectiva", "conversación", "ayuda con tareas", "recursos lingüísticos", "referencias gramaticales", "respuestas precisas", "energía positiva"]
+  - id: "asst_eYvjSdxv1VUA1Su9zQ07oyoO"
+    name: "Asistente de Análisis Documental"
+    keywords: ["análisis", "documentación", "traducción", "procesamiento de textos", "revisión", "edición", "estrategia de contenido", "optimización", "comprensión lingüística", "categorías", "estructura de documentos", "resumen", "interpretación", "comparación", "validación de información", "minuciosidad", "información precisa", "búsqueda", "gestión de datos", "apoyo administrativo", "creación de informes", "análisis crítico", "lenguaje claro", "apoyo en proyectos", "documentos en inglés", "documentos en español"]
 
 # Configuración general
 general:
@@ -38,8 +104,10 @@ general:
 
 # Prioridad de procesamiento
 processing_priority:
-  - ollama
   - specialized_assistants
+  - moa
+  - ollama
+  - together
   - openai
 
 # Configuración de utilidades
@@ -51,5 +119,46 @@ utilities:
     enabled: false
     model: "llava:latest"
   file_handling:
-    enabled: false
+    enabled: true
     allowed_extensions: [".txt", ".pdf", ".docx"]
+
+# Configuración de la interfaz de usuario
+ui:
+  page_title: "MALLO: MultiAgent LLM Orchestrator"
+  page_icon: "🤖"
+  layout: "wide"
+
+# Configuración de registro y depuración
+logging:
+  level: "INFO"
+  file: "mallo.log"
+
+# Configuración de caché
+cache:
+  enabled: true
+  expiration: 3600  # en segundos
+
+# Configuración de límites de uso
+usage_limits:
+  max_queries_per_day: 1000
+  max_tokens_per_query: 4000
+
+# Configuración de MOA (Mixture of Agents)
+moa:
+  enabled: true
+  aggregator_model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
+  proposal_models:
+    - "Qwen/Qwen2-72B-Instruct"
+    - "google/gemma-2-27b-it"
+    - "zero-one-ai/Yi-34B-Chat"
+    - "deepseek-ai/deepseek-llm-67b-chat"
+  max_layers: 3
+  aggregator_system_prompt: "You are an expert aggregator. Synthesize the following responses into a single, coherent answer, taking into account the web context if provided."
+
+# Umbrales de complejidad
+thresholds:
+  moa_complexity: 0.8  # Umbral para activar MOA
+  local_complexity: 0.5  # Umbral para usar modelos locales
+  web_search_complexity: 0.4  # Umbral para activar búsqueda web
+  api_complexity: 0.7  # Umbral para activar API externa
+  synthesis_complexity: 0.6  # Umbral para activar síntesis final

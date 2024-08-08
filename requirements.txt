@@ -6,3 +6,5 @@ PyPDF2
 python-docx
 duckduckgo-search
 pyyaml
+requests
+together
