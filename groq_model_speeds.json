@@ -1,0 +1,59 @@
+{
+  "groq": [
+    {
+      "model": "llama3-groq-70b-8192-tool-use-preview",
+      "speed": 0.29141998291015625,
+      "status": "success"
+    },
+    {
+      "model": "gemma2-9b-it",
+      "speed": 0.29177117347717285,
+      "status": "success"
+    },
+    {
+      "model": "llama3-8b-8192",
+      "speed": 0.2924158573150635,
+      "status": "success"
+    },
+    {
+      "model": "whisper-large-v3",
+      "speed": 0.2960209846496582,
+      "status": "success"
+    },
+    {
+      "model": "llama3-70b-8192",
+      "speed": 0.3237190246582031,
+      "status": "success"
+    },
+    {
+      "model": "llama3-groq-8b-8192-tool-use-preview",
+      "speed": 0.3280069828033447,
+      "status": "success"
+    },
+    {
+      "model": "gemma-7b-it",
+      "speed": 0.3562159538269043,
+      "status": "success"
+    },
+    {
+      "model": "mixtral-8x7b-32768",
+      "speed": 0.4093749523162842,
+      "status": "success"
+    },
+    {
+      "model": "llama-3.1-70b-versatile",
+      "speed": 0.43189406394958496,
+      "status": "success"
+    },
+    {
+      "model": "llama-guard-3-8b",
+      "speed": 0.5661230087280273,
+      "status": "success"
+    },
+    {
+      "model": "llama-3.1-8b-instant",
+      "speed": 0.7731900215148926,
+      "status": "success"
+    }
+  ]
+}

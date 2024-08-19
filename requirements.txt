@@ -14,3 +14,9 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0
 pydantic
 asyncio
 aiohttp
+polars
+Anthropic
+Mistral
+mistralai
+cohere
+scikit-learn

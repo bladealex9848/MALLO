@@ -12,8 +12,7 @@ ollama:
 # Configuración de OpenAI
 openai:
   default_model: "gpt-4o-mini"
-  models:
-    - "gpt-3.5-turbo"
+  models:  
     - "gpt-4o-mini"
   master_model: "gpt-4o-mini"  # Modelo para la síntesis final
 
@@ -30,22 +29,129 @@ together:
 
 # Configuración de Groq
 groq:
-  fast_model: "llama-3.1-8b-instant"
-  default_model: "llama-3.1-70b-versatile"
+  fast_model: "llama3-8b-8192"  # El modelo más rápido según los resultados
+  default_model: "llama-3.1-70b-versatile"  # Mantenemos el modelo por defecto que tenías
   models:
-    - "llama-3.1-70b-versatile"
-    - "llama-3.1-8b-instant"
-    - "llama3-groq-70b-8192-tool-use-preview"
-    - "llama3-groq-8b-8192-tool-use-preview"
-    - "llama-guard-3-8b"
-    - "mixtral-8x7b-32768"
-    - "gemma-7b-it"
-    - "gemma2-9b-it"
+    - "llama3-8b-8192"             # 2. Velocidad: 0.2880 s
+    - "gemma-7b-it"                # 3. Velocidad: 0.2911 s
+    - "llama3-groq-70b-8192-tool-use-preview"  # 4. Velocidad: 0.3144 s
+    - "llama-guard-3-8b"           # 5. Velocidad: 0.3474 s
+    - "gemma2-9b-it"               # 6. Velocidad: 0.3625 s
+    - "llama-3.1-8b-instant"       # 7. Velocidad: 0.3687 s
+    - "mixtral-8x7b-32768"         # 8. Velocidad: 0.3732 s
+    - "llama3-groq-8b-8192-tool-use-preview"  # 9. Velocidad: 0.3769 s
+    - "llama-3.1-70b-versatile"    # 10. Velocidad: 0.3793 s
+    - "llama3-70b-8192"            # 11. Velocidad: 0.4262 s
   max_tokens: 8192
   temperature: 0.7
 
+# Configuración de DeepInfra
+deepinfra:
+  fast_models: "meta-llama/Meta-Llama-3-8B-Instruct"
+  default_model: "mistralai/Mixtral-8x7B-Instruct-v0.1"
+  models:
+    - "microsoft/WizardLM-2-8x22B"
+    - "mistralai/Mixtral-8x7B-Instruct-v0.1"
+    - "meta-llama/Meta-Llama-3.1-8B-Instruct"    
+    - "Qwen/Qwen2-7B-Instruct"
+    - "microsoft/Phi-3-medium-4k-instruct"
+    - "Gryphe/MythoMax-L2-13b"
+    - "Phind/Phind-CodeLlama-34B-v2"
+    - "meta-llama/Meta-Llama-3.1-70B-Instruct"    
+    - "Qwen/Qwen2-72B-Instruct"
+    - "lizpreciatior/lzlv_70b_fp16_hf"
+
+# Configuración de Anthropic
+anthropic:
+  fast_models: "claude-3-haiku-20240307"
+  default_model: "claude-3-haiku-20240307"
+  models:
+    - "claude-3-5-sonnet-20240620"
+    - "claude-3-haiku-20240307"
+
+# Configuración de DeepSeek
+deepseek:
+  fast_models: "deepseek-chat"
+  default_model: "deepseek-chat"
+  models:
+    - "deepseek-chat"
+    - "deepseek-coder"
+
+# Configuración de Mistral
+mistral:
+  fast_models: "open-mistral-nemo"
+  default_model: "open-mistral-nemo"
+  models:
+    - "open-mistral-nemo"
+    - "mistral-large-latest"
+    - "codestral-latest"
+
+# Configuración de Cohere
+cohere:
+  fast_models: "command-r-plus"
+  default_model: "command-r-plus"
+  models:
+    - "command-r-plus"
+
 # Configuración de asistentes especializados
 specialized_assistants:
+  - id: "asst_MzMayuSJV8AhP6vacv2ee3Xx"
+    name: "Asistente de Inteligencia Artificial"
+    keywords: [
+        "inteligencia artificial",
+        "asistente virtual",
+        "conocimiento",
+        "respuesta efectiva",
+        "interacción",
+        "aprendizaje automático",
+        "motivación",
+        "curiosidad",
+        "ayuda",
+        "orientación",
+        "generación de ideas",
+        "colaboración",
+        "análisis",
+        "resolución de problemas",
+        "creatividad",
+        "multidisciplinario",
+        "comunicación",
+        "recursos",
+        "gestión del conocimiento",
+        "experiencia compartida",
+        "precisión",
+        "eficiencia",
+        "adaptabilidad",
+        "soporte",
+        "consultas"
+    ]
+  - id: "asst_RfRNo5Ij76ieg7mV11CqYV9v"
+    name: "Asistente Virtual de Inteligencia Artificial"
+    keywords: [
+        "asistente virtual",
+        "inteligencia artificial",
+        "conocimiento amplio",
+        "tecnología",
+        "ciencia",
+        "arte",
+        "historia",
+        "cultura general",
+        "aprendizaje",
+        "curiosidad",
+        "respuestas educativas",
+        "información precisa",
+        "formato Markdown",
+        "interactividad",
+        "ayuda",
+        "paciencia",
+        "adaptabilidad",
+        "etica",
+        "mejora continua",
+        "asistencia personalizada",
+        "comunicación clara",
+        "usuarios",
+        "tareas",
+        "consultas"
+    ]
   - id: "asst_gRTtnBm9jH8VUhAG20l1RBo1"
     name: "Experto en Vigilancia Judicial"
     keywords: [
@@ -126,6 +232,11 @@ processing_priority:
   - groq
   - together
   - openai
+  - deepinfra
+  - anthropic
+  - deepseek
+  - mistral
+  - cohere
 
 # Configuración de utilidades
 utilities:
@@ -184,3 +295,12 @@ utilities:
   web_search:
     enabled: true
     max_results: 5
+
+# Configuración de evaluación de modelos
+evaluation_models:
+  initial:
+    api: "anthropic"  # O el nombre de la API que desees usar
+    model: "claude-3-haiku-20240307" 
+  final:
+    api: "openai"  # O el nombre de la API que desees usar
+    model: "gpt-4o-mini"
