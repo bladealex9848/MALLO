@@ -90,7 +90,6 @@ def check_deepinfra_api() -> bool:
         logging.error(f"Error checking DeepInfra API: {str(e)}")
         return False
 
-
 def check_anthropic_api() -> bool:
     """Verifica la conexión con la API de Anthropic con reintentos."""
     max_retries = 3
@@ -161,9 +160,25 @@ def evaluate_query(query: str, config: Dict[str, Any], initial_evaluation: str) 
     """Evalúa la consulta del usuario."""
     doc = nlp(query)
     
+    domains = {
+        'philosophy': ['sentido de la vida', 'existencia', 'filosofía', 'ética', 'moral'],
+        'science': ['ciencia', 'física', 'química', 'biología', 'tecnología'],
+        'history': ['historia', 'eventos históricos', 'personajes históricos'],
+        'politics': ['política', 'gobierno', 'leyes', 'elecciones'],
+        'arts': ['arte', 'música', 'literatura', 'cine'],
+        'general': []
+    }
+    
+    query_lower = query.lower()
+    domain = 'general'
+    for key, keywords in domains.items():
+        if any(keyword in query_lower for keyword in keywords):
+            domain = key
+            break
+    
     analysis = {
         "complexity": evaluate_query_complexity(query),
-        "domain": identify_domain(doc, config.get('specialized_assistants', [])),
+        "domain": domain,
         "urgency": estimate_urgency(doc),
         "requires_web_search": needs_web_search(doc),
         "initial_evaluation": initial_evaluation

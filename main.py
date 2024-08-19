@@ -5,29 +5,18 @@ set_streamlit_page_config()
 import streamlit as st
 import yaml
 import os
+import json
 from agents import AgentManager
 from utilities import (
     initialize_system, evaluate_query, process_query, 
     cache_response, get_cached_response, summarize_text,
-    test_agent_speed, select_fastest_model, select_most_capable_model,
-    display_speed_test_results, perform_web_search, get_cached_speed_results,
-    evaluate_query_complexity
+    select_fastest_model, select_most_capable_model,
+    perform_web_search, evaluate_query_complexity
 )
 import time
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-import joblib
-
-
-# Cargar el modelo de selección de agentes
-try:
-    agent_selector = joblib.load('agent_selector.joblib')
-    vectorizer = joblib.load('vectorizer.joblib')
-except:
-    agent_selector = MultinomialNB()
-    vectorizer = TfidfVectorizer()
+import polars as pl
 
 def load_config():
     try:
@@ -40,6 +29,36 @@ def load_config():
         st.error(f"Error al leer el archivo de configuración: {str(e)}")
         st.stop()
 
+def load_speed_test_results():
+    try:
+        with open('model_speeds.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
+
+def display_speed_test_results(results):
+    st.sidebar.title("Resultados del Test de Velocidad")
+    
+    # Crear un DataFrame de Polars con los resultados
+    data = []
+    for api, models in results.items():
+        for model in models:
+            data.append({"API": api, "Modelo": model['model'], "Velocidad": f"{model['speed']:.4f}"})
+    
+    df = pl.DataFrame(data)
+    
+    # Obtener la lista única de APIs
+    apis = df['API'].unique().to_list()
+    
+    # Crear un menú desplegable para seleccionar la API
+    selected_api = st.sidebar.selectbox("Seleccionar API", apis)
+    
+    # Filtrar el DataFrame por la API seleccionada
+    filtered_df = df.filter(pl.col('API') == selected_api)
+    
+    # Mostrar la tabla filtrada
+    st.sidebar.table(filtered_df)
+
 async def process_with_multiple_agents(user_input, agent_manager, num_agents=3):
     tasks = []
     for agent_type, agent_id in agent_manager.get_agent_priority()[:num_agents]:
@@ -47,7 +66,7 @@ async def process_with_multiple_agents(user_input, agent_manager, num_agents=3):
             asyncio.to_thread(agent_manager.process_query, user_input, agent_type, agent_id)
         ))
     responses = await asyncio.gather(*tasks, return_exceptions=True)
-    valid_responses = [r for r in responses if not isinstance(r, Exception)]
+    valid_responses = [r for r in responses if not isinstance(r, Exception) and r is not None]
     return max(valid_responses, key=len) if valid_responses else None
 
 def process_user_input(user_input, config, agent_manager):
@@ -61,10 +80,6 @@ def process_user_input(user_input, config, agent_manager):
             start_time = time.time()
             
             complexity = evaluate_query_complexity(user_input)
-            
-            # Usar el modelo de selección de agentes
-            agent_features = vectorizer.transform([user_input])
-            predicted_agent = agent_selector.predict(agent_features)[0]
             
             if complexity < 0.3:  # Umbral reducido para consultas simples
                 response = agent_manager.process_query(user_input, 'deepinfra', 'meta-llama/Meta-Llama-3-8B-Instruct')
@@ -100,14 +115,14 @@ def process_user_input(user_input, config, agent_manager):
                 f"Evalúa si esta respuesta es apropiada y precisa para la consulta original. Si no lo es, proporciona una respuesta mejorada:\n\nConsulta: {user_input}\n\nRespuesta: {response}",
                 config['evaluation_models']['final']['api'],
                 config['evaluation_models']['final']['model']
-)
+            )
 
             if "no es apropiada" in final_evaluation.lower() or "no es precisa" in final_evaluation.lower():
                 response = final_evaluation
 
             processing_time = time.time() - start_time
             details = {
-                "selected_agent": predicted_agent,
+                "selected_agent": 'multiple',
                 'processing_time': f"{processing_time:.2f} segundos",
                 'initial_evaluation': initial_evaluation,
                 'final_evaluation': final_evaluation,
@@ -115,11 +130,6 @@ def process_user_input(user_input, config, agent_manager):
                 'web_search_performed': query_analysis['requires_web_search'],
                 'web_context': web_context
             }
-
-            # Actualizar el modelo de selección de agentes
-            agent_selector.partial_fit(agent_features, [predicted_agent])
-            joblib.dump(agent_selector, 'agent_selector.joblib')
-            joblib.dump(vectorizer, 'vectorizer.joblib')
 
             cache_response(user_input, (response, details))
 
@@ -136,10 +146,6 @@ def main():
         system_status = initialize_system(config)
         agent_manager = AgentManager(config)
 
-        speed_test_results = get_cached_speed_results()
-        if not speed_test_results:
-            speed_test_results = test_agent_speed(agent_manager)
-
         st.title("MALLO: MultiAgent LLM Orchestrator")
         st.write("""
         MALLO es un sistema avanzado de orquestación de múltiples agentes de Modelos de Lenguaje de Gran Escala (LLMs).
@@ -150,7 +156,12 @@ def main():
         for key, value in system_status.items():
             st.sidebar.text(f"{key}: {'✅' if value else '❌'}")
             
-        display_speed_test_results(speed_test_results)
+        # Cargar y mostrar resultados del test de velocidad si están disponibles
+        speed_test_results = load_speed_test_results()
+        if speed_test_results:
+            display_speed_test_results(speed_test_results)
+        else:
+            st.sidebar.warning("No se encontraron resultados de pruebas de velocidad.")
 
         if 'messages' not in st.session_state:
             st.session_state['messages'] = []

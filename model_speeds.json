@@ -1,0 +1,172 @@
+{
+  "groq": [
+    {
+      "model": "whisper-large-v3",
+      "speed": 60.47848391532898
+    },
+    {
+      "model": "llama-guard-3-8b",
+      "speed": 60.51785492897034
+    },
+    {
+      "model": "llama3-groq-8b-8192-tool-use-preview",
+      "speed": 60.51840615272522
+    },
+    {
+      "model": "llama-3.1-8b-instant",
+      "speed": 60.52590799331665
+    },
+    {
+      "model": "llama3-groq-70b-8192-tool-use-preview",
+      "speed": 60.54379105567932
+    },
+    {
+      "model": "llama-3.1-70b-versatile",
+      "speed": 60.558809995651245
+    },
+    {
+      "model": "llama3-70b-8192",
+      "speed": 60.59304690361023
+    },
+    {
+      "model": "llama3-8b-8192",
+      "speed": 60.596468925476074
+    },
+    {
+      "model": "gemma-7b-it",
+      "speed": 60.60470509529114
+    },
+    {
+      "model": "mixtral-8x7b-32768",
+      "speed": 60.61885619163513
+    },
+    {
+      "model": "distil-whisper-large-v3-en",
+      "speed": 60.64787673950195
+    },
+    {
+      "model": "gemma2-9b-it",
+      "speed": 60.99612998962402
+    }
+  ],
+  "ollama": [
+    {
+      "model": "qwen2:latest",
+      "speed": 6.7313408851623535
+    },
+    {
+      "model": "llama3.1:latest",
+      "speed": 7.6554951667785645
+    },
+    {
+      "model": "llava:latest",
+      "speed": 7.670797824859619
+    },
+    {
+      "model": "gemma2:2b",
+      "speed": 7.722210168838501
+    },
+    {
+      "model": "phi3:latest",
+      "speed": 10.75675106048584
+    }
+  ],
+  "openai": [
+    {
+      "model": "gpt-4o-mini",
+      "speed": 0.7515196800231934
+    }
+  ],
+  "together": [
+    {
+      "model": "google/gemma-2-27b-it",
+      "speed": 0.5210423469543457
+    },
+    {
+      "model": "Qwen/Qwen2-72B-Instruct",
+      "speed": 0.6530439853668213
+    },
+    {
+      "model": "deepseek-ai/deepseek-llm-67b-chat",
+      "speed": 0.8049311637878418
+    },
+    {
+      "model": "Qwen/Qwen2-72B-Instruct",
+      "speed": 0.8388671875
+    },
+    {
+      "model": "zero-one-ai/Yi-34B-Chat",
+      "speed": 1.7333011627197266
+    }
+  ],
+  "deepinfra": [
+    {
+      "model": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+      "speed": 0.4190499782562256
+    },
+    {
+      "model": "microsoft/Phi-3-medium-4k-instruct",
+      "speed": 0.4686391353607178
+    },
+    {
+      "model": "Gryphe/MythoMax-L2-13b",
+      "speed": 0.5628058910369873
+    },
+    {
+      "model": "Qwen/Qwen2-7B-Instruct",
+      "speed": 0.5657601356506348
+    },
+    {
+      "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      "speed": 0.5927371978759766
+    },
+    {
+      "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+      "speed": 0.639594316482544
+    },
+    {
+      "model": "Phind/Phind-CodeLlama-34B-v2",
+      "speed": 0.7781810760498047
+    },
+    {
+      "model": "microsoft/WizardLM-2-8x22B",
+      "speed": 0.8346090316772461
+    },
+    {
+      "model": "lizpreciatior/lzlv_70b_fp16_hf",
+      "speed": 1.6141209602355957
+    }
+  ],
+  "anthropic": [
+    {
+      "model": "claude-3-haiku-20240307",
+      "speed": 0.7487056255340576
+    },
+    {
+      "model": "claude-3-5-sonnet-20240620",
+      "speed": 0.8433148860931396
+    }
+  ],
+  "deepseek": [
+    {
+      "model": "deepseek-coder",
+      "speed": 1.641615867614746
+    },
+    {
+      "model": "deepseek-chat",
+      "speed": 1.664708137512207
+    }
+  ],
+  "mistral": [
+    {
+      "model": "open-mistral-nemo",
+      "speed": 1.1061081886291504
+    }
+  ],
+  "cohere": [
+    {
+      "model": "command-r-plus",
+      "speed": 0.4303622245788574
+    }
+  ]
+}
