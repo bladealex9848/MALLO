@@ -28,6 +28,22 @@ together:
   max_tokens: 512
   temperature: 0.7
 
+# Configuración de Groq
+groq:
+  fast_model: "llama-3.1-8b-instant"
+  default_model: "llama-3.1-70b-versatile"
+  models:
+    - "llama-3.1-70b-versatile"
+    - "llama-3.1-8b-instant"
+    - "llama3-groq-70b-8192-tool-use-preview"
+    - "llama3-groq-8b-8192-tool-use-preview"
+    - "llama-guard-3-8b"
+    - "mixtral-8x7b-32768"
+    - "gemma-7b-it"
+    - "gemma2-9b-it"
+  max_tokens: 8192
+  temperature: 0.7
+
 # Configuración de asistentes especializados
 specialized_assistants:
   - id: "asst_gRTtnBm9jH8VUhAG20l1RBo1"
@@ -107,6 +123,7 @@ processing_priority:
   - specialized_assistants
   - moa
   - ollama
+  - groq
   - together
   - openai
 
@@ -162,3 +179,8 @@ thresholds:
   web_search_complexity: 0.4  # Umbral para activar búsqueda web
   api_complexity: 0.7  # Umbral para activar API externa
   synthesis_complexity: 0.6  # Umbral para activar síntesis final
+
+utilities:
+  web_search:
+    enabled: true
+    max_results: 5

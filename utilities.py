@@ -1,129 +1,201 @@
-import re
-from typing import List, Dict, Any
-from PIL import Image
-import pytesseract
-import PyPDF2
-import docx
+import spacy
+from typing import Dict, Any, Tuple, List
 from duckduckgo_search import DDGS
 import streamlit as st
-from openai import OpenAI
+from agents import AgentManager, evaluate_query_complexity
+import hashlib
+from datetime import datetime, timedelta
+import requests
+import logging
 
-# Obtener las claves API de los secrets de Streamlit
-API_KEY = st.secrets.get("OPENAI_API_KEY")
-if not API_KEY:
-    st.error("No se encontró la clave API de OpenAI en los secrets.")
-    st.stop()
+# Configurar logging
+logging.basicConfig(filename='mallo.log', level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-client = OpenAI(api_key=API_KEY)
+# Cargar el modelo de lenguaje de spaCy
+@st.cache_resource
+def load_nlp_model():
+    return spacy.load("en_core_web_sm")
 
-def clean_text(text: str) -> str:
-    """
-    Limpia el texto de caracteres especiales y espacios extra.
-    """
-    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
+nlp = load_nlp_model()
 
-def tokenize(text: str) -> List[str]:
-    """
-    Divide el texto en tokens (palabras).
-    """
-    return text.lower().split()
+def initialize_system(config: Dict[str, Any]) -> Dict[str, bool]:
+    """Inicializa y verifica los componentes del sistema."""
+    status = {
+        "OpenAI API": check_openai_api(),
+        "Groq API": check_groq_api(),
+        "Local Models": check_local_models(config),
+        "Web Search": check_web_search(),
+        "Specialized Agents": check_specialized_agents(config)
+    }
+    logging.info(f"System status: {status}")
+    return status
 
-def extract_keywords(text: str, num_keywords: int = 5) -> List[str]:
-    """
-    Extrae las palabras clave más frecuentes del texto.
-    """
-    words = tokenize(text)
-    word_freq = {}
-    for word in words:
-        if len(word) > 3:
-            word_freq[word] = word_freq.get(word, 0) + 1
-    return sorted(word_freq, key=word_freq.get, reverse=True)[:num_keywords]
+def check_openai_api() -> bool:
+    """Verifica la conexión con la API de OpenAI."""
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        client.models.list()
+        return True
+    except Exception as e:
+        logging.error(f"Error checking OpenAI API: {str(e)}")
+        return False
 
-def summarize_text(text: str, max_length: int = 100) -> str:
-    """
-    Genera un resumen simple del texto.
-    """
+def check_groq_api() -> bool:
+    """Verifica la conexión con la API de Groq."""
+    try:
+        from groq import Groq
+        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+        client.chat.completions.create(model="llama-3.1-70b-versatile", messages=[{"role": "user", "content": "Test"}])
+        return True
+    except Exception as e:
+        logging.error(f"Error checking Groq API: {str(e)}")
+        return False
+
+def check_local_models(config: Dict[str, Any]) -> bool:
+    """Verifica la disponibilidad de modelos locales."""
+    try:
+        response = requests.get(f"{config['ollama']['base_url']}/api/tags")
+        return len(response.json()['models']) > 0
+    except Exception as e:
+        logging.error(f"Error checking local models: {str(e)}")
+        return False
+
+def check_web_search() -> bool:
+    """Verifica la funcionalidad de búsqueda web."""
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text("test", max_results=1))
+            return len(results) > 0
+    except Exception as e:
+        logging.error(f"Error checking web search: {str(e)}")
+        return False
+
+def check_specialized_agents(config: Dict[str, Any]) -> bool:
+    """Verifica la disponibilidad de agentes especializados."""
+    specialized_assistants = config.get('specialized_assistants', [])
+    return len(specialized_assistants) > 0
+
+def evaluate_query(query: str, config: Dict[str, Any]) -> Dict[str, Any]:
+    """Evalúa la consulta del usuario."""
+    doc = nlp(query)
+    
+    analysis = {
+        "complexity": evaluate_query_complexity(query),
+        "domain": identify_domain(doc, config['specialized_assistants']),
+        "urgency": estimate_urgency(doc),
+        "requires_web_search": needs_web_search(doc)
+    }
+    
+    return analysis
+
+def identify_domain(doc, specialized_assistants: List[Dict[str, Any]]) -> str:
+    """Identifica el dominio de la consulta."""
+    for assistant in specialized_assistants:
+        if any(keyword.lower() in doc.text.lower() for keyword in assistant['keywords']):
+            return assistant['name']
+    return "general"
+
+def estimate_urgency(doc) -> float:
+    """Estima la urgencia de la consulta."""
+    urgency_words = ["urgente", "inmediatamente", "pronto", "rápido"]
+    return min(sum(word.text.lower() in urgency_words for word in doc) / len(doc), 1.0)
+
+def needs_web_search(doc) -> bool:
+    """Determina si la consulta requiere búsqueda web."""
+    web_search_indicators = ["actual", "reciente", "último", "noticias"]
+    return any(word.text.lower() in web_search_indicators for word in doc)
+
+def process_query(query: str, analysis: Dict[str, Any], config: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+    """Procesa la consulta del usuario."""
+    agent_manager = AgentManager(config)
+    agent_type, agent_id = agent_manager.get_appropriate_agent(query, analysis['complexity'])
+    
+    if analysis['requires_web_search']:
+        web_context = perform_web_search(query)
+        enriched_query = f"{query}\nContext: {web_context}"
+    else:
+        enriched_query = query
+        web_context = ""
+    
+    try:
+        response = agent_manager.process_query(enriched_query, agent_type, agent_id)
+    except Exception as e:
+        logging.error(f"Error processing query: {str(e)}")
+        response = "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, inténtalo de nuevo."
+    
+    details = {
+        "query_analysis": analysis,
+        "selected_agent": (agent_type, agent_id),
+        "web_search_performed": analysis['requires_web_search'],
+        "web_context": web_context
+    }
+    
+    return response, details
+
+def perform_web_search(query: str) -> str:
+    """Realiza una búsqueda web y retorna los resultados."""
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=3))
+        if results:
+            return "\n".join([result['body'] for result in results])
+        else:
+            return "No se encontraron resultados en la búsqueda web."
+    except Exception as e:
+        logging.error(f"Error in web search: {str(e)}")
+        return "Error al realizar la búsqueda web."
+
+# Sistema de caché
+cache = {}
+
+def cache_response(query: str, response: Tuple[str, Dict[str, Any]]):
+    """Almacena la respuesta en caché."""
+    key = hashlib.md5(query.encode()).hexdigest()
+    cache[key] = {
+        'response': response,
+        'timestamp': datetime.now()
+    }
+
+def get_cached_response(query: str) -> Tuple[str, Dict[str, Any]] or None:
+    """Obtiene la respuesta de la caché si está disponible y es reciente."""
+    key = hashlib.md5(query.encode()).hexdigest()
+    if key in cache:
+        cached_item = cache[key]
+        if datetime.now() - cached_item['timestamp'] < timedelta(hours=1):
+            return cached_item['response']
+    return None
+
+def summarize_text(text: str, max_length: int = 200) -> str:
+    """Genera un resumen simple del texto."""
+    if len(text) <= max_length:
+        return text
+    
     sentences = text.split('.')
     summary = []
     current_length = 0
+    
     for sentence in sentences:
         if current_length + len(sentence) <= max_length:
             summary.append(sentence)
             current_length += len(sentence)
         else:
             break
+    
     return '. '.join(summary) + '.'
 
-def buscar_en_duckduckgo(consulta: str, num_results: int = 5) -> List[Dict[str, str]]:
-    """
-    Realiza una búsqueda web utilizando DuckDuckGo.
-    """
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(consulta, max_results=num_results))
-        return results
-    except Exception as e:
-        st.error(f"Error al buscar en DuckDuckGo: {str(e)}")
-        return []
+def log_error(error_message: str):
+    """Registra un error en el archivo de log."""
+    logging.error(error_message)
+    st.error(error_message)
 
-def charla_con_openai(consulta: str, contexto: str, historial: list, modelo: str = "gpt-4o-mini") -> str:
-    try:
-        messages = [
-            {"role": "system", "content": "Eres un asistente experto que interpreta y proporciona respuestas basadas en la información proporcionada y el historial de la conversación. Ofrece respuestas concisas, relevantes y bien estructuradas."},
-        ]
-        # Agregar el historial de la conversación
-        messages.extend(historial)
-        # Agregar el nuevo contexto y la consulta actual
-        messages.append({"role": "user", "content": f"Nuevo contexto:\n{contexto}\n\nConsulta actual: {consulta}"})
-        
-        response = client.chat.completions.create(model=modelo, messages=messages)
-        return response.choices[0].message.content
-    except Exception as e:
-        st.error(f"Error al comunicarse con OpenAI: {str(e)}")
-        return "Lo siento, ocurrió un error al procesar tu consulta."
+def log_warning(warning_message: str):
+    """Registra una advertencia en el archivo de log."""
+    logging.warning(warning_message)
+    st.warning(warning_message)
 
-
-def analyze_image(image_path: str) -> str:
-    """
-    Analiza una imagen y extrae el texto utilizando OCR.
-    """
-    image = Image.open(image_path)
-    text = pytesseract.image_to_string(image)
-    return clean_text(text)
-
-def extract_text_from_pdf(pdf_file) -> str:
-    """
-    Extrae texto de un archivo PDF cargado por Streamlit.
-    """
-    text = ""
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-    for page in pdf_reader.pages:
-        text += page.extract_text() + "\n"
-    return clean_text(text)
-
-def extract_text_from_docx(docx_file) -> str:
-    """
-    Extrae texto de un archivo Word (.docx) cargado por Streamlit.
-    """
-    doc = docx.Document(docx_file)
-    text = ""
-    for para in doc.paragraphs:
-        text += para.text + "\n"
-    return clean_text(text)
-
-def detect_language(text: str) -> str:
-    """
-    Detecta el idioma del texto (implementación simple).
-    """
-    common_words = {
-        'en': ['the', 'be', 'to', 'of', 'and', 'in', 'that', 'have'],
-        'es': ['el', 'la', 'de', 'que', 'y', 'en', 'un', 'ser'],
-        'fr': ['le', 'la', 'de', 'et', 'un', 'une', 'que', 'en']
-    }
-    
-    words = set(tokenize(text))
-    scores = {lang: sum(1 for word in lang_words if word in words) 
-              for lang, lang_words in common_words.items()}
-    return max(scores, key=scores.get)
+def log_info(info_message: str):
+    """Registra información en el archivo de log."""
+    logging.info(info_message)
+    st.info(info_message)

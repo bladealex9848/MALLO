@@ -6,6 +6,7 @@ from together import Together
 import asyncio
 import socket
 import re
+from groq import Groq
 
 class AgentManager:
     def __init__(self, config: Dict[str, Any]):
@@ -13,9 +14,34 @@ class AgentManager:
         self.ollama_models = self.get_ollama_models()
         self.openai_models = config.get('openai', {}).get('models', [])
         self.specialized_assistants = config.get('specialized_assistants', [])
-        self.openai_client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        self.together_client = Together(api_key=st.secrets["TOGETHER_API_KEY"])
+        self.openai_client = self.init_openai_client()
+        self.together_client = self.init_together_client()
+        self.groq_client = self.init_groq_client()
         self.together_models = config.get('together', {}).get('models', [])
+
+    def init_openai_client(self):
+        try:
+            return openai.OpenAI(api_key=st.secrets.get("OPENAI_API_KEY"))
+        except Exception as e:
+            st.warning(f"Error al inicializar OpenAI client: {str(e)}")
+            return None
+
+    def init_together_client(self):
+        try:
+            return Together(api_key=st.secrets.get("TOGETHER_API_KEY"))
+        except Exception as e:
+            st.warning(f"Error al inicializar Together client: {str(e)}")
+            return None
+
+    def init_groq_client(self):
+        try:
+            client = Groq(api_key=st.secrets.get("GROQ_API_KEY"))
+            # Cambiamos el modelo de prueba a uno que sabemos que existe
+            client.chat.completions.create(model="llama-3.1-8b-instant", messages=[{"role": "user", "content": "Test"}])
+            return client
+        except Exception as e:
+            st.warning(f"Error al inicializar Groq client: {str(e)}")
+            return None
 
     def get_ollama_models(self) -> List[str]:
         try:
@@ -24,12 +50,8 @@ class AgentManager:
                 return [model['name'] for model in response.json()['models']]
             return []
         except requests.RequestException:
+            st.warning("No se pudieron obtener los modelos de Ollama")
             return []
-
-    def get_local_model_name(self) -> Optional[str]:
-        if self.ollama_models:
-            return self.config['ollama']['default_model']
-        return None
 
     def get_appropriate_agent(self, query: str, complexity: float) -> Tuple[str, str]:
         for assistant in self.specialized_assistants:
@@ -40,16 +62,42 @@ class AgentManager:
             return 'moa', 'multiple'
         
         if self.ollama_models and (complexity <= self.config['thresholds']['local_complexity'] or not self.internet_available()):
-            return 'local', self.get_local_model_name()
+            return 'local', self.config['ollama']['default_model']
         
         if self.internet_available():
-            return 'api', self.config['openai']['default_model']
+            if self.openai_client:
+                return 'api', self.config['openai']['default_model']
+            elif self.groq_client:
+                return 'groq', self.config['groq']['default_model']
+            elif self.together_client:
+                return 'together', self.config['together']['default_model']
         
-        return ('local', self.get_local_model_name()) if self.ollama_models else ('together', self.together_models[0])
+        return 'fallback', 'echo'
+
+    def process_query(self, query: str, agent_type: str, agent_id: str) -> str:
+        try:
+            if agent_type == 'assistant':
+                return self.process_with_assistant(agent_id, query)
+            elif agent_type == 'api':
+                response, _ = self.process_with_api(query, agent_id)
+                return response
+            elif agent_type == 'groq':
+                return self.process_with_groq(query, agent_id)
+            elif agent_type == 'local':
+                return self.process_with_local_model(query, agent_id)
+            elif agent_type == 'together':
+                return self.process_with_together(query, agent_id)
+            elif agent_type == 'moa':
+                return self.run_moa(query)
+            else:
+                return f"No se pudo procesar la consulta con el agente seleccionado: {agent_type}"
+        except Exception as e:
+            st.error(f"Error al procesar la consulta: {str(e)}")
+            return "Ocurrió un error al procesar la consulta. Por favor, intenta de nuevo."
 
     def process_with_local_model(self, query: str, model: Optional[str] = None) -> str:
         if model is None:
-            model = self.get_local_model_name()
+            model = self.config['ollama']['default_model']
         
         url = f"{self.config['ollama']['base_url']}/api/generate"
         payload = {
@@ -111,13 +159,17 @@ class AgentManager:
         except Exception as e:
             return f"Error al procesar con Together API: {str(e)}"
 
-    async def run_multiple_models(self, query: str) -> List[str]:
-        async def run_model(model):
-            return self.process_with_together(query, model)
-
-        tasks = [run_model(model) for model in self.together_models]
-        results = await asyncio.gather(*tasks)
-        return results
+    def process_with_groq(self, query: str, model: str) -> str:
+        try:
+            response = self.groq_client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": query}],
+                temperature=self.config['groq']['temperature'],
+                max_tokens=self.config['groq']['max_tokens'],
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error al procesar con Groq API: {str(e)}"
 
     def run_moa(self, query: str, web_context: str = "") -> str:
         results = asyncio.run(self.run_multiple_models(query))
@@ -136,6 +188,14 @@ class AgentManager:
         )
         return aggregator_response.choices[0].message.content
 
+    async def run_multiple_models(self, query: str) -> List[str]:
+        async def run_model(model):
+            return self.process_with_together(query, model)
+
+        tasks = [run_model(model) for model in self.together_models]
+        results = await asyncio.gather(*tasks)
+        return results
+
     def internet_available(self, host="8.8.8.8", port=53, timeout=3):
         try:
             socket.setdefaulttimeout(timeout)
@@ -146,46 +206,13 @@ class AgentManager:
 
 def evaluate_query_complexity(query: str) -> float:
     try:
-        # Limpia la consulta de puntuación y la convierte a minúsculas
         clean_query = re.sub(r'[^\w\s]', '', query.lower())
-        
-        # Divide la consulta en palabras
         words = clean_query.split()
-        
-        # Cuenta las palabras únicas
         unique_words = set(words)
-        
-        # Calcula la complejidad basada en el número de palabras únicas y la longitud total
         word_complexity = min(len(unique_words) / 10, 1.0)
         length_complexity = min(len(words) / 20, 1.0)
-        
-        # Combina las dos métricas
         complexity = (word_complexity + length_complexity) / 2
-        
         return complexity
     except Exception as e:
         st.error(f"Error al evaluar la complejidad de la consulta: {str(e)}")
-        # Devuelve una complejidad media por defecto si hay un error
         return 0.5
-
-def process_query(agent_manager: AgentManager, query: str, web_context: str = "") -> Tuple[str, str, Any]:
-    complexity = evaluate_query_complexity(query)
-    agent_type, agent_id = agent_manager.get_appropriate_agent(query, complexity)
-    
-    if agent_type == 'moa':
-        response = agent_manager.run_moa(query, web_context)
-        return agent_type, 'multiple', response
-    elif agent_type == 'assistant':
-        response = agent_manager.process_with_assistant(agent_id, query)
-        return agent_type, agent_id, response
-    elif agent_type == 'local':
-        response = agent_manager.process_with_local_model(query, agent_id)
-        return agent_type, agent_id, response
-    elif agent_type == 'together':
-        response = agent_manager.process_with_together(query, agent_id)
-        return agent_type, agent_id, response
-    elif agent_type == 'api':
-        response, tokens = agent_manager.process_with_api(query, agent_id)
-        return agent_type, agent_id, (response, tokens)
-    else:
-        return 'unknown', None, "No se pudo determinar un agente apropiado para esta consulta."

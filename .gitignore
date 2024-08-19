@@ -9,7 +9,8 @@ env/
 .env
 
 # Archivos de Streamlit
-.streamlit/secrets.toml
+.streamlit/
+secrets.toml
 
 # Archivos de sistema
 .DS_Store
