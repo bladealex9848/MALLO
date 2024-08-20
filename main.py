@@ -6,17 +6,15 @@ import streamlit as st
 import yaml
 import os
 import json
-from agents import AgentManager
+from agents import AgentManager, evaluate_query_complexity
 from utilities import (
-    initialize_system, evaluate_query, process_query, 
-    cache_response, get_cached_response, summarize_text,
-    select_fastest_model, select_most_capable_model,
-    perform_web_search, evaluate_query_complexity
+    initialize_system, cache_response, get_cached_response, summarize_text,
+    perform_web_search, log_error, log_warning, log_info
 )
 import time
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import polars as pl
+import random
 
 def load_config():
     try:
@@ -38,36 +36,39 @@ def load_speed_test_results():
 
 def display_speed_test_results(results):
     st.sidebar.title("Resultados del Test de Velocidad")
-    
-    # Crear un DataFrame de Polars con los resultados
-    data = []
-    for api, models in results.items():
-        for model in models:
-            data.append({"API": api, "Modelo": model['model'], "Velocidad": f"{model['speed']:.4f}"})
-    
-    df = pl.DataFrame(data)
-    
-    # Obtener la lista única de APIs
-    apis = df['API'].unique().to_list()
-    
-    # Crear un menú desplegable para seleccionar la API
-    selected_api = st.sidebar.selectbox("Seleccionar API", apis)
-    
-    # Filtrar el DataFrame por la API seleccionada
-    filtered_df = df.filter(pl.col('API') == selected_api)
-    
-    # Mostrar la tabla filtrada
-    st.sidebar.table(filtered_df)
+    data = [{"API": api, "Modelo": model['model'], "Velocidad": f"{model['speed']:.4f}"}
+            for api, models in results.items() for model in models]
+    df = pl.DataFrame(data).sort("Velocidad")
+    with st.sidebar.expander("Mostrar Resultados"):
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
-async def process_with_multiple_agents(user_input, agent_manager, num_agents=3):
-    tasks = []
-    for agent_type, agent_id in agent_manager.get_agent_priority()[:num_agents]:
-        tasks.append(asyncio.create_task(
-            asyncio.to_thread(agent_manager.process_query, user_input, agent_type, agent_id)
-        ))
-    responses = await asyncio.gather(*tasks, return_exceptions=True)
-    valid_responses = [r for r in responses if not isinstance(r, Exception) and r is not None]
-    return max(valid_responses, key=len) if valid_responses else None
+async def process_with_agent(agent_manager, query, agent_type, agent_id):
+    try:
+        response = await asyncio.to_thread(agent_manager.process_query, query, agent_type, agent_id)
+        return {
+            "agent": agent_type,
+            "model": agent_id,
+            "status": "success",
+            "response": response
+        }
+    except Exception as e:
+        log_error(f"Error processing query with {agent_type}:{agent_id}: {str(e)}")
+        return {
+            "agent": agent_type,
+            "model": agent_id,
+            "status": "error",
+            "response": str(e)
+        }
+
+async def process_with_multiple_agents(query, agent_manager, num_agents=3):
+    agents = agent_manager.get_agent_priority()
+    random.shuffle(agents)
+    tasks = [process_with_agent(agent_manager, query, agent_type, agent_id) 
+             for agent_type, agent_id in agents[:num_agents]]
+    results = await asyncio.gather(*tasks)
+    valid_responses = [r for r in results if r["status"] == "success" and r["response"]]
+    best_response = max(valid_responses, key=lambda x: len(x["response"])) if valid_responses else None
+    return best_response, results
 
 def process_user_input(user_input, config, agent_manager):
     try:
@@ -81,54 +82,53 @@ def process_user_input(user_input, config, agent_manager):
             
             complexity = evaluate_query_complexity(user_input)
             
-            if complexity < 0.3:  # Umbral reducido para consultas simples
-                response = agent_manager.process_query(user_input, 'deepinfra', 'meta-llama/Meta-Llama-3-8B-Instruct')
-                details = {
-                    "selected_agent": ('deepinfra', 'meta-llama/Meta-Llama-3-8B-Instruct'),
-                    "complexity": complexity,
-                    "processing_time": f"{time.time() - start_time:.2f} segundos"
-                }
-                return response, details
-                        
-            initial_evaluation = agent_manager.process_query(
-                f"Evalúa esta consulta y proporciona un plan de acción: {user_input}",
-                config['evaluation_models']['initial']['api'],
-                config['evaluation_models']['initial']['model']
-            )
+            needs_web_search = "actualidad" in user_input.lower() or "reciente" in user_input.lower()
+            needs_moa = complexity > 0.7
             
-            query_analysis = evaluate_query(user_input, config, initial_evaluation)
-            
-            if query_analysis['requires_web_search']:
+            if needs_web_search:
                 web_context = perform_web_search(user_input)
                 enriched_query = f"{user_input}\nContexto web: {web_context}"
             else:
                 enriched_query = user_input
                 web_context = ""
             
-            # Procesar con múltiples agentes en paralelo
-            response = asyncio.run(process_with_multiple_agents(enriched_query, agent_manager))
-            
+            if needs_moa:
+                response, agent_results = asyncio.run(process_with_multiple_agents(enriched_query, agent_manager))
+            else:
+                agent_type, agent_id = agent_manager.get_appropriate_agent(enriched_query, complexity)
+                response = agent_manager.process_query(enriched_query, agent_type, agent_id)
+                agent_results = [{
+                    "agent": agent_type,
+                    "model": agent_id,
+                    "status": "success",
+                    "response": response
+                }]
+
             if not response:
-                raise Exception("Todos los agentes fallaron al procesar la consulta.")
-
-            final_evaluation = agent_manager.process_query(
-                f"Evalúa si esta respuesta es apropiada y precisa para la consulta original. Si no lo es, proporciona una respuesta mejorada:\n\nConsulta: {user_input}\n\nRespuesta: {response}",
-                config['evaluation_models']['final']['api'],
-                config['evaluation_models']['final']['model']
-            )
-
-            if "no es apropiada" in final_evaluation.lower() or "no es precisa" in final_evaluation.lower():
-                response = final_evaluation
+                response = agent_manager.process_query(enriched_query, 'assistant', 'asst_RfRNo5Ij76ieg7mV11CqYV9v')
+                agent_results.append({
+                    "agent": "assistant",
+                    "model": "asst_RfRNo5Ij76ieg7mV11CqYV9v",
+                    "status": "success",
+                    "response": response
+                })
 
             processing_time = time.time() - start_time
+            
             details = {
-                "selected_agent": 'multiple',
-                'processing_time': f"{processing_time:.2f} segundos",
-                'initial_evaluation': initial_evaluation,
-                'final_evaluation': final_evaluation,
-                'query_analysis': query_analysis,
-                'web_search_performed': query_analysis['requires_web_search'],
-                'web_context': web_context
+                "selected_agent": "multiple" if needs_moa else agent_type,
+                "processing_time": f"{processing_time:.2f} segundos",
+                "complexity": complexity,
+                "needs_web_search": needs_web_search,
+                "needs_moa": needs_moa,
+                "web_context": web_context,
+                "agent_processing": agent_results,
+                "performance_metrics": {
+                    "total_agents_called": len(agent_results),
+                    "successful_responses": sum(1 for r in agent_results if r["status"] == "success"),
+                    "failed_responses": sum(1 for r in agent_results if r["status"] == "error"),
+                    "average_response_time": f"{processing_time / len(agent_results):.2f} segundos"
+                }
             }
 
             cache_response(user_input, (response, details))
@@ -136,9 +136,8 @@ def process_user_input(user_input, config, agent_manager):
             return response, details
 
     except Exception as e:
-        st.error(f"Se ha producido un error inesperado: {str(e)}")
-        st.error("Por favor, intenta reformular tu pregunta o contacta al soporte si el problema persiste.")
-        return None, None
+        log_error(f"Se ha producido un error inesperado: {str(e)}")
+        return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", None
 
 def main():
     try:
@@ -156,7 +155,6 @@ def main():
         for key, value in system_status.items():
             st.sidebar.text(f"{key}: {'✅' if value else '❌'}")
             
-        # Cargar y mostrar resultados del test de velocidad si están disponibles
         speed_test_results = load_speed_test_results()
         if speed_test_results:
             display_speed_test_results(speed_test_results)
@@ -209,8 +207,8 @@ def main():
         )
 
     except Exception as e:
-        st.error(f"Se ha producido un error inesperado: {str(e)}")
-        st.error("Por favor, contacta al soporte técnico con los detalles del error.")
+        log_error(f"Se ha producido un error inesperado: {str(e)}")
+        st.error("Se ha producido un error inesperado. Por favor, recarga la página o contacta al soporte técnico.")
 
 if __name__ == "__main__":
     main()

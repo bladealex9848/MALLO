@@ -177,13 +177,29 @@ class AgentManager:
                     response = process_method(query, agent_id)
                 else:
                     response = f"No se pudo procesar la consulta con el agente seleccionado: {agent_type}"
+            
+            if not response or response.startswith("Error") or response.startswith("No se pudo procesar"):
+                fallback_agent, fallback_model = self.get_fallback_agent()
+                response = self.process_query(query, fallback_agent, fallback_model)
+                
         except Exception as e:
             logging.error(f"Error processing query with {agent_type}:{agent_id}: {str(e)}")
-            raise
+            fallback_agent, fallback_model = self.get_fallback_agent()
+            response = self.process_query(query, fallback_agent, fallback_model)
 
         processing_time = time.time() - start_time
         self.agent_speeds[f"{agent_type}:{agent_id}"] = processing_time
         return response
+
+    def get_fallback_agent(self) -> Tuple[str, str]:
+        if self.clients['openai']:
+            return 'api', self.config['openai']['default_model']
+        elif self.clients['groq']:
+            return 'groq', self.config['groq']['default_model']
+        elif self.clients['together']:
+            return 'together', self.config['together']['default_model']
+        else:
+            return 'local', self.default_local_model
 
     def get_next_reliable_model(self, current_model: str) -> Optional[str]:
         try:
@@ -240,7 +256,7 @@ class AgentManager:
         except requests.RequestException as e:
             return f"Error de conexión con el modelo local: {str(e)}"
 
-    def process_with_api(self, query: str, model: Optional[str] = None) -> Tuple[str, int]:
+    def process_with_api(self, query: str, model: Optional[str] = None) -> str:
         model = model or self.config['openai']['default_model']
         return self._process_with_openai_like_client(self.clients['openai'], query, model)
 
@@ -257,11 +273,13 @@ class AgentManager:
                 assistant_id=assistant_id
             )
             while run.status != 'completed':
+                time.sleep(1)
                 run = self.clients['openai'].beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
             messages = self.clients['openai'].beta.threads.messages.list(thread_id=thread.id)
             return messages.data[0].content[0].text.value
         except Exception as e:
-            return f"Error al procesar con el asistente especializado: {str(e)}"
+            logging.error(f"Error al procesar con el asistente especializado: {str(e)}")
+            return None
 
     def process_with_together(self, query: str, model: str) -> str:
         try:
@@ -277,11 +295,12 @@ class AgentManager:
 
     def process_with_groq(self, query: str, model: str) -> str:
         try:
+            max_tokens = min(self.config['groq']['max_tokens'], 8000)
             response = self.clients['groq'].chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": query}],
                 temperature=self.config['groq']['temperature'],
-                max_tokens=self.config['groq']['max_tokens'],
+                max_tokens=max_tokens,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -332,13 +351,19 @@ class AgentManager:
         except socket.error:
             return False
 
-    def get_available_agents(self, agent_type: str) -> List[str]:
-        return {
-            'api': self.openai_models,
-            'groq': self.config['groq']['models'],
-            'together': self.together_models,
-            'local': self.ollama_models
-        }.get(agent_type, [])
+    def get_available_agents(self, agent_type: str = None) -> List[str]:
+        if agent_type:
+            return {
+                'api': self.openai_models,
+                'groq': self.config['groq']['models'],
+                'together': self.together_models,
+                'local': self.ollama_models
+            }.get(agent_type, [])
+        else:
+            all_agents = []
+            for agent_type in ['api', 'groq', 'together', 'local']:
+                all_agents.extend(self.get_available_agents(agent_type))
+            return all_agents
 
     def get_agent_priority(self):
         priority = self.config.get('processing_priority', [])

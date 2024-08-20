@@ -42,7 +42,7 @@ groq:
     - "llama3-groq-8b-8192-tool-use-preview"  # 9. Velocidad: 0.3769 s
     - "llama-3.1-70b-versatile"    # 10. Velocidad: 0.3793 s
     - "llama3-70b-8192"            # 11. Velocidad: 0.4262 s
-  max_tokens: 8192
+  max_tokens: 8000
   temperature: 0.7
 
 # Configuración de DeepInfra
@@ -299,8 +299,12 @@ utilities:
 # Configuración de evaluación de modelos
 evaluation_models:
   initial:
-    api: "anthropic"  # O el nombre de la API que desees usar
-    model: "claude-3-haiku-20240307" 
+    api: "anthropic"
+    model: "claude-3-haiku-20240307"
+    backup_api: "cohere"
+    backup_model: "command-r-plus"
   final:
-    api: "openai"  # O el nombre de la API que desees usar
+    api: "openai"
     model: "gpt-4o-mini"
+    backup_api: "deepseek"
+    backup_model: "deepseek-chat"
