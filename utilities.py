@@ -212,8 +212,12 @@ def summarize_text(text: str, max_length: int = 200) -> str:
     return '. '.join(summary) + '.'
 
 def log_error(error_message: str):
+    """Registra un error en el archivo de log."""
     logging.error(error_message)
-    st.error(error_message)
+    if isinstance(error_message, dict):
+        st.error(json.dumps(error_message, indent=2))
+    else:
+        st.error(str(error_message))
 
 def log_warning(warning_message: str):
     logging.warning(warning_message)

@@ -6,7 +6,8 @@ import streamlit as st
 import yaml
 import os
 import json
-from agents import AgentManager, evaluate_query_complexity
+import re
+from agents import AgentManager
 from utilities import (
     initialize_system, cache_response, get_cached_response, summarize_text,
     perform_web_search, log_error, log_warning, log_info
@@ -70,6 +71,56 @@ async def process_with_multiple_agents(query, agent_manager, num_agents=3):
     best_response = max(valid_responses, key=lambda x: len(x["response"])) if valid_responses else None
     return best_response, results
 
+def evaluate_response(agent_manager, config, evaluation_type, query, response=None):
+    eval_config = config['evaluation_models'][evaluation_type]
+    
+    if evaluation_type == 'initial':
+        evaluation_prompt = f"""
+        Analiza la siguiente consulta y proporciona una guía detallada para responderla:
+
+        Consulta: {query}
+
+        Tu tarea es:
+        1. Identificar los puntos clave que deben abordarse en la respuesta.
+        2. Determinar si se necesita información actualizada o reciente para responder adecuadamente. Si es así, indica "BUSQUEDA_WEB: SI" en tu respuesta.
+        3. Evaluar la complejidad de la consulta en una escala de 0 a 1, donde 0 es muy simple y 1 es muy compleja. Indica "COMPLEJIDAD: X" donde X es el valor numérico.
+        4. Decidir si la consulta requiere conocimientos de múltiples dominios o fuentes. Si es así, indica "MOA: SI" en tu respuesta.
+        5. Sugerir fuentes de información relevantes para la consulta.
+        6. Proponer un esquema o estructura para la respuesta.
+        7. Indicar cualquier consideración especial o contexto importante para la consulta.
+
+        Por favor, proporciona tu análisis y guía en un formato claro y estructurado.
+        """
+    else:  # evaluation_type == 'final'
+        evaluation_prompt = f"""
+        Evalúa la siguiente respuesta a la consulta dada:
+
+        Consulta: {query}
+
+        Respuesta:
+        {response}
+
+        Tu tarea es:
+        1. Determinar si la respuesta es apropiada y precisa para la consulta.
+        2. Identificar cualquier información faltante o imprecisa.
+        3. Evaluar la claridad y estructura de la respuesta.
+        4. Si es necesario, proporcionar una versión mejorada de la respuesta.
+
+        Por favor, proporciona tu evaluación en un formato claro y estructurado, incluyendo una versión mejorada de la respuesta si lo consideras necesario.
+        """
+
+    try:
+        evaluation = agent_manager.process_query(evaluation_prompt, eval_config['api'], eval_config['model'])
+    except Exception as e:
+        log_error(f"Error en evaluación {evaluation_type} con modelo principal: {str(e)}")
+        try:
+            evaluation = agent_manager.process_query(evaluation_prompt, eval_config['backup_api'], eval_config['backup_model'])
+        except Exception as e:
+            log_error(f"Error en evaluación {evaluation_type} con modelo de respaldo: {str(e)}")
+            evaluation = "No se pudo realizar la evaluación debido a un error."
+
+    return evaluation
+
 def process_user_input(user_input, config, agent_manager):
     try:
         cached_response = get_cached_response(user_input)
@@ -80,10 +131,13 @@ def process_user_input(user_input, config, agent_manager):
         with st.spinner("Procesando tu consulta..."):
             start_time = time.time()
             
-            complexity = evaluate_query_complexity(user_input)
+            initial_evaluation = evaluate_response(agent_manager, config, 'initial', user_input)
             
-            needs_web_search = "actualidad" in user_input.lower() or "reciente" in user_input.lower()
-            needs_moa = complexity > 0.7
+            # Analizar la evaluación inicial para tomar decisiones
+            needs_web_search = "BUSQUEDA_WEB: SI" in initial_evaluation
+            complexity_match = re.search(r"COMPLEJIDAD: ([\d.]+)", initial_evaluation)
+            complexity = float(complexity_match.group(1)) if complexity_match else 0.5
+            needs_moa = "MOA: SI" in initial_evaluation
             
             if needs_web_search:
                 web_context = perform_web_search(user_input)
@@ -113,6 +167,16 @@ def process_user_input(user_input, config, agent_manager):
                     "response": response
                 })
 
+            # Extraer la respuesta del mejor resultado
+            best_response = max(agent_results, key=lambda x: len(x['response']))['response']
+
+            final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, best_response)
+
+            if "no es apropiada" in final_evaluation.lower() or "no es precisa" in final_evaluation.lower():
+                response = final_evaluation
+            else:
+                response = best_response
+
             processing_time = time.time() - start_time
             
             details = {
@@ -122,7 +186,9 @@ def process_user_input(user_input, config, agent_manager):
                 "needs_web_search": needs_web_search,
                 "needs_moa": needs_moa,
                 "web_context": web_context,
+                "initial_evaluation": initial_evaluation,
                 "agent_processing": agent_results,
+                "final_evaluation": final_evaluation,
                 "performance_metrics": {
                     "total_agents_called": len(agent_results),
                     "successful_responses": sum(1 for r in agent_results if r["status"] == "success"),
@@ -138,7 +204,7 @@ def process_user_input(user_input, config, agent_manager):
     except Exception as e:
         log_error(f"Se ha producido un error inesperado: {str(e)}")
         return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", None
-
+    
 def main():
     try:
         config = load_config()
