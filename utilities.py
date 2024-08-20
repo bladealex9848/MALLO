@@ -123,35 +123,36 @@ def check_cohere_api() -> bool:
         logging.error(f"Error checking Cohere API: {str(e)}")
         return False
 
-def evaluate_query_complexity(query: str) -> Tuple[float, bool, bool]:
-    word_count = len(query.split())
-    unique_words = len(set(query.split()))
-    avg_word_length = sum(len(word) for word in query.split()) / word_count if word_count > 0 else 0
+def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bool]:
+    full_text = f"{context}\n\n{query}"
+    word_count = len(full_text.split())
+    unique_words = len(set(full_text.split()))
+    avg_word_length = sum(len(word) for word in full_text.split()) / word_count if word_count > 0 else 0
     
-    doc = nlp(query)
+    doc = nlp(full_text)
     sentence_count = len(list(doc.sents))
     avg_sentence_length = word_count / sentence_count if sentence_count > 0 else 0
     
     named_entities = len(doc.ents)
-    tech_terms = len(re.findall(r'\b(?:API|function|code|program|algorithm|database|network|server|cloud|machine learning|AI)\b', query, re.IGNORECASE))
+    tech_terms = len(re.findall(r'\b(?:API|function|code|program|algorithm|database|network|server|cloud|machine learning|AI)\b', full_text, re.IGNORECASE))
     
     features = [
-        min(word_count / 50, 1),
-        min(unique_words / 30, 1),
+        min(word_count / 100, 1),
+        min(unique_words / 50, 1),
         min(avg_word_length / 10, 1),
         min(avg_sentence_length / 20, 1),
-        min(named_entities / 5, 1),
-        min(tech_terms / 3, 1)
+        min(named_entities / 10, 1),
+        min(tech_terms / 5, 1)
     ]
     
     complexity = sum(features) / len(features)
-    needs_web_search = "actualidad" in query.lower() or "reciente" in query.lower()
-    needs_moa = complexity > 0.7
+    needs_web_search = "actualidad" in full_text.lower() or "reciente" in full_text.lower()
+    needs_moa = complexity > 0.7 or word_count > 200
     
     return complexity, needs_web_search, needs_moa
 
 def select_best_agent(query: str, agents: List[Dict[str, Any]]) -> str:
-    complexity, _, _ = evaluate_query_complexity(query)
+    complexity, _, _ = evaluate_query_complexity(query, "")
     
     scores = {}
     for agent in agents:

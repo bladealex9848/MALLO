@@ -123,7 +123,13 @@ def evaluate_response(agent_manager, config, evaluation_type, query, response=No
 
 def process_user_input(user_input, config, agent_manager):
     try:
-        cached_response = get_cached_response(user_input)
+        # Obtener el contexto de la conversación
+        conversation_context = st.session_state.get('context', '')
+
+        # Añadir el contexto a la consulta del usuario
+        enriched_query = f"{conversation_context}\n\nNueva consulta: {user_input}"
+
+        cached_response = get_cached_response(enriched_query)
         if cached_response:
             st.success("Respuesta obtenida de la caché")
             return cached_response
@@ -131,7 +137,7 @@ def process_user_input(user_input, config, agent_manager):
         with st.spinner("Procesando tu consulta..."):
             start_time = time.time()
             
-            initial_evaluation = evaluate_response(agent_manager, config, 'initial', user_input)
+            initial_evaluation = evaluate_response(agent_manager, config, 'initial', enriched_query)
             
             # Analizar la evaluación inicial para tomar decisiones
             needs_web_search = "BUSQUEDA_WEB: SI" in initial_evaluation
@@ -141,9 +147,8 @@ def process_user_input(user_input, config, agent_manager):
             
             if needs_web_search:
                 web_context = perform_web_search(user_input)
-                enriched_query = f"{user_input}\nContexto web: {web_context}"
+                enriched_query = f"{enriched_query}\nContexto web: {web_context}"
             else:
-                enriched_query = user_input
                 web_context = ""
             
             if needs_moa:
@@ -197,13 +202,28 @@ def process_user_input(user_input, config, agent_manager):
                 }
             }
 
-            cache_response(user_input, (response, details))
+            # Actualizar el contexto de la conversación con un resumen
+            new_context = summarize_conversation(conversation_context, user_input, response, agent_manager, config)
+            st.session_state['context'] = new_context
+
+            cache_response(enriched_query, (response, details))
 
             return response, details
 
     except Exception as e:
         log_error(f"Se ha producido un error inesperado: {str(e)}")
         return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", None
+
+def summarize_conversation(previous_context, user_input, response, agent_manager, config, max_length=500):
+    new_content = f"Usuario: {user_input}\nAsistente: {response}"
+    updated_context = f"{previous_context}\n\n{new_content}".strip()
+    
+    if len(updated_context) > max_length:
+        summary_prompt = f"Resume la siguiente conversación manteniendo los puntos clave:\n\n{updated_context}"
+        summary = agent_manager.process_query(summary_prompt, 'api', config['openai']['default_model'])
+        return summary
+    
+    return updated_context
     
 def main():
     try:
@@ -252,7 +272,9 @@ def main():
                 with st.expander("Detalles del proceso"):
                     st.json(details)
 
-                st.session_state['context'] += f"\n{user_input}\n{response}"
+                # Mostrar el contexto actual (opcional, para depuración)
+                with st.expander("Contexto de la conversación"):
+                    st.text(st.session_state['context'])
 
         st.sidebar.title("Acerca de MALLO")
         st.sidebar.info("""
