@@ -20,3 +20,4 @@ Mistral
 mistralai
 cohere
 scikit-learn
+numpy==2.1.0
