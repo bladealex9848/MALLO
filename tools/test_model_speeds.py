@@ -8,6 +8,14 @@ from openai import OpenAI
 import importlib
 import sys
 import requests
+from rich import print
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+
+# Configurar las advertencias para suprimir las relacionadas con pydantic
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 def load_config():
     with open('config.yaml', 'r') as file:
@@ -18,14 +26,15 @@ config = load_config()
 def safe_import(module_name):
     try:
         return importlib.import_module(module_name)
-    except ImportError as e:
-        print(f"Warning: Could not import {module_name}. Error: {e}")
+    except ImportError:
         return None
 
 anthropic = safe_import('anthropic')
 mistralai = safe_import('mistralai')
 cohere = safe_import('cohere')
 together = safe_import('together')
+
+console = Console()
 
 async def get_groq_models():
     api_key = st.secrets["GROQ_API_KEY"]
@@ -40,7 +49,7 @@ async def get_groq_models():
                 data = await response.json()
                 return [model['id'] for model in data['data']]
             else:
-                print(f"Error fetching Groq models: {response.status}")
+                console.print(f"[bold red]Error fetching Groq models: {response.status}[/bold red]")
                 return []
 
 async def test_groq_model(model):
@@ -216,7 +225,27 @@ async def test_all_models():
     return await asyncio.gather(*tasks)
 
 async def main():
-    results = await test_all_models()
+    console.print(Panel.fit("🚀 [bold cyan]Model Speed Test[/bold cyan]", border_style="bold"))
+    
+    console.print("\n[bold green]Environment Information:[/bold green]")
+    console.print(f"Python version: {sys.version}")
+    
+    table = Table(title="Installed Packages")
+    table.add_column("Package", style="cyan")
+    table.add_column("Version", style="magenta")
+    
+    for package in ['openai', 'anthropic', 'mistralai', 'cohere', 'together']:
+        try:
+            module = importlib.import_module(package)
+            version = getattr(module, '__version__', 'Version not available')
+            table.add_row(package, version)
+        except ImportError:
+            table.add_row(package, "[red]Not installed[/red]")
+    
+    console.print(table)
+    
+    with console.status("[bold green]Running model speed tests...[/bold green]", spinner="dots"):
+        results = await test_all_models()
     
     model_speeds = {}
     for model, speed, status in results:
@@ -229,7 +258,7 @@ async def main():
                 "speed": speed
             })
         else:
-            print(f"Test failed for {model}: {status}")
+            console.print(f"[bold red]Test failed for {model}: {status}[/bold red]")
 
     for api in model_speeds:
         model_speeds[api] = sorted(model_speeds[api], key=lambda x: x["speed"])
@@ -237,19 +266,17 @@ async def main():
     with open('model_speeds.json', 'w') as f:
         json.dump(model_speeds, f, indent=2)
 
-    print("Resultados guardados en model_speeds.json")
-    print("\nResumen de pruebas:")
+    console.print("\n[bold green]Results saved in model_speeds.json[/bold green]")
+    
+    console.print("\n[bold cyan]Test Summary:[/bold cyan]")
+    summary_table = Table(show_header=True, header_style="bold magenta")
+    summary_table.add_column("API", style="cyan")
+    summary_table.add_column("Models Tested", justify="right")
+    
     for api, models in model_speeds.items():
-        print(f"{api}: {len(models)} modelos probados")
+        summary_table.add_row(api, str(len(models)))
+    
+    console.print(summary_table)
 
 if __name__ == "__main__":
-    print("Python version:", sys.version)
-    print("Installed packages:")
-    for package in ['openai', 'anthropic', 'mistralai', 'cohere', 'together']:
-        try:
-            module = importlib.import_module(package)
-            print(f"{package}: {getattr(module, '__version__', 'Version not available')}")
-        except ImportError:
-            print(f"{package}: Not installed")
-    
     asyncio.run(main())
