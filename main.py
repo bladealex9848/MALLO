@@ -232,6 +232,12 @@ def main():
         agent_manager = AgentManager(config)
 
         st.title("MALLO: MultiAgent LLM Orchestrator")
+
+        st.write("""
+        [![ver código fuente](https://img.shields.io/badge/Repositorio%20GitHub-gris?logo=github)](https://github.com/bladealex9848/MALLO)
+        ![Visitantes](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fmallollm.streamlit.app&label=Visitantes&labelColor=%235d5d5d&countColor=%231e7ebf&style=flat)
+        """)
+
         st.write("""
         MALLO es un sistema avanzado de orquestación de múltiples agentes de Modelos de Lenguaje de Gran Escala (LLMs).
         Proporciona respuestas precisas y contextuales utilizando una variedad de agentes y fuentes de información.
