@@ -1,11 +1,11 @@
 # Configuración de modelos locales (Ollama)
 ollama:
   base_url: "http://localhost:11434"
-  default_model: "gemma2:2b"
+  default_model: "phi3.5:latest"
   models:
     - "gemma2:2b"
     - "llava:latest"
-    - "phi3:latest"
+    - "phi3.5:latest"
     - "llama3.1:latest"
     - "qwen2:latest"
 

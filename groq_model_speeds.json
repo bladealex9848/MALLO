@@ -1,63 +1,63 @@
 {
   "groq": [
     {
-      "model": "llama-guard-3-8b",
-      "speed": 0.27763891220092773,
-      "status": "success"
-    },
-    {
-      "model": "gemma-7b-it",
-      "speed": 0.29070281982421875,
-      "status": "success"
-    },
-    {
       "model": "whisper-large-v3",
-      "speed": 0.30005621910095215,
+      "speed": 0.20411419868469238,
       "status": "success"
     },
     {
       "model": "distil-whisper-large-v3-en",
-      "speed": 0.30222201347351074,
-      "status": "success"
-    },
-    {
-      "model": "llama-3.1-8b-instant",
-      "speed": 0.318727970123291,
+      "speed": 0.22035622596740723,
       "status": "success"
     },
     {
       "model": "llama3-groq-8b-8192-tool-use-preview",
-      "speed": 0.3354010581970215,
+      "speed": 0.2552611827850342,
       "status": "success"
     },
     {
-      "model": "llama3-70b-8192",
-      "speed": 0.3475189208984375,
+      "model": "llama-guard-3-8b",
+      "speed": 0.26006221771240234,
+      "status": "success"
+    },
+    {
+      "model": "gemma-7b-it",
+      "speed": 0.28305697441101074,
       "status": "success"
     },
     {
       "model": "gemma2-9b-it",
-      "speed": 0.36012887954711914,
+      "speed": 0.28436970710754395,
+      "status": "success"
+    },
+    {
+      "model": "llama-3.1-8b-instant",
+      "speed": 0.29132866859436035,
       "status": "success"
     },
     {
       "model": "llama3-groq-70b-8192-tool-use-preview",
-      "speed": 0.40337085723876953,
+      "speed": 0.35468387603759766,
       "status": "success"
     },
     {
-      "model": "mixtral-8x7b-32768",
-      "speed": 0.4118220806121826,
-      "status": "success"
-    },
-    {
-      "model": "llama-3.1-70b-versatile",
-      "speed": 0.436614990234375,
+      "model": "llama3-70b-8192",
+      "speed": 0.35630106925964355,
       "status": "success"
     },
     {
       "model": "llama3-8b-8192",
-      "speed": 0.657203197479248,
+      "speed": 0.587332010269165,
+      "status": "success"
+    },
+    {
+      "model": "mixtral-8x7b-32768",
+      "speed": 0.5946750640869141,
+      "status": "success"
+    },
+    {
+      "model": "llama-3.1-70b-versatile",
+      "speed": 2.9747116565704346,
       "status": "success"
     }
   ]
