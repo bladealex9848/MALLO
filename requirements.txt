@@ -20,4 +20,4 @@ mistralai==1.0.1
 cohere==5.8.1
 scikit-learn==1.5.1
 numpy==1.24.3
-replicate==1.0.0
+replicate
