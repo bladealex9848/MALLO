@@ -23,10 +23,9 @@ from utilities import (
 class AgentManager:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.ollama_models = self.get_ollama_models()
-        self.openai_models = config.get('openai', {}).get('models', [])
-        self.together_models = config.get('together', {}).get('models', [])
-        self.specialized_assistants = config.get('specialized_assistants', [])
+        self.clients = {}  # Inicializa esto con tus clientes de API
+        self.agent_speeds = {}
+        self.default_local_model = config['ollama']['default_model']
                         
         self.clients = {
             'openai': self.init_openai_client(),
@@ -333,10 +332,22 @@ class AgentManager:
             }
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
-            return response.json()['choices'][0]['message']['content']
+            response_data = response.json()
+            
+            if 'choices' in response_data and len(response_data['choices']) > 0:
+                return response_data['choices'][0]['message']['content']
+            else:
+                raise ValueError("Respuesta inesperada de OpenRouter")
+        
+        except requests.RequestException as e:
+            logging.error(f"Error de red al procesar con OpenRouter API: {str(e)}")
+            return f"Error de red al procesar con OpenRouter API: {str(e)}"
+        except ValueError as e:
+            logging.error(f"Error al procesar respuesta de OpenRouter: {str(e)}")
+            return f"Error al procesar respuesta de OpenRouter: {str(e)}"
         except Exception as e:
-            log_error(f"Error al procesar con OpenRouter API: {str(e)}")
-            return f"Error al procesar con OpenRouter API: {str(e)}"
+            logging.error(f"Error inesperado al procesar con OpenRouter API: {str(e)}")
+            return f"Error inesperado al procesar con OpenRouter API: {str(e)}"
 
     def _process_with_openai_like_client(self, client, query: str, model: str) -> str:
         try:

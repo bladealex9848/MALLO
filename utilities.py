@@ -166,9 +166,18 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
         min(tech_terms / 5, 1)
     ]
     
-    complexity = sum(features) / len(features)
+    complexity_match = re.search(r"COMPLEJIDAD:\s*([\d.]+)", full_text)
+    if complexity_match:
+        try:
+            complexity = float(complexity_match.group(1).rstrip('.'))
+        except ValueError:
+            logging.warning(f"Valor de complejidad no válido: {complexity_match.group(1)}. Usando valor calculado.")
+            complexity = sum(features) / len(features)
+    else:
+        complexity = sum(features) / len(features)
+    
     needs_web_search = "actualidad" in full_text.lower() or "reciente" in full_text.lower()
-    needs_moa = complexity > 0.7 or word_count > 200
+    needs_moa = complexity > 0.7 or word_count > 200 or "MOA: SI" in full_text
     
     return complexity, needs_web_search, needs_moa
 

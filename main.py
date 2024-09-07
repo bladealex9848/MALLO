@@ -10,12 +10,14 @@ import re
 from agents import AgentManager
 from utilities import (
     initialize_system, cache_response, get_cached_response, summarize_text,
-    perform_web_search, log_error, log_warning, log_info
+    perform_web_search, log_error, log_warning, log_info, evaluate_query_complexity
 )
 import time
 import asyncio
 import polars as pl
 import random
+import logging
+from typing import Tuple, Dict, Any
 
 def load_config():
     try:
@@ -73,10 +75,7 @@ async def process_with_multiple_agents(query, agent_manager, num_agents=3):
 
 def process_user_input(user_input, config, agent_manager):
     try:
-        # Obtener el contexto de la conversación
         conversation_context = st.session_state.get('context', '')
-
-        # Añadir el contexto a la consulta del usuario
         enriched_query = f"{conversation_context}\n\nNueva consulta: {user_input}"
 
         cached_response = get_cached_response(enriched_query)
@@ -89,11 +88,7 @@ def process_user_input(user_input, config, agent_manager):
             
             initial_evaluation = evaluate_response(agent_manager, config, 'initial', enriched_query)
             
-            # Analizar la evaluación inicial para tomar decisiones
-            needs_web_search = "BUSQUEDA_WEB: SI" in initial_evaluation
-            complexity_match = re.search(r"COMPLEJIDAD: ([\d.]+)", initial_evaluation)
-            complexity = float(complexity_match.group(1)) if complexity_match else 0.5
-            needs_moa = "MOA: SI" in initial_evaluation
+            complexity, needs_web_search, needs_moa = evaluate_query_complexity(initial_evaluation, "")
             
             if needs_web_search:
                 web_context = perform_web_search(user_input)
@@ -113,19 +108,16 @@ def process_user_input(user_input, config, agent_manager):
                     "response": response
                 }]
 
-            if "Error al procesar" in response:
-                raise Exception(response)
-
-            if not response:
-                response = agent_manager.process_query(enriched_query, 'assistant', 'asst_RfRNo5Ij76ieg7mV11CqYV9v')
+            if not response or response.startswith("Error") or response.startswith("No se pudo procesar"):
+                fallback_agent, fallback_model = agent_manager.get_fallback_agent()
+                response = agent_manager.process_query(enriched_query, fallback_agent, fallback_model)
                 agent_results.append({
-                    "agent": "assistant",
-                    "model": "asst_RfRNo5Ij76ieg7mV11CqYV9v",
-                    "status": "success",
+                    "agent": fallback_agent,
+                    "model": fallback_model,
+                    "status": "fallback",
                     "response": response
                 })
 
-            # Extraer la respuesta del mejor resultado
             best_response = max(agent_results, key=lambda x: len(x['response']))['response']
 
             final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, best_response)
@@ -155,7 +147,6 @@ def process_user_input(user_input, config, agent_manager):
                 }
             }
 
-            # Actualizar el contexto de la conversación con un resumen
             new_context = summarize_conversation(conversation_context, user_input, response, agent_manager, config)
             st.session_state['context'] = new_context
 
