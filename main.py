@@ -108,7 +108,8 @@ def process_user_input(user_input, config, agent_manager):
                     "response": response
                 }]
 
-            if not response or response.startswith("Error") or response.startswith("No se pudo procesar"):
+            # Manejar el caso en que response sea un diccionario
+            if isinstance(response, dict) and 'error' in response:
                 fallback_agent, fallback_model = agent_manager.get_fallback_agent()
                 response = agent_manager.process_query(enriched_query, fallback_agent, fallback_model)
                 agent_results.append({
@@ -155,7 +156,7 @@ def process_user_input(user_input, config, agent_manager):
             return response, details
 
     except Exception as e:
-        log_error(f"Se ha producido un error inesperado: {str(e)}")
+        logging.error(f"Se ha producido un error inesperado: {str(e)}")
         return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", None
 
 def evaluate_response(agent_manager, config, evaluation_type, query, response=None):

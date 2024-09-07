@@ -189,7 +189,16 @@ class AgentManager:
                 else:
                     raise ValueError(f"No se pudo procesar la consulta con el agente seleccionado: {agent_type}")
             
-            if not response or response.startswith("Error") or response.startswith("No se pudo procesar"):
+            # Verificar si la respuesta es un diccionario y manejarlo adecuadamente
+            if isinstance(response, dict):
+                if 'error' in response:
+                    raise ValueError(f"Error en la respuesta: {response['error']}")
+                elif 'content' in response:
+                    response = response['content']
+                else:
+                    raise ValueError(f"Respuesta inesperada del agente {agent_type}:{agent_id}")
+            
+            if not response or (isinstance(response, str) and (response.startswith("Error") or response.startswith("No se pudo procesar"))):
                 raise ValueError(f"Respuesta inválida del agente {agent_type}:{agent_id}")
 
         except Exception as e:
@@ -340,17 +349,11 @@ class AgentManager:
             if 'choices' in response_data and len(response_data['choices']) > 0:
                 return response_data['choices'][0]['message']['content']
             else:
-                raise ValueError("Respuesta inesperada de OpenRouter")
+                return {"error": "Respuesta inesperada de OpenRouter"}
         
-        except requests.RequestException as e:
-            logging.error(f"Error de red al procesar con OpenRouter API: {str(e)}")
-            return f"Error de red al procesar con OpenRouter API: {str(e)}"
-        except ValueError as e:
-            logging.error(f"Error al procesar respuesta de OpenRouter: {str(e)}")
-            return f"Error al procesar respuesta de OpenRouter: {str(e)}"
         except Exception as e:
-            logging.error(f"Error inesperado al procesar con OpenRouter API: {str(e)}")
-            return f"Error inesperado al procesar con OpenRouter API: {str(e)}"
+            logging.error(f"Error al procesar con OpenRouter API: {str(e)}")
+            return {"error": f"Error al procesar con OpenRouter API: {str(e)}"}
 
     def _process_with_openai_like_client(self, client, query: str, model: str) -> str:
         try:
