@@ -71,56 +71,6 @@ async def process_with_multiple_agents(query, agent_manager, num_agents=3):
     best_response = max(valid_responses, key=lambda x: len(x["response"])) if valid_responses else None
     return best_response, results
 
-def evaluate_response(agent_manager, config, evaluation_type, query, response=None):
-    eval_config = config['evaluation_models'][evaluation_type]
-    
-    if evaluation_type == 'initial':
-        evaluation_prompt = f"""
-        Analiza la siguiente consulta y proporciona una guía detallada para responderla:
-
-        Consulta: {query}
-
-        Tu tarea es:
-        1. Identificar los puntos clave que deben abordarse en la respuesta.
-        2. Determinar si se necesita información actualizada o reciente para responder adecuadamente. Si es así, indica "BUSQUEDA_WEB: SI" en tu respuesta.
-        3. Evaluar la complejidad de la consulta en una escala de 0 a 1, donde 0 es muy simple y 1 es muy compleja. Indica "COMPLEJIDAD: X" donde X es el valor numérico.
-        4. Decidir si la consulta requiere conocimientos de múltiples dominios o fuentes. Si es así, indica "MOA: SI" en tu respuesta.
-        5. Sugerir fuentes de información relevantes para la consulta.
-        6. Proponer un esquema o estructura para la respuesta.
-        7. Indicar cualquier consideración especial o contexto importante para la consulta.
-
-        Por favor, proporciona tu análisis y guía en un formato claro y estructurado.
-        """
-    else:  # evaluation_type == 'final'
-        evaluation_prompt = f"""
-        Evalúa la siguiente respuesta a la consulta dada:
-
-        Consulta: {query}
-
-        Respuesta:
-        {response}
-
-        Tu tarea es:
-        1. Determinar si la respuesta es apropiada y precisa para la consulta.
-        2. Identificar cualquier información faltante o imprecisa.
-        3. Evaluar la claridad y estructura de la respuesta.
-        4. Si es necesario, proporcionar una versión mejorada de la respuesta.
-
-        Por favor, proporciona tu evaluación en un formato claro y estructurado, incluyendo una versión mejorada de la respuesta si lo consideras necesario.
-        """
-
-    try:
-        evaluation = agent_manager.process_query(evaluation_prompt, eval_config['api'], eval_config['model'])
-    except Exception as e:
-        log_error(f"Error en evaluación {evaluation_type} con modelo principal: {str(e)}")
-        try:
-            evaluation = agent_manager.process_query(evaluation_prompt, eval_config['backup_api'], eval_config['backup_model'])
-        except Exception as e:
-            log_error(f"Error en evaluación {evaluation_type} con modelo de respaldo: {str(e)}")
-            evaluation = "No se pudo realizar la evaluación debido a un error."
-
-    return evaluation
-
 def process_user_input(user_input, config, agent_manager):
     try:
         # Obtener el contexto de la conversación
@@ -162,6 +112,9 @@ def process_user_input(user_input, config, agent_manager):
                     "status": "success",
                     "response": response
                 }]
+
+            if "Error al procesar" in response:
+                raise Exception(response)
 
             if not response:
                 response = agent_manager.process_query(enriched_query, 'assistant', 'asst_RfRNo5Ij76ieg7mV11CqYV9v')
@@ -214,13 +167,81 @@ def process_user_input(user_input, config, agent_manager):
         log_error(f"Se ha producido un error inesperado: {str(e)}")
         return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", None
 
+def evaluate_response(agent_manager, config, evaluation_type, query, response=None):
+    eval_config = config['evaluation_models'][evaluation_type]
+    
+    if evaluation_type == 'initial':
+        evaluation_prompt = f"""
+        Analiza la siguiente consulta y proporciona una guía detallada para responderla:
+
+        Consulta: {query}
+
+        Tu tarea es:
+        1. Identificar los puntos clave que deben abordarse en la respuesta.
+        2. Determinar si se necesita información actualizada o reciente para responder adecuadamente. Si es así, indica "BUSQUEDA_WEB: SI" en tu respuesta.
+        3. Evaluar la complejidad de la consulta en una escala de 0 a 1, donde 0 es muy simple y 1 es muy compleja. Indica "COMPLEJIDAD: X" donde X es el valor numérico.
+        4. Decidir si la consulta requiere conocimientos de múltiples dominios o fuentes. Si es así, indica "MOA: SI" en tu respuesta.
+        5. Sugerir fuentes de información relevantes para la consulta.
+        6. Proponer un esquema o estructura para la respuesta.
+        7. Indicar cualquier consideración especial o contexto importante para la consulta.
+
+        Por favor, proporciona tu análisis y guía en un formato claro y estructurado.
+        """
+    else:  # evaluation_type == 'final'
+        evaluation_prompt = f"""
+        Evalúa la siguiente respuesta a la consulta dada:
+
+        Consulta: {query}
+
+        Respuesta:
+        {response}
+
+        Tu tarea es:
+        1. Determinar si la respuesta es apropiada y precisa para la consulta.
+        2. Identificar cualquier información faltante o imprecisa.
+        3. Evaluar la claridad y estructura de la respuesta.
+        4. Si es necesario, proporcionar una versión mejorada de la respuesta.
+
+        Por favor, proporciona tu evaluación en un formato claro y estructurado, incluyendo una versión mejorada de la respuesta si lo consideras necesario.
+        """
+
+    for attempt in range(3):  # Intentar hasta 3 veces
+        try:
+            if attempt == 0:
+                evaluation = agent_manager.process_query(evaluation_prompt, eval_config['api'], eval_config['model'])
+            elif attempt == 1:
+                evaluation = agent_manager.process_query(evaluation_prompt, eval_config['backup_api'], eval_config['backup_model'])
+            else:
+                evaluation = agent_manager.process_query(evaluation_prompt, eval_config['backup_api2'], eval_config['backup_model2'])
+            
+            if "Error al procesar" not in evaluation:
+                return evaluation
+        except Exception as e:
+            log_error(f"Error en evaluación {evaluation_type} con {'modelo principal' if attempt == 0 else 'modelo de respaldo'}: {str(e)}")
+    
+    return "No se pudo realizar la evaluación debido a múltiples errores en los modelos de evaluación."
+
+# Resumen de la conversación con un límite de longitud máximo (500 caracteres)
+# Si el contexto supera el límite, se utiliza OpenRouter o OpenAI para resumirlo
 def summarize_conversation(previous_context, user_input, response, agent_manager, config, max_length=500):
     new_content = f"Usuario: {user_input}\nAsistente: {response}"
     updated_context = f"{previous_context}\n\n{new_content}".strip()
     
     if len(updated_context) > max_length:
         summary_prompt = f"Resume la siguiente conversación manteniendo los puntos clave:\n\n{updated_context}"
-        summary = agent_manager.process_query(summary_prompt, 'api', config['openai']['default_model'])
+        
+        try:
+            # Intenta usar OpenRouter primero
+            summary = agent_manager.process_with_openrouter(summary_prompt, config['openrouter']['default_model'])
+        except Exception as e:
+            log_error(f"Error al usar OpenRouter para resumen: {str(e)}. Usando OpenAI como respaldo.")
+            try:
+                # Si OpenRouter falla, usa OpenAI como respaldo
+                summary = agent_manager.process_query(summary_prompt, 'api', config['openai']['default_model'])
+            except Exception as e:
+                log_error(f"Error al usar OpenAI para resumen: {str(e)}. Devolviendo contexto sin resumir.")
+                return updated_context
+        
         return summary
     
     return updated_context
@@ -293,7 +314,8 @@ def main():
         st.sidebar.markdown('Alexander Oviedo Fadul')
         st.sidebar.markdown(
             "[GitHub](https://github.com/bladealex9848) | "
-            "[Website](https://alexander.oviedo.isabellaea.com/) | "
+            "[Website](https://alexanderoviedofadul.dev/) | "
+            "[LinkedIn](https://www.linkedin.com/in/alexander-oviedo-fadul/) | "
             "[Instagram](https://www.instagram.com/alexander.oviedo.fadul) | "
             "[Twitter](https://twitter.com/alexanderofadul) | "
             "[Facebook](https://www.facebook.com/alexanderof/) | "

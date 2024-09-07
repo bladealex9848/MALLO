@@ -4,6 +4,26 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+# Registro de Cambios
+Todos los cambios notables en el proyecto MALLO serán documentados en este archivo.
+
+El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
+y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
+
+## [1.1.0] - 2024-09-07
+### Añadido
+- Integración de la API de OpenRouter con múltiples modelos.
+- Sistema de recuperación de tres niveles para la evaluación de respuestas.
+- Nuevo método `process_with_openrouter` en la clase `AgentManager`.
+
+### Cambiado
+- Actualizada la función `summarize_conversation` para usar OpenRouter como opción principal y OpenAI como respaldo.
+- Modificada la función `evaluate_response` para incluir un segundo nivel de respaldo.
+- Actualizado el archivo de configuración `config.yaml` para incluir configuraciones de OpenRouter.
+
+### Optimizado
+- Simplificada la gestión de tokens máximos para modelos de OpenRouter, aprovechando los límites predeterminados de la API.
+
 ## [1.0.0] - 2024-08-22
 ### Añadido
 - README.md completo con información detallada del proyecto

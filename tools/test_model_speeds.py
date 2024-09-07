@@ -196,6 +196,29 @@ async def test_local_model(model):
     except Exception as e:
         return model, None, str(e)
 
+async def test_openrouter_model(model):
+    try:
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
+            "HTTP-Referer": "https://marduk.pro",
+            "X-Title": "MALLO",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "max_tokens": 10
+        }
+        start_time = time.time()
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                await response.json()
+        end_time = time.time()
+        return model, end_time - start_time, "success"
+    except Exception as e:
+        return model, None, str(e)
+
 async def test_all_models():
     tasks = []
     groq_models = await get_groq_models()
@@ -221,6 +244,8 @@ async def test_all_models():
                     tasks.append(test_deepinfra_model(model))
                 elif api == 'ollama':
                     tasks.append(test_local_model(model))
+                elif api == 'openrouter':
+                    tasks.append(test_openrouter_model(model))
 
     return await asyncio.gather(*tasks)
 
@@ -234,7 +259,7 @@ async def main():
     table.add_column("Package", style="cyan")
     table.add_column("Version", style="magenta")
     
-    for package in ['openai', 'anthropic', 'mistralai', 'cohere', 'together']:
+    for package in ['openai', 'anthropic', 'mistralai', 'cohere', 'together', 'aiohttp']:
         try:
             module = importlib.import_module(package)
             version = getattr(module, '__version__', 'Version not available')

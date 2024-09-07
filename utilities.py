@@ -38,7 +38,8 @@ def initialize_system(config: Dict[str, Any]) -> Dict[str, bool]:
         "Anthropic API": check_anthropic_api(),
         "DeepSeek API": check_deepseek_api(),
         "Mistral API": check_mistral_api(),
-        "Cohere API": check_cohere_api()
+        "Cohere API": check_cohere_api(),
+        "OpenRouter API": check_openrouter_api()
     }
     logging.info(f"System status: {status}")
     return status
@@ -121,6 +122,26 @@ def check_cohere_api() -> bool:
         return True
     except Exception as e:
         logging.error(f"Error checking Cohere API: {str(e)}")
+        return False
+
+def check_openrouter_api() -> bool:
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
+                "HTTP-Referer": "https://marduk.pro",
+                "X-Title": "MALLO",
+            },
+            data=json.dumps({
+                "model": "mattshumer/reflection-70b:free",
+                "messages": [{"role": "user", "content": "Test"}]
+            })
+        )
+        response.raise_for_status()
+        return True
+    except Exception as e:
+        logging.error(f"Error checking OpenRouter API: {str(e)}")
         return False
 
 def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bool]:

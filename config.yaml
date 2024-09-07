@@ -22,7 +22,7 @@ together:
   models:
     - "Qwen/Qwen2-72B-Instruct"
     - "google/gemma-2-27b-it"
-    - "zero-one-ai/Yi-34B-Chat"
+    - "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
     - "deepseek-ai/deepseek-llm-67b-chat"
   max_tokens: 512
   temperature: 0.7
@@ -92,6 +92,24 @@ cohere:
   default_model: "command-r-plus"
   models:
     - "command-r-plus"
+
+# Configuración de openrouter
+openrouter:
+  fast_models: "mattshumer/reflection-70b:free"
+  default_model: "mattshumer/reflection-70b:free"
+  models:
+    - "mattshumer/reflection-70b:free"
+    - "google/gemini-flash-8b-1.5-exp"
+    - "google/gemini-flash-1.5-exp"
+    - "google/gemini-pro-1.5-exp"
+    - "nousresearch/hermes-3-llama-3.1-405b"
+    - "nousresearch/hermes-3-llama-3.1-405b:extended"
+    - "meta-llama/llama-3.1-8b-instruct:free"
+    - "qwen/qwen-2-7b-instruct:free"
+    - "google/gemma-2-9b-it:free"
+    - "mistralai/mistral-7b-instruct:free"
+    - "microsoft/phi-3-medium-128k-instruct:free"  
+  temperature: 0.7
 
 # Configuración de asistentes especializados
 specialized_assistants:
@@ -299,12 +317,16 @@ utilities:
 # Configuración de evaluación de modelos
 evaluation_models:
   initial:
-    api: "anthropic"
-    model: "claude-3-haiku-20240307"
-    backup_api: "cohere"
-    backup_model: "command-r-plus"
+    api: "openrouter"
+    model: "mattshumer/reflection-70b:free"
+    backup_api: "anthropic"
+    backup_model: "claude-3-haiku-20240307"
+    backup_api2: "cohere"
+    backup_model2: "command-r-plus"    
   final:
-    api: "openai"
-    model: "gpt-4o-mini"
-    backup_api: "deepseek"
-    backup_model: "deepseek-chat"
+    api: "openrouter"
+    model: "mattshumer/reflection-70b:free"
+    backup_api: "openai"
+    backup_model: "gpt-4o-mini"
+    backup_api2: "deepseek"
+    backup_model2: "deepseek-chat"

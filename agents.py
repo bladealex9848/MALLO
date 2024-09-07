@@ -13,6 +13,12 @@ from openai import OpenAI
 from anthropic import Anthropic
 from mistralai import Mistral
 import cohere
+import requests
+import json
+
+from utilities import (
+    log_error
+)
 
 class AgentManager:
     def __init__(self, config: Dict[str, Any]):
@@ -21,7 +27,7 @@ class AgentManager:
         self.openai_models = config.get('openai', {}).get('models', [])
         self.together_models = config.get('together', {}).get('models', [])
         self.specialized_assistants = config.get('specialized_assistants', [])
-        
+                        
         self.clients = {
             'openai': self.init_openai_client(),
             'together': self.init_together_client(),
@@ -75,7 +81,10 @@ class AgentManager:
 
     def init_cohere_client(self):
         return self.init_client('Cohere', cohere.Client, st.secrets.get("COHERE_API_KEY"))
-
+    
+    def init_openrouter_client(self):
+        return st.secrets.get("OPENROUTER_API_KEY")    
+    
     def get_ollama_models(self) -> List[str]:
         try:
             response = requests.get(f"{self.config['ollama']['base_url']}/api/tags", timeout=5)
@@ -176,27 +185,31 @@ class AgentManager:
                 if process_method:
                     response = process_method(query, agent_id)
                 else:
-                    response = f"No se pudo procesar la consulta con el agente seleccionado: {agent_type}"
+                    raise ValueError(f"No se pudo procesar la consulta con el agente seleccionado: {agent_type}")
             
             if not response or response.startswith("Error") or response.startswith("No se pudo procesar"):
-                fallback_agent, fallback_model = self.get_fallback_agent()
-                response = self.process_query(query, fallback_agent, fallback_model)
-                
+                raise ValueError(f"Respuesta inválida del agente {agent_type}:{agent_id}")
+
         except Exception as e:
             logging.error(f"Error processing query with {agent_type}:{agent_id}: {str(e)}")
             fallback_agent, fallback_model = self.get_fallback_agent()
-            response = self.process_query(query, fallback_agent, fallback_model)
+            logging.info(f"Attempting fallback with {fallback_agent}:{fallback_model}")
+            return self.process_query(query, fallback_agent, fallback_model)
 
         processing_time = time.time() - start_time
         self.agent_speeds[f"{agent_type}:{agent_id}"] = processing_time
+        logging.info(f"Query processed by {agent_type}:{agent_id} in {processing_time:.2f} seconds")
+
         return response
 
     def get_fallback_agent(self) -> Tuple[str, str]:
-        if self.clients['openai']:
+        if self.clients.get('openrouter'):
+            return 'openrouter', self.config['openrouter']['default_model']
+        elif self.clients.get('openai'):
             return 'api', self.config['openai']['default_model']
-        elif self.clients['groq']:
+        elif self.clients.get('groq'):
             return 'groq', self.config['groq']['default_model']
-        elif self.clients['together']:
+        elif self.clients.get('together'):
             return 'together', self.config['together']['default_model']
         else:
             return 'local', self.default_local_model
@@ -240,21 +253,20 @@ class AgentManager:
         )
         return response.text
 
-    def process_with_local_model(self, query: str, model: Optional[str] = None) -> str:
-        model = model or self.default_local_model
-        url = f"{self.config['ollama']['base_url']}/api/generate"
-        payload = {
-            "model": model,
-            "prompt": query,
-            "stream": False
-        }
+    def process_with_local_model(self, query: str, model: str) -> str:
         try:
+            url = f"{self.config['ollama']['base_url']}/api/generate"
+            payload = {
+                "model": model,
+                "prompt": query,
+                "stream": False
+            }
             response = requests.post(url, json=payload, timeout=30)
-            if response.status_code == 200:
-                return response.json()["response"]
-            return f"Error en la generación con modelo local: {response.status_code}"
-        except requests.RequestException as e:
-            return f"Error de conexión con el modelo local: {str(e)}"
+            response.raise_for_status()
+            return response.json()["response"]
+        except Exception as e:
+            log_error(f"Error al procesar con modelo local: {str(e)}")
+            return f"Error al procesar con modelo local: {str(e)}"
 
     def process_with_api(self, query: str, model: Optional[str] = None) -> str:
         model = model or self.config['openai']['default_model']
@@ -305,6 +317,26 @@ class AgentManager:
             return response.choices[0].message.content
         except Exception as e:
             return f"Error al procesar con Groq API: {str(e)}"
+
+    def process_with_openrouter(self, query: str, model: str) -> str:
+        try:
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
+                "HTTP-Referer": st.secrets.get("YOUR_SITE_URL", "http://localhost:8501"),
+                "X-Title": "MALLO",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": model,
+                "messages": [{"role": "user", "content": query}]
+            }
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()['choices'][0]['message']['content']
+        except Exception as e:
+            log_error(f"Error al procesar con OpenRouter API: {str(e)}")
+            return f"Error al procesar con OpenRouter API: {str(e)}"
 
     def _process_with_openai_like_client(self, client, query: str, model: str) -> str:
         try:
@@ -357,11 +389,12 @@ class AgentManager:
                 'api': self.openai_models,
                 'groq': self.config['groq']['models'],
                 'together': self.together_models,
-                'local': self.ollama_models
+                'local': self.ollama_models,
+                'openrouter': self.config['openrouter']['models']  # Añadido OpenRouter
             }.get(agent_type, [])
         else:
             all_agents = []
-            for agent_type in ['api', 'groq', 'together', 'local']:
+            for agent_type in ['api', 'groq', 'together', 'local', 'openrouter']:  # Añadido OpenRouter
                 all_agents.extend(self.get_available_agents(agent_type))
             return all_agents
 
@@ -371,7 +404,7 @@ class AgentManager:
         for agent_type in priority:
             if agent_type == 'specialized_assistants':
                 agents.extend([(agent_type, assistant['id']) for assistant in self.specialized_assistants])
-            elif agent_type in ['api', 'groq', 'together', 'local']:
+            elif agent_type in ['api', 'groq', 'together', 'local', 'openrouter']:  # Añadido OpenRouter
                 agents.extend([(agent_type, model) for model in self.get_available_agents(agent_type)])
         return agents
 

@@ -2,171 +2,212 @@
   "groq": [
     {
       "model": "whisper-large-v3",
-      "speed": 0.20411419868469238
+      "speed": 71.79400992393494
     },
     {
       "model": "distil-whisper-large-v3-en",
-      "speed": 0.22035622596740723
-    },
-    {
-      "model": "llama3-groq-8b-8192-tool-use-preview",
-      "speed": 0.2552611827850342
-    },
-    {
-      "model": "llama-guard-3-8b",
-      "speed": 0.26006221771240234
-    },
-    {
-      "model": "gemma-7b-it",
-      "speed": 0.28305697441101074
+      "speed": 71.842355966568
     },
     {
       "model": "gemma2-9b-it",
-      "speed": 0.28436970710754395
-    },
-    {
-      "model": "llama-3.1-8b-instant",
-      "speed": 0.29132866859436035
+      "speed": 71.84362292289734
     },
     {
       "model": "llama3-groq-70b-8192-tool-use-preview",
-      "speed": 0.35468387603759766
-    },
-    {
-      "model": "llama3-70b-8192",
-      "speed": 0.35630106925964355
-    },
-    {
-      "model": "llama3-8b-8192",
-      "speed": 0.587332010269165
+      "speed": 71.84868574142456
     },
     {
       "model": "mixtral-8x7b-32768",
-      "speed": 0.5946750640869141
+      "speed": 71.86839485168457
+    },
+    {
+      "model": "llama3-groq-8b-8192-tool-use-preview",
+      "speed": 71.88856315612793
+    },
+    {
+      "model": "llava-v1.5-7b-4096-preview",
+      "speed": 71.88932204246521
+    },
+    {
+      "model": "llama-guard-3-8b",
+      "speed": 71.89942073822021
+    },
+    {
+      "model": "llama-3.1-8b-instant",
+      "speed": 71.90023398399353
+    },
+    {
+      "model": "gemma-7b-it",
+      "speed": 71.91327214241028
+    },
+    {
+      "model": "llama3-70b-8192",
+      "speed": 71.96439719200134
     },
     {
       "model": "llama-3.1-70b-versatile",
-      "speed": 2.9747116565704346
+      "speed": 72.42504906654358
+    },
+    {
+      "model": "llama3-8b-8192",
+      "speed": 72.5110080242157
     }
   ],
   "ollama": [
     {
       "model": "phi3.5:latest",
-      "speed": 4.693116903305054
-    },
-    {
-      "model": "gemma2:2b",
-      "speed": 5.710683822631836
+      "speed": 6.420697212219238
     },
     {
       "model": "qwen2:latest",
-      "speed": 7.26351523399353
+      "speed": 8.120643138885498
+    },
+    {
+      "model": "gemma2:2b",
+      "speed": 9.218317031860352
     },
     {
       "model": "llama3.1:latest",
-      "speed": 12.441060781478882
+      "speed": 12.291436195373535
     },
     {
       "model": "llava:latest",
-      "speed": 25.548182010650635
+      "speed": 12.609049081802368
     }
   ],
   "openai": [
     {
       "model": "gpt-4o-mini",
-      "speed": 1.0703999996185303
+      "speed": 2.4922800064086914
     }
   ],
   "together": [
     {
-      "model": "deepseek-ai/deepseek-llm-67b-chat",
-      "speed": 0.6524968147277832
-    },
-    {
       "model": "google/gemma-2-27b-it",
-      "speed": 0.7153148651123047
+      "speed": 0.4279789924621582
     },
     {
       "model": "Qwen/Qwen2-72B-Instruct",
-      "speed": 0.7522802352905273
+      "speed": 0.7229061126708984
     },
     {
       "model": "Qwen/Qwen2-72B-Instruct",
-      "speed": 1.0137760639190674
+      "speed": 0.8815419673919678
     },
     {
-      "model": "zero-one-ai/Yi-34B-Chat",
-      "speed": 1.496640920639038
+      "model": "deepseek-ai/deepseek-llm-67b-chat",
+      "speed": 0.9185421466827393
     }
   ],
   "deepinfra": [
     {
       "model": "Gryphe/MythoMax-L2-13b",
-      "speed": 0.4158210754394531
+      "speed": 0.42401790618896484
     },
     {
       "model": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-      "speed": 0.47806692123413086
-    },
-    {
-      "model": "Qwen/Qwen2-7B-Instruct",
-      "speed": 0.5165200233459473
+      "speed": 0.42612290382385254
     },
     {
       "model": "microsoft/Phi-3-medium-4k-instruct",
-      "speed": 0.5302960872650146
+      "speed": 0.4526190757751465
     },
     {
       "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-      "speed": 0.5855321884155273
+      "speed": 0.654742956161499
     },
     {
-      "model": "microsoft/WizardLM-2-8x22B",
-      "speed": 0.6978428363800049
+      "model": "Qwen/Qwen2-7B-Instruct",
+      "speed": 0.6707150936126709
     },
     {
       "model": "lizpreciatior/lzlv_70b_fp16_hf",
-      "speed": 0.931851863861084
+      "speed": 0.7573108673095703
+    },
+    {
+      "model": "microsoft/WizardLM-2-8x22B",
+      "speed": 0.9183189868927002
     },
     {
       "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
-      "speed": 1.2323930263519287
+      "speed": 0.9945158958435059
     },
     {
       "model": "Phind/Phind-CodeLlama-34B-v2",
-      "speed": 1.2557342052459717
+      "speed": 1.2500851154327393
     }
   ],
   "anthropic": [
     {
       "model": "claude-3-haiku-20240307",
-      "speed": 0.6507871150970459
+      "speed": 0.4874382019042969
     },
     {
       "model": "claude-3-5-sonnet-20240620",
-      "speed": 1.0940089225769043
+      "speed": 0.701073169708252
     }
   ],
   "deepseek": [
     {
-      "model": "deepseek-chat",
-      "speed": 1.7197356224060059
+      "model": "deepseek-coder",
+      "speed": 1.9464879035949707
     },
     {
-      "model": "deepseek-coder",
-      "speed": 1.9131457805633545
+      "model": "deepseek-chat",
+      "speed": 2.0466842651367188
     }
   ],
-  "mistral": [
-    {
-      "model": "open-mistral-nemo",
-      "speed": 1.000701904296875
-    }
-  ],
+  "mistral": [],
   "cohere": [
     {
       "model": "command-r-plus",
-      "speed": 0.6217639446258545
+      "speed": 0.9368751049041748
+    }
+  ],
+  "openrouter": [
+    {
+      "model": "mistralai/mistral-7b-instruct:free",
+      "speed": 0.7014861106872559
+    },
+    {
+      "model": "qwen/qwen-2-7b-instruct:free",
+      "speed": 0.7429540157318115
+    },
+    {
+      "model": "mattshumer/reflection-70b:free",
+      "speed": 0.7856178283691406
+    },
+    {
+      "model": "meta-llama/llama-3.1-8b-instruct:free",
+      "speed": 0.796867847442627
+    },
+    {
+      "model": "google/gemini-flash-8b-1.5-exp",
+      "speed": 0.804678201675415
+    },
+    {
+      "model": "microsoft/phi-3-medium-128k-instruct:free",
+      "speed": 0.8997969627380371
+    },
+    {
+      "model": "google/gemma-2-9b-it:free",
+      "speed": 0.9266500473022461
+    },
+    {
+      "model": "google/gemini-flash-1.5-exp",
+      "speed": 0.9444458484649658
+    },
+    {
+      "model": "google/gemini-pro-1.5-exp",
+      "speed": 1.15671706199646
+    },
+    {
+      "model": "nousresearch/hermes-3-llama-3.1-405b",
+      "speed": 12.697596073150635
+    },
+    {
+      "model": "nousresearch/hermes-3-llama-3.1-405b:extended",
+      "speed": 34.39775204658508
     }
   ]
 }
