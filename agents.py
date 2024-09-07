@@ -21,11 +21,14 @@ from utilities import (
 )
 
 class AgentManager:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]):   
         self.config = config
         self.clients = {}  # Inicializa esto con tus clientes de API
         self.agent_speeds = {}
-        self.default_local_model = config['ollama']['default_model']
+        self.ollama_models = self.get_ollama_models()
+        self.openai_models = config.get('openai', {}).get('models', [])
+        self.together_models = config.get('together', {}).get('models', [])
+        self.specialized_assistants = config.get('specialized_assistants', [])
                         
         self.clients = {
             'openai': self.init_openai_client(),
