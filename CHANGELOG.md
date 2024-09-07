@@ -10,6 +10,27 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+# Registro de Cambios
+
+## [1.2.0] - 2024-09-07
+### Añadido
+- Sistema de puntuación para evaluar la calidad de las respuestas de los agentes.
+- Función de síntesis para combinar las mejores partes de múltiples respuestas.
+- Nuevo agente de meta-análisis para generar una respuesta final mejorada.
+- Configuración en `config.yaml` para modelos de meta-análisis, incluyendo opciones de respaldo.
+
+### Cambiado
+- Modificada la función `process_user_input` para incorporar puntuación, síntesis y meta-análisis.
+- Actualizado el método `meta_analysis` en `AgentManager` para usar modelos configurables con sistema de respaldo.
+- Mejorado el manejo de errores en el proceso de meta-análisis.
+
+### Mejorado
+- Refinado el proceso de selección de respuesta final para reflejar un pensamiento más sofisticado.
+- Aumentada la robustez del sistema ante fallos de modelos individuales.
+
+### Optimizado
+- Implementado un sistema de reintentos para el meta-análisis utilizando hasta tres modelos diferentes.
+
 ## [1.1.0] - 2024-09-07
 ### Añadido
 - Integración de la API de OpenRouter con múltiples modelos.

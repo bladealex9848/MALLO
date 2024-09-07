@@ -95,7 +95,7 @@ cohere:
 
 # Configuración de openrouter
 openrouter:
-  fast_models: "mattshumer/reflection-70b:free"
+  fast_models: "google/gemini-flash-8b-1.5-exp"
   default_model: "mattshumer/reflection-70b:free"
   models:
     - "mattshumer/reflection-70b:free"

@@ -231,7 +231,7 @@ def summarize_conversation(previous_context, user_input, response, agent_manager
         
         try:
             # Intenta usar OpenRouter primero
-            summary = agent_manager.process_with_openrouter(summary_prompt, config['openrouter']['default_model'])
+            summary = agent_manager.process_with_openrouter(summary_prompt, config['openrouter']['fast_models'])
         except Exception as e:
             log_error(f"Error al usar OpenRouter para resumen: {str(e)}. Usando OpenAI como respaldo.")
             try:
