@@ -383,6 +383,47 @@ class AgentManager:
             max_tokens=self.config['general']['max_tokens'],
         )
         return aggregator_response.choices[0].message.content
+    
+    def meta_analysis(self, query: str, responses: List[Dict[str, Any]], initial_evaluation: str, final_evaluation: str) -> str:
+        prompt = f"""
+        Analiza las siguientes respuestas a la pregunta: "{query}"
+
+        Respuestas de los agentes:
+        {json.dumps(responses, indent=2)}
+
+        Evaluación inicial:
+        {initial_evaluation}
+
+        Evaluación final:
+        {final_evaluation}
+
+        Tu tarea es:
+        1. Sintetizar una respuesta final que incorpore los mejores elementos de todas las respuestas.
+        2. Corregir cualquier error identificado en la evaluación final.
+        3. Asegurarte de que la respuesta aborde todos los puntos clave mencionados en la evaluación inicial.
+        4. Proporcionar una explicación clara y concisa del razonamiento detrás de la respuesta.
+        5. Mantener la respuesta enfocada y relevante a la pregunta original.
+
+        Por favor, proporciona la respuesta sintetizada en un formato claro y estructurado.
+        """
+
+        meta_config = self.config['evaluation_models']['meta_analysis']
+
+        for attempt in range(3):  # Intentar hasta 3 veces
+            try:
+                if attempt == 0:
+                    response = self.process_query(prompt, meta_config['api'], meta_config['model'])
+                elif attempt == 1:
+                    response = self.process_query(prompt, meta_config['backup_api'], meta_config['backup_model'])
+                else:
+                    response = self.process_query(prompt, meta_config['backup_api2'], meta_config['backup_model2'])
+                
+                if response and not response.startswith("Error"):
+                    return response
+            except Exception as e:
+                logging.error(f"Error en meta-análisis con {'modelo principal' if attempt == 0 else 'modelo de respaldo'}: {str(e)}")
+        
+        return "No se pudo realizar el meta-análisis debido a múltiples errores en los modelos configurados."
 
     async def run_multiple_models(self, query: str) -> List[str]:
         async def run_model(model):

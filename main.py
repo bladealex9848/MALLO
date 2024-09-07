@@ -130,6 +130,9 @@ def process_user_input(user_input, config, agent_manager):
 
             processing_time = time.time() - start_time
             
+            # Realizar meta-análisis
+            meta_analysis_result = agent_manager.meta_analysis(user_input, best_response, initial_evaluation, final_evaluation)
+
             details = {
                 "selected_agent": "multiple" if needs_moa else agent_type,
                 "processing_time": f"{processing_time:.2f} segundos",
@@ -144,16 +147,20 @@ def process_user_input(user_input, config, agent_manager):
                     "total_agents_called": len(agent_results),
                     "successful_responses": sum(1 for r in agent_results if r["status"] == "success"),
                     "failed_responses": sum(1 for r in agent_results if r["status"] == "error"),
-                    "average_response_time": f"{processing_time / len(agent_results):.2f} segundos"
-                }
+                    "average_response_time": f"{processing_time / len(agent_results):.2f} segundos"                    
+                },
+                "meta_analysis": meta_analysis_result
             }
+
+            # Usar el resultado del meta-análisis como respuesta final
+            final_response = meta_analysis_result
 
             new_context = summarize_conversation(conversation_context, user_input, response, agent_manager, config)
             st.session_state['context'] = new_context
 
-            cache_response(enriched_query, (response, details))
+            cache_response(enriched_query, (final_response, details))
 
-            return response, details
+            return final_response, details
 
     except Exception as e:
         logging.error(f"Se ha producido un error inesperado: {str(e)}")
