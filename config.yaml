@@ -332,8 +332,8 @@ evaluation_models:
     backup_api2: "deepseek"
     backup_model2: "deepseek-chat"
   meta_analysis:
-    api: "openrouter"
-    model: "google/gemini-pro-1.5-exp"
+    api: "openai"
+    model: "gpt-4o-mini"
     backup_api: "openrouter"
     backup_model: "nousresearch/hermes-3-llama-3.1-405b"
     backup_api2: "groq"
