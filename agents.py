@@ -35,8 +35,8 @@ class AgentManager:
         self.reliable_models = []
         self.default_local_model = config['ollama'].get('default_model', 'phi3.5:latest')
         self.processing_priority = config.get('processing_priority', [])
-        self.default_agent = ('openrouter', config['openrouter']['default_model'])
-        self.backup_default_agent = ('deepinfra', config['deepinfra']['default_model'])
+        self.default_agent = ('openrouter', config['deepinfra']['default_model'])
+        self.backup_default_agent = ('deepinfra', config['openrouter']['default_model'])
         self.meta_analysis_model = config['evaluation_models']['meta_analysis']['model']
         self.meta_analysis_api = config['evaluation_models']['meta_analysis']['api']
                         
