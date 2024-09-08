@@ -29,6 +29,16 @@ class AgentManager:
         self.openai_models = config.get('openai', {}).get('models', [])
         self.together_models = config.get('together', {}).get('models', [])
         self.specialized_assistants = config.get('specialized_assistants', [])
+        self.moa_threshold = config.get('thresholds', {}).get('moa_complexity', 0.7)
+        self.agent_speeds = {}
+        self.available_models = self.verify_models()
+        self.reliable_models = []
+        self.default_local_model = config['ollama'].get('default_model', 'phi3.5:latest')
+        self.processing_priority = config.get('processing_priority', [])
+        self.default_agent = ('openrouter', config['openrouter']['default_model'])
+        self.backup_default_agent = ('deepinfra', config['deepinfra']['default_model'])
+        self.meta_analysis_model = config['evaluation_models']['meta_analysis']['model']
+        self.meta_analysis_api = config['evaluation_models']['meta_analysis']['api']
                         
         self.clients = {
             'openai': self.init_openai_client(),
@@ -41,10 +51,75 @@ class AgentManager:
             'cohere': self.init_cohere_client()
         }
 
-        self.agent_speeds = {}
-        self.available_models = self.verify_models()
-        self.reliable_models = []
-        self.default_local_model = config['ollama']['default_model']
+    def get_available_models(self, agent_type: str = None) -> List[str]:
+        if agent_type:
+            return {
+                'api': self.openai_models,
+                'groq': self.config['groq']['models'],
+                'together': self.together_models,
+                'local': self.ollama_models,
+                'openrouter': self.config['openrouter']['models'],
+                'deepinfra': self.config['deepinfra']['models'],
+                'anthropic': self.config['anthropic']['models'],
+                'deepseek': self.config['deepseek']['models'],
+                'mistral': self.config['mistral']['models'],
+                'cohere': self.config['cohere']['models']                  
+            }.get(agent_type, [])
+        else:
+            all_agents = []
+            for agent_type in ['api', 'groq', 'together', 'local', 'openrouter', 'deepinfra', 'anthropic', 'deepseek', 'mistral', 'cohere']:
+                all_agents.extend(self.get_available_models(agent_type))
+            return all_agents
+
+    def get_prioritized_agents(self, query: str, complexity: float) -> List[Tuple[str, str]]:
+        prioritized_agents = []
+        for agent_type in self.processing_priority:
+            if agent_type == 'specialized_assistants':
+                assistant_id = self.find_suitable_assistant(query)
+                if assistant_id:
+                    prioritized_agents.append(('assistant', assistant_id))
+            elif agent_type == 'moa':
+                if complexity > self.config['thresholds']['moa_complexity']:
+                    prioritized_agents.append(('moa', 'moa'))
+            elif agent_type == 'openrouter':
+                models = self.get_available_models('openrouter')
+                if models:
+                    prioritized_agents.append(('openrouter', models[0]))
+            elif agent_type == 'deepinfra':
+                models = self.get_available_models('deepinfra')
+                if models:
+                    prioritized_agents.append(('deepinfra', models[0]))
+            elif agent_type in ['groq', 'together', 'openai', 'anthropic', 'deepseek', 'cohere', 'ollama', 'mistral']:
+                models = self.get_available_models(agent_type)
+                if models:
+                    prioritized_agents.append((agent_type, models[0]))
+        
+        # Añadir agentes por defecto al final de la lista si no están ya incluidos
+        default_agents = [
+            ('openrouter', self.config['openrouter']['default_model']),
+            ('deepinfra', self.config['deepinfra']['default_model'])
+        ]
+        for agent, model in default_agents:
+            if not any(a[0] == agent for a in prioritized_agents):
+                prioritized_agents.append((agent, model))
+        
+        return prioritized_agents
+
+    def process_query_with_fallback(self, query: str, prioritized_agents: List[Tuple[str, str]]) -> Tuple[str, Dict[str, Any]]:
+        for agent_type, agent_id in prioritized_agents:
+            try:
+                response = self.process_query(query, agent_type, agent_id)
+                return response, {"agent": agent_type, "model": agent_id}
+            except Exception as e:
+                logging.error(f"Error processing query with {agent_type}:{agent_id}: {str(e)}")
+        
+        # Si todos los agentes fallan, usar el modelo local por defecto
+        try:
+            response = self.process_with_local_model(query, self.default_local_model)
+            return response, {"agent": "local", "model": self.default_local_model}
+        except Exception as e:
+            logging.error(f"Error processing query with local model: {str(e)}")
+            raise ValueError("No se pudo procesar la consulta con ningún agente disponible")    
 
     def init_client(self, client_name: str, client_class, api_key: str, **kwargs):
         try:
@@ -167,6 +242,12 @@ class AgentManager:
 
     def is_suitable(self, agent_type: str, model: str, complexity: float) -> bool:
         thresholds = self.config['thresholds']
+        if agent_type == 'deepinfra' and complexity < thresholds['api_complexity']:
+            return True
+        if agent_type == 'openrouter' and complexity < thresholds['local_complexity']:
+            return True
+        if agent_type == 'deepseek' and complexity < thresholds['api_complexity']:
+            return True
         if agent_type == 'local' and complexity < thresholds['local_complexity']:
             return True
         if agent_type == 'api' and complexity > thresholds['api_complexity']:
@@ -174,12 +255,21 @@ class AgentManager:
         if agent_type == 'groq' and thresholds['local_complexity'] <= complexity <= thresholds['api_complexity']:
             return True
         if agent_type == 'together' and complexity < thresholds['local_complexity']:
+            return True 
+        if agent_type == 'anthropic' and complexity < thresholds['api_complexity']:
+            return True        
+        if agent_type == 'cohere' and complexity < thresholds['api_complexity']:
+            return True
+        if agent_type == 'mistral' and complexity < thresholds['api_complexity']:
             return True
         return False
 
-    def process_query(self, query: str, agent_type: str, agent_id: str) -> str:
+    def process_query(self, query: str, agent_type: str, agent_id: str, fallback_attempts: int = 0) -> str:
         start_time = time.time()
+        max_fallback_attempts = 3  # Límite de intentos de fallback para evitar bucles infinitos
+
         try:
+            # Procesar la consulta con el agente seleccionado
             if agent_type == 'assistant':
                 response = self.process_with_assistant(agent_id, query)
             else:
@@ -188,8 +278,8 @@ class AgentManager:
                     response = process_method(query, agent_id)
                 else:
                     raise ValueError(f"No se pudo procesar la consulta con el agente seleccionado: {agent_type}")
-            
-            # Verificar si la respuesta es un diccionario y manejarlo adecuadamente
+
+            # Verificar y manejar la respuesta
             if isinstance(response, dict):
                 if 'error' in response:
                     raise ValueError(f"Error en la respuesta: {response['error']}")
@@ -197,21 +287,43 @@ class AgentManager:
                     response = response['content']
                 else:
                     raise ValueError(f"Respuesta inesperada del agente {agent_type}:{agent_id}")
-            
-            if not response or (isinstance(response, str) and (response.startswith("Error") or response.startswith("No se pudo procesar"))):
+
+            # Validar la respuesta
+            if not response or (isinstance(response, str) and (response.strip() == "" or response.startswith("Error") or response.startswith("No se pudo procesar"))):
                 raise ValueError(f"Respuesta inválida del agente {agent_type}:{agent_id}")
+
+            # Registrar el tiempo de procesamiento
+            processing_time = time.time() - start_time
+            self.agent_speeds[f"{agent_type}:{agent_id}"] = processing_time
+            logging.info(f"Query processed by {agent_type}:{agent_id} in {processing_time:.2f} seconds")
+
+            return response
 
         except Exception as e:
             logging.error(f"Error processing query with {agent_type}:{agent_id}: {str(e)}")
-            fallback_agent, fallback_model = self.get_fallback_agent()
-            logging.info(f"Attempting fallback with {fallback_agent}:{fallback_model}")
-            return self.process_query(query, fallback_agent, fallback_model)
+            
+            # Intentar con agente de respaldo si no se ha alcanzado el límite de intentos
+            if fallback_attempts < max_fallback_attempts:
+                fallback_agent, fallback_model = self.get_fallback_agent()
+                if fallback_agent != agent_type or fallback_model != agent_id:
+                    logging.info(f"Attempting fallback with {fallback_agent}:{fallback_model}")
+                    return self.process_query(query, fallback_agent, fallback_model, fallback_attempts + 1)
+                else:
+                    logging.error("Fallback agent is the same as the failed agent. Aborting fallback.")
+            else:
+                logging.error(f"Reached maximum fallback attempts ({max_fallback_attempts}). Unable to process query.")
 
-        processing_time = time.time() - start_time
-        self.agent_speeds[f"{agent_type}:{agent_id}"] = processing_time
-        logging.info(f"Query processed by {agent_type}:{agent_id} in {processing_time:.2f} seconds")
+            # Si todos los intentos fallan, lanzar una excepción
+            raise ValueError(f"Failed to process query after {fallback_attempts} fallback attempts")
 
-        return response
+    def should_use_moa(self, query: str, complexity: float) -> bool:
+        return complexity > self.moa_threshold
+
+    def find_suitable_assistant(self, query: str) -> Optional[str]:
+        for assistant in self.specialized_assistants:
+            if any(keyword.lower() in query.lower() for keyword in assistant['keywords']):
+                return assistant['id']
+        return None
 
     def get_fallback_agent(self) -> Tuple[str, str]:
         if self.clients.get('openrouter'):
@@ -223,7 +335,7 @@ class AgentManager:
         elif self.clients.get('together'):
             return 'together', self.config['together']['default_model']
         else:
-            return 'local', self.default_local_model
+            return 'local', self.config['ollama']['default_model']
 
     def get_next_reliable_model(self, current_model: str) -> Optional[str]:
         try:
@@ -448,7 +560,12 @@ class AgentManager:
                 'groq': self.config['groq']['models'],
                 'together': self.together_models,
                 'local': self.ollama_models,
-                'openrouter': self.config['openrouter']['models']  # Añadido OpenRouter
+                'openrouter': self.config['openrouter']['models'], # Añadido OpenRouter
+                'deepinfra': self.config['deepinfra']['models'],
+                'anthropic': self.config['anthropic']['models'],
+                'deepseek': self.config['deepseek']['models'],
+                'mistral': self.config['mistral']['models'],
+                'cohere': self.config['cohere']['models']                  
             }.get(agent_type, [])
         else:
             all_agents = []

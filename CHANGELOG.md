@@ -12,6 +12,28 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
 
 # Registro de Cambios
 
+## [1.3.0] - 2024-09-08
+### Cambiado
+- Mejorado el proceso de selección de agentes con la implementación de `get_prioritized_agents` en `AgentManager`.
+- Refinado el método `process_query` en `AgentManager` para un mejor manejo de errores y fallbacks.
+- Actualizada la lógica de `process_user_input` en `main.py` para utilizar el nuevo sistema de priorización de agentes.
+
+### Optimizado
+- Mejorada la generación de respuestas finales para ser más conversacionales y directas.
+- Refinado el proceso de meta-análisis para producir respuestas más coherentes y relevantes.
+
+### Corregido
+- Solucionado el problema con el atributo faltante `default_local_model` en `AgentManager`.
+- Implementado el método faltante `get_available_models` en `AgentManager`.
+
+### Añadido
+- Nueva funcionalidad para manejar fallbacks de manera más robusta en caso de fallo de agentes primarios.
+- Implementada una lógica mejorada para la selección de agentes basada en la complejidad de la consulta y la disponibilidad de modelos.
+
+### Mejorado
+- Optimizada la gestión de errores en todo el sistema para una mejor experiencia de usuario y depuración.
+- Mejorada la documentación interna del código para facilitar futuro mantenimiento y desarrollo.
+
 ## [1.2.0] - 2024-09-07
 ### Añadido
 - Sistema de puntuación para evaluar la calidad de las respuestas de los agentes.

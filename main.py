@@ -96,45 +96,34 @@ def process_user_input(user_input, config, agent_manager):
             else:
                 web_context = ""
             
-            if needs_moa:
-                response, agent_results = asyncio.run(process_with_multiple_agents(enriched_query, agent_manager))
-            else:
-                agent_type, agent_id = agent_manager.get_appropriate_agent(enriched_query, complexity)
-                response = agent_manager.process_query(enriched_query, agent_type, agent_id)
-                agent_results = [{
-                    "agent": agent_type,
-                    "model": agent_id,
-                    "status": "success",
-                    "response": response
-                }]
+            prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity)
+            
+            response, agent_info = agent_manager.process_query_with_fallback(enriched_query, prioritized_agents)
+            
+            agent_results = [{
+                "agent": agent_info["agent"],
+                "model": agent_info["model"],
+                "status": "success",
+                "response": response
+            }]
 
-            # Manejar el caso en que response sea un diccionario
-            if isinstance(response, dict) and 'error' in response:
-                fallback_agent, fallback_model = agent_manager.get_fallback_agent()
-                response = agent_manager.process_query(enriched_query, fallback_agent, fallback_model)
-                agent_results.append({
-                    "agent": fallback_agent,
-                    "model": fallback_model,
-                    "status": "fallback",
-                    "response": response
-                })
-
-            best_response = max(agent_results, key=lambda x: len(x['response']))['response']
-
-            final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, best_response)
-
-            if "no es apropiada" in final_evaluation.lower() or "no es precisa" in final_evaluation.lower():
-                response = final_evaluation
-            else:
-                response = best_response
+            final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, response)
 
             processing_time = time.time() - start_time
             
             # Realizar meta-análisis
-            meta_analysis_result = agent_manager.meta_analysis(user_input, best_response, initial_evaluation, final_evaluation)
+            meta_analysis_result = agent_manager.meta_analysis(user_input, response, initial_evaluation, final_evaluation)                      
+
+            # Generar la respuesta final basada en el meta-análisis
+            final_response = agent_manager.process_query(
+                f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
+                agent_manager.meta_analysis_api,
+                agent_manager.meta_analysis_model
+            )
 
             details = {
-                "selected_agent": "multiple" if needs_moa else agent_type,
+                "selected_agent": agent_info["agent"],
+                "selected_model": agent_info["model"],
                 "processing_time": f"{processing_time:.2f} segundos",
                 "complexity": complexity,
                 "needs_web_search": needs_web_search,
@@ -147,15 +136,13 @@ def process_user_input(user_input, config, agent_manager):
                     "total_agents_called": len(agent_results),
                     "successful_responses": sum(1 for r in agent_results if r["status"] == "success"),
                     "failed_responses": sum(1 for r in agent_results if r["status"] == "error"),
-                    "average_response_time": f"{processing_time / len(agent_results):.2f} segundos"                    
+                    "average_response_time": f"{processing_time:.2f} segundos"                    
                 },
-                "meta_analysis": meta_analysis_result
+                "meta_analysis": meta_analysis_result,
+                "final_response": final_response
             }
 
-            # Usar el resultado del meta-análisis como respuesta final
-            final_response = meta_analysis_result
-
-            new_context = summarize_conversation(conversation_context, user_input, response, agent_manager, config)
+            new_context = summarize_conversation(conversation_context, user_input, final_response, agent_manager, config)
             st.session_state['context'] = new_context
 
             cache_response(enriched_query, (final_response, details))
@@ -221,7 +208,7 @@ def evaluate_response(agent_manager, config, evaluation_type, query, response=No
     return "No se pudo realizar la evaluación debido a múltiples errores en los modelos de evaluación."
 
 # Resumen de la conversación con un límite de longitud máximo (500 caracteres)
-# Si el contexto supera el límite, se utiliza OpenRouter o OpenAI para resumirlo
+# Si el contexto supera el límite, se utiliza cohere o OpenAI para resumirlo
 def summarize_conversation(previous_context, user_input, response, agent_manager, config, max_length=500):
     new_content = f"Usuario: {user_input}\nAsistente: {response}"
     updated_context = f"{previous_context}\n\n{new_content}".strip()
@@ -230,12 +217,14 @@ def summarize_conversation(previous_context, user_input, response, agent_manager
         summary_prompt = f"Resume la siguiente conversación manteniendo los puntos clave:\n\n{updated_context}"
         
         try:
-            # Intenta usar OpenRouter primero
-            summary = agent_manager.process_with_openrouter(summary_prompt, config['openrouter']['fast_models'])
+            # Intenta usar openrouter primero
+            # summary = agent_manager.process_with_openrouter(summary_prompt, config['openrouter']['fast_models'])
+            # Intenta usar cohere primero
+            summary = agent_manager.process_query(summary_prompt, 'cohere', config['cohere']['default_model'])
         except Exception as e:
-            log_error(f"Error al usar OpenRouter para resumen: {str(e)}. Usando OpenAI como respaldo.")
+            log_error(f"Error al usar cohere para resumen: {str(e)}. Usando OpenAI como respaldo.")
             try:
-                # Si OpenRouter falla, usa OpenAI como respaldo
+                # Si cohere falla, usa OpenAI como respaldo
                 summary = agent_manager.process_query(summary_prompt, 'api', config['openai']['default_model'])
             except Exception as e:
                 log_error(f"Error al usar OpenAI para resumen: {str(e)}. Devolviendo contexto sin resumir.")

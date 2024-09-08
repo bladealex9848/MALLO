@@ -129,6 +129,8 @@ MALLO/
    DEEPSEEK_API_KEY="tu_clave_deepseek_aqui"
    MISTRAL_API_KEY="tu_clave_mistral_aqui"
    COHERE_API_KEY="tu_clave_cohere_aqui"
+   REPLICATE_API_TOKEN= "tu_clave_replicate_aqui"
+   OPENROUTER_API_KEY= "tu_clave_openrouter_aqui"
    # Añade otras claves API según sea necesario
    ```
 
@@ -231,6 +233,8 @@ MALLO integra varios servicios de LLM y APIs, incluyendo:
 - DeepSeek
 - Mistral
 - Cohere
+- Ollama
+- OpenRouter
 
 Cada servicio se inicializa y gestiona a través de la clase `AgentManager`, permitiendo una fácil expansión a nuevos proveedores en el futuro.
 
@@ -279,12 +283,10 @@ Consulta [CHANGELOG.md](CHANGELOG.md) para ver el historial detallado de cambios
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT - vea el archivo [LICENSE.md](LICENSE.md) para más detalles.
+Este proyecto está licenciado bajo la Licencia MIT - vea el archivo [LICENSE](LICENSE) para más detalles.
 
 ## Contacto
 
-Alexander Oviedo Fadul - alexander.oviedo.fadul@gmail.com
+Alexander Oviedo Fadul
 
-Enlace del proyecto: [https://github.com/bladealex9848/MALLO](https://github.com/bladealex9848/MALLO)
-
-[GitHub](https://github.com/bladealex9848) | [Website](https://alexander.oviedo.isabellaea.com/) | [Instagram](https://www.instagram.com/alexander.oviedo.fadul) | [Twitter](https://twitter.com/alexanderofadul) | [Facebook](https://www.facebook.com/alexanderof/) | [WhatsApp](https://api.whatsapp.com/send?phone=573015930519&text=Hola%20!Quiero%20conversar%20contigo!) | [LinkedIn](https://www.linkedin.com/in/alexander-oviedo-fadul-49434b9a/)
+[GitHub](https://github.com/bladealex9848) | [Website](https://alexanderoviedofadul.dev/) | [Instagram](https://www.instagram.com/alexander.oviedo.fadul) | [Twitter](https://twitter.com/alexanderofadul) | [Facebook](https://www.facebook.com/alexanderof/) | [WhatsApp](https://api.whatsapp.com/send?phone=573015930519&text=Hola%20!Quiero%20conversar%20contigo!) | [LinkedIn](https://www.linkedin.com/in/alexander-oviedo-fadul/)
