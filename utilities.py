@@ -13,8 +13,27 @@ import re
 from openai import OpenAI
 from groq import Groq
 from anthropic import Anthropic
-from mistralai import Mistral
 import cohere
+
+from load_secrets import load_secrets
+
+# Carga los secretos
+secrets = load_secrets()
+
+# Usa los secretos en tu aplicación
+st.secrets = secrets
+
+try:
+    from mistralai import Mistral
+except TypeError:
+    print("Error al importar Mistral. Usando una implementación alternativa.")
+    class Mistral:
+        def __init__(self, *args, **kwargs):
+            pass
+        def chat(self, *args, **kwargs):
+            return "Mistral no está disponible en este momento."
+
+# Resto de tu código...
 
 # Configurar logging
 logging.basicConfig(filename='mallo.log', level=logging.INFO, 

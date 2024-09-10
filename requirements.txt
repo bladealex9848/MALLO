@@ -1,3 +1,6 @@
+python-dotenv
+typing-extensions>=4.11,<5
+pydantic>=2.5.2,<3.0.0
 streamlit==1.37.1
 openai==1.41.1
 pillow==10.4.0
@@ -11,16 +14,16 @@ together==1.2.7
 groq==0.9.0
 spacy==3.7.5
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0.tar.gz
-pydantic==2.8.2
 asyncio==3.4.3
 aiohttp==3.10.5
 polars==1.5.0
 anthropic==0.34.1
-mistralai==1.0.1
+mistralai==1.0.3
 cohere==5.8.1
 scikit-learn==1.5.1
 numpy==1.24.3
 replicate
+
 
 # Uso Experimental con mallo_enhancer.py
 # sentence-transformers==2.2.2 

@@ -54,3 +54,64 @@ docs/_build/
 
 # Archivos de dependencias
 pip-lock.txt
+
+# Archivos de secretos y configuración
+.env
+*.env
+.env.*
+!.env.example
+/etc/secrets/*
+
+# Archivos específicos de Render
+.render-buildpacks.json
+
+# Archivos de respaldo
+*~
+
+# Archivos de PyCharm
+*.iml
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Archivos de celery
+celerybeat-schedule
+celerybeat.pid
+
+# Archivos de SageMath
+*.sage.py
+
+# Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Archivo de configuración de pytype static analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/

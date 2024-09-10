@@ -3,6 +3,10 @@ from config_streamlit import set_streamlit_page_config
 set_streamlit_page_config()
 
 import streamlit as st
+# from compatibility_check import check_compatibility
+# if not check_compatibility():
+#    st.error("El entorno no es compatible. Por favor, revisa las versiones de las dependencias.")
+#    st.stop()
 import yaml
 import os
 import json
@@ -19,6 +23,14 @@ import random
 import logging
 from typing import Tuple, Dict, Any
 # from mallo_enhancer import MALLOEnhancer, adapt_criteria # Importar para la versión experimental
+
+from load_secrets import load_secrets
+
+# Carga los secretos
+secrets = load_secrets()
+
+# Usa los secretos en tu aplicación
+st.secrets = secrets
 
 def load_config():
     try:
