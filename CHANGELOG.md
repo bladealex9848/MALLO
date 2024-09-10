@@ -4,13 +4,35 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
-# Registro de Cambios
-Todos los cambios notables en el proyecto MALLO serán documentados en este archivo.
+## [1.4.1] - 2024-09-10
+### Cambiado
+- Implementado un nuevo sistema de gestión de secretos para mejorar la compatibilidad con [Render](https://render.com/). Este cambio permite la carga de secretos desde archivos locales y variables de entorno, proporcionando una solución más flexible y segura para el manejo de claves API y otros datos sensibles en la aplicación MALLO.
+- Reemplazado el uso de `st.secrets` por un sistema personalizado de secretos en toda la aplicación. En donde en `agents.py` y `utilities.py`, se reemplazan todas las instancias de `st.secrets` por `secrets` y donde se use `st.secrets.get()`, reemplázalo por `get_secret()`. Ejemplos:
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
-y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
+```python
+# Antes
+api_key = st.secrets["OPENAI_API_KEY"]
 
-# Registro de Cambios
+# Después
+api_key = secrets["OPENAI_API_KEY"]
+```
+y
+
+```python
+# Antes
+api_key = st.secrets.get("OPENAI_API_KEY")
+
+# Después
+api_key = get_secret("OPENAI_API_KEY")
+```
+
+### Corregido
+- Solucionado el problema de carga de secretos en el entorno de Render.
+- Corregido el error "No secrets files found" durante el despliegue en Render.
+
+### Optimizado
+- Mejorada la carga de secretos para manejar múltiples fuentes (archivos, variables de entorno) de manera más robusta.
+
 
 ## [1.4.0] - 2024-09-10
 ### Añadido
