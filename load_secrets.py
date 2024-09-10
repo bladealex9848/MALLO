@@ -28,6 +28,7 @@ def load_secrets():
     ]
 
     # Buscar y cargar secrets.toml
+    secrets_loaded_from_file = False
     for path in search_paths:
         secrets_path = Path(path) / 'secrets.toml'
         if secrets_path.is_file():
@@ -35,6 +36,7 @@ def load_secrets():
             try:
                 with open(secrets_path, 'r') as f:
                     secrets.update(toml.load(f))
+                secrets_loaded_from_file = True
                 break  # Si se encuentra y carga correctamente, salimos del bucle
             except Exception as e:
                 logger.error(f"Error al leer {secrets_path}: {str(e)}")
@@ -66,11 +68,17 @@ def load_secrets():
 
     logger.info(f"Carga de secretos completada. {len(secrets)} secretos cargados.")
     
-    # Actualizar st.secrets de forma segura
-    for key, value in secrets.items():
-        if key not in st.secrets:
-            st.secrets[key] = value
+    # Si no se cargaron secretos desde un archivo, usar las variables de entorno directamente
+    if not secrets_loaded_from_file:
+        logger.warning("No se encontró archivo secrets.toml. Usando variables de entorno.")
+        for key, value in secrets.items():
+            setattr(st.secrets, key, value)
+    else:
+        # Actualizar st.secrets de forma segura si se cargaron desde un archivo
+        for key, value in secrets.items():
+            if not hasattr(st.secrets, key):
+                setattr(st.secrets, key, value)
 
 def get_secret(key):
     """Obtiene un secreto específico."""
-    return st.secrets.get(key)
+    return getattr(st.secrets, key, None)
