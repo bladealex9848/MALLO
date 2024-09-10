@@ -15,10 +15,14 @@ from groq import Groq
 from anthropic import Anthropic
 import cohere
 
-from load_secrets import load_secrets
+from load_secrets import load_secrets, get_secret
 
-# Al inicio de tu aplicación
-secrets = load_secrets()
+# Carga todos los secretos al inicio de la aplicación
+all_secrets = load_secrets()
+
+# Configura los secretos de Streamlit
+for key, value in all_secrets.items():
+    st.secrets[key] = value
 
 try:
     from mistralai import Mistral
