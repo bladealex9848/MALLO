@@ -4,6 +4,7 @@ import toml
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
+import streamlit as st
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -64,9 +65,12 @@ def load_secrets():
             secrets[key] = value
 
     logger.info(f"Carga de secretos completada. {len(secrets)} secretos cargados.")
-    return secrets
+    
+    # Actualizar st.secrets de forma segura
+    for key, value in secrets.items():
+        if key not in st.secrets:
+            st.secrets[key] = value
 
 def get_secret(key):
     """Obtiene un secreto específico."""
-    secrets = load_secrets()
-    return secrets.get(key)
+    return st.secrets.get(key)
