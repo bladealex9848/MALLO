@@ -15,6 +15,11 @@ import cohere
 import requests
 import json
 
+from load_secrets import load_secrets, get_secret, secrets
+
+# Carga todos los secretos al inicio de la aplicación
+load_secrets()
+
 try:
     from mistralai import Mistral
 except TypeError:
@@ -157,13 +162,13 @@ class AgentManager:
             return None
 
     def init_openai_client(self):
-        return self.init_client('OpenAI', OpenAI, st.secrets.get("OPENAI_API_KEY"))
+        return self.init_client('OpenAI', OpenAI, get_secret("OPENAI_API_KEY"))
 
     def init_together_client(self):
-        return self.init_client('Together', Together, st.secrets.get("TOGETHER_API_KEY"))
+        return self.init_client('Together', Together, get_secret("TOGETHER_API_KEY"))
 
     def init_groq_client(self):
-        client = self.init_client('Groq', Groq, st.secrets.get("GROQ_API_KEY"))
+        client = self.init_client('Groq', Groq, get_secret("GROQ_API_KEY"))
         if client:
             try:
                 client.chat.completions.create(model="llama3-8b-8192", messages=[{"role": "user", "content": "Test"}])
@@ -173,22 +178,22 @@ class AgentManager:
         return None
 
     def init_deepinfra_client(self):
-        return self.init_client('DeepInfra', OpenAI, st.secrets.get("DEEPINFRA_API_KEY"), base_url="https://api.deepinfra.com/v1/openai")
+        return self.init_client('DeepInfra', OpenAI, get_secret("DEEPINFRA_API_KEY"), base_url="https://api.deepinfra.com/v1/openai")
 
     def init_anthropic_client(self):
-        return self.init_client('Anthropic', Anthropic, st.secrets.get("ANTHROPIC_API_KEY"))
+        return self.init_client('Anthropic', Anthropic, get_secret("ANTHROPIC_API_KEY"))
 
     def init_deepseek_client(self):
-        return self.init_client('DeepSeek', OpenAI, st.secrets.get("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com/v1")
+        return self.init_client('DeepSeek', OpenAI, get_secret("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com/v1")
 
     def init_mistral_client(self):
-        return self.init_client('Mistral', Mistral, st.secrets.get("MISTRAL_API_KEY"))
+        return self.init_client('Mistral', Mistral, get_secret("MISTRAL_API_KEY"))
 
     def init_cohere_client(self):
-        return self.init_client('Cohere', cohere.Client, st.secrets.get("COHERE_API_KEY"))
+        return self.init_client('Cohere', cohere.Client, get_secret("COHERE_API_KEY"))
     
     def init_openrouter_client(self):
-        return st.secrets.get("OPENROUTER_API_KEY")    
+        return get_secret("OPENROUTER_API_KEY")    
     
     def get_ollama_models(self) -> List[str]:
         try:
@@ -473,8 +478,8 @@ class AgentManager:
         try:
             url = "https://openrouter.ai/api/v1/chat/completions"
             headers = {
-                "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
-                "HTTP-Referer": st.secrets.get("YOUR_SITE_URL", "http://localhost:8501"),
+                "Authorization": f"Bearer {secrets['OPENROUTER_API_KEY']}",
+                "HTTP-Referer": get_secret("YOUR_SITE_URL", "http://localhost:8501"),
                 "X-Title": "MALLO",
                 "Content-Type": "application/json"
             }

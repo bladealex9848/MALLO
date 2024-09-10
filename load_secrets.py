@@ -4,13 +4,26 @@ import toml
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
-import streamlit as st
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+class Secrets:
+    def __init__(self):
+        self._secrets = {}
+
+    def __getitem__(self, key):
+        return self._secrets.get(key)
+
+    def __setitem__(self, key, value):
+        self._secrets[key] = value
+
+    def get(self, key, default=None):
+        return self._secrets.get(key, default)
+
+secrets = Secrets()
+
 def load_secrets():
-    secrets = {}
     logger.info("Iniciando carga de secretos")
 
     # Cargar variables de entorno desde .env
@@ -28,15 +41,13 @@ def load_secrets():
     ]
 
     # Buscar y cargar secrets.toml
-    secrets_loaded_from_file = False
     for path in search_paths:
         secrets_path = Path(path) / 'secrets.toml'
         if secrets_path.is_file():
             logger.info(f"Archivo secrets.toml encontrado en {secrets_path}")
             try:
                 with open(secrets_path, 'r') as f:
-                    secrets.update(toml.load(f))
-                secrets_loaded_from_file = True
+                    secrets._secrets.update(toml.load(f))
                 break  # Si se encuentra y carga correctamente, salimos del bucle
             except Exception as e:
                 logger.error(f"Error al leer {secrets_path}: {str(e)}")
@@ -51,34 +62,23 @@ def load_secrets():
                 try:
                     with open(file_path, 'r') as f:
                         if file_path.suffix == '.json':
-                            secrets.update(json.load(f))
+                            secrets._secrets.update(json.load(f))
                         elif file_path.suffix == '.toml':
-                            secrets.update(toml.load(f))
+                            secrets._secrets.update(toml.load(f))
                         else:
-                            secrets[file_path.name] = f.read().strip()
+                            secrets._secrets[file_path.name] = f.read().strip()
                 except Exception as e:
                     logger.error(f"Error al leer {file_path}: {str(e)}")
 
     # Cargar desde variables de entorno
     for key, value in os.environ.items():
         if key.startswith('MALLO_'):
-            secrets[key[6:]] = value
+            secrets._secrets[key[6:]] = value
         elif key in ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'TOGETHER_API_KEY']:
-            secrets[key] = value
+            secrets._secrets[key] = value
 
-    logger.info(f"Carga de secretos completada. {len(secrets)} secretos cargados.")
-    
-    # Si no se cargaron secretos desde un archivo, usar las variables de entorno directamente
-    if not secrets_loaded_from_file:
-        logger.warning("No se encontró archivo secrets.toml. Usando variables de entorno.")
-        for key, value in secrets.items():
-            setattr(st.secrets, key, value)
-    else:
-        # Actualizar st.secrets de forma segura si se cargaron desde un archivo
-        for key, value in secrets.items():
-            if not hasattr(st.secrets, key):
-                setattr(st.secrets, key, value)
+    logger.info(f"Carga de secretos completada. {len(secrets._secrets)} secretos cargados.")
 
-def get_secret(key):
+def get_secret(key, default=None):
     """Obtiene un secreto específico."""
-    return getattr(st.secrets, key, None)
+    return secrets.get(key, default)

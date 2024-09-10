@@ -15,7 +15,7 @@ from groq import Groq
 from anthropic import Anthropic
 import cohere
 
-from load_secrets import load_secrets, get_secret
+from load_secrets import load_secrets, get_secret, secrets
 
 # Carga todos los secretos al inicio de la aplicación
 load_secrets()
@@ -62,7 +62,7 @@ def initialize_system(config: Dict[str, Any]) -> Dict[str, bool]:
 
 def check_openai_api() -> bool:
     try:
-        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        client = OpenAI(api_key=secrets["OPENAI_API_KEY"])
         client.models.list()
         return True
     except Exception as e:
@@ -71,7 +71,7 @@ def check_openai_api() -> bool:
 
 def check_groq_api() -> bool:
     try:
-        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+        client = Groq(api_key=secrets["GROQ_API_KEY"])
         client.chat.completions.create(model="mixtral-8x7b-32768", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
@@ -97,7 +97,7 @@ def check_web_search() -> bool:
 
 def check_deepinfra_api() -> bool:
     try:
-        client = OpenAI(api_key=st.secrets["DEEPINFRA_API_KEY"], base_url="https://api.deepinfra.com/v1/openai")
+        client = OpenAI(api_key=secrets["DEEPINFRA_API_KEY"], base_url="https://api.deepinfra.com/v1/openai")
         client.chat.completions.create(model="meta-llama/Meta-Llama-3-8B-Instruct", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
@@ -106,7 +106,7 @@ def check_deepinfra_api() -> bool:
 
 def check_anthropic_api() -> bool:
     try:
-        client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+        client = Anthropic(api_key=secrets["ANTHROPIC_API_KEY"])
         client.messages.create(model="claude-3-haiku-20240307", max_tokens=10, messages=[{"role": "user", "content": "Hello"}])
         return True
     except Exception as e:
@@ -115,7 +115,7 @@ def check_anthropic_api() -> bool:
 
 def check_deepseek_api() -> bool:
     try:
-        client = OpenAI(api_key=st.secrets["DEEPSEEK_API_KEY"], base_url="https://api.deepseek.com/v1")
+        client = OpenAI(api_key=secrets["DEEPSEEK_API_KEY"], base_url="https://api.deepseek.com/v1")
         client.chat.completions.create(model="deepseek-chat", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
@@ -124,7 +124,7 @@ def check_deepseek_api() -> bool:
 
 def check_mistral_api() -> bool:
     try:
-        client = Mistral(api_key=st.secrets["MISTRAL_API_KEY"])
+        client = Mistral(api_key=secrets["MISTRAL_API_KEY"])
         client.chat.complete(model="open-mistral-nemo", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
@@ -133,7 +133,7 @@ def check_mistral_api() -> bool:
 
 def check_cohere_api() -> bool:
     try:
-        client = cohere.Client(api_key=st.secrets["COHERE_API_KEY"])
+        client = cohere.Client(api_key=secrets["COHERE_API_KEY"])
         client.chat(model="command-r-plus", message="Test")
         return True
     except Exception as e:
@@ -145,7 +145,7 @@ def check_openrouter_api() -> bool:
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
+                "Authorization": f"Bearer {secrets['OPENROUTER_API_KEY']}",
                 "HTTP-Referer": "https://marduk.pro",
                 "X-Title": "MALLO",
             },

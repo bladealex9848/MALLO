@@ -24,7 +24,7 @@ import logging
 from typing import Tuple, Dict, Any
 # from mallo_enhancer import MALLOEnhancer, adapt_criteria # Importar para la versión experimental
 
-from load_secrets import load_secrets, get_secret
+from load_secrets import load_secrets, get_secret, secrets
 
 # Carga todos los secretos al inicio de la aplicación
 load_secrets()
