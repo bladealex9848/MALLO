@@ -1,4 +1,5 @@
 python-dotenv
+toml
 typing-extensions>=4.11,<5
 pydantic>=2.5.2,<3.0.0
 streamlit==1.37.1

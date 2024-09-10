@@ -17,11 +17,8 @@ import cohere
 
 from load_secrets import load_secrets
 
-# Carga los secretos
+# Al inicio de tu aplicación
 secrets = load_secrets()
-
-# Usa los secretos en tu aplicación
-st.secrets = secrets
 
 try:
     from mistralai import Mistral
