@@ -21,3 +21,7 @@ cohere==5.8.1
 scikit-learn==1.5.1
 numpy==1.24.3
 replicate
+
+# Uso Experimental con mallo_enhancer.py
+# sentence-transformers==2.2.2 
+# torch==2.1.0

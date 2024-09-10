@@ -245,14 +245,14 @@ general:
 # Prioridad de procesamiento
 processing_priority:
   - openrouter
-  - deepinfra  
+  - deepinfra 
+  - groq 
+  - deepseek
   - specialized_assistants
-  - moa  
-  - groq
+  - moa    
   - together
   - openai  
-  - anthropic
-  - deepseek  
+  - anthropic    
   - cohere
   - ollama
   - mistral

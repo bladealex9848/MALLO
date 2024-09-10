@@ -19,9 +19,10 @@
 14. [Pruebas](#pruebas)
 15. [Contribución](#contribución)
 16. [Registro de Cambios](#registro-de-cambios)
-17. [Roadmap](#roadmap)
-18. [Licencia](#licencia)
-19. [Contacto](#contacto)
+17. [ExperimentaLABs](#experimentalabs)
+18. [Roadmap](#roadmap)
+19. [Licencia](#licencia)
+20. [Contacto](#contacto)
 
 ## Descripción
 
@@ -76,6 +77,7 @@ MALLO/
 ├── utilities.py        # Funciones de utilidad y helpers
 ├── model_speeds.json   # Índice de velocidad de modelos locales y en la nube
 ├── CHANGELOG.md        # Registro de cambios y versiones
+├── mallo_enhancer.py   # Lógica experimental para mejorar y evaluar respuestas
 │
 ├── .streamlit/
 │   └── secrets.toml    # Almacenamiento seguro de claves API (no incluido en el repositorio)
@@ -274,12 +276,35 @@ Las contribuciones son bienvenidas. Por favor, sigue estos pasos:
 
 Consulta [CHANGELOG.md](CHANGELOG.md) para ver el historial detallado de cambios del proyecto.
 
+## ExperimentaLABs
+
+MALLO incluye ahora características experimentales diseñadas para mejorar la calidad de las instrucciones y respuestas mediante un proceso de reflexión iterativa. Estas características están disponibles a través de la función `process_user_input_experimental`.
+
+### MALLOEnhancer
+
+MALLOEnhancer es una nueva clase que implementa un enfoque de reflexión y mejora utilizando múltiples modelos de lenguaje. Esta característica está diseñada para:
+
+- Mejorar iterativamente las instrucciones y respuestas.
+- Utilizar múltiples APIs de LLM para obtener diversas perspectivas.
+- Evaluar la calidad de las instrucciones y respuestas mediante métricas como IFD y r-IFD.
+
+Para habilitar estas características experimentales, use la bandera `--experimental` al iniciar la aplicación:
+
+```
+streamlit run main.py -- --experimental
+```
+
 ## Roadmap
 
-- Implementación de más modelos de lenguaje y APIs.
-- Mejora del sistema de evaluación y selección de agentes.
-- Desarrollo de una API REST para integración con otros sistemas.
-- Implementación de fine-tuning para modelos específicos de dominio.
+Nuestros planes futuros para MALLO incluyen:
+
+1. Refinar y optimizar el proceso de reflexión iterativa en MALLOEnhancer.
+2. Mejorar la integración y el uso eficiente de múltiples APIs de LLM.
+3. Desarrollar métricas más avanzadas para la evaluación de la calidad de instrucciones y respuestas.
+4. Implementar un sistema de aprendizaje continuo basado en el feedback de los usuarios.
+5. Explorar la posibilidad de fine-tuning de modelos basados en los resultados de MALLOEnhancer.
+
+Estas características experimentales representan nuestro compromiso con la mejora continua de MALLO y la exploración de nuevas formas de optimizar la interacción entre humanos y LLMs.
 
 ## Licencia
 

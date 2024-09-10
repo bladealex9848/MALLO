@@ -12,6 +12,25 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
 
 # Registro de Cambios
 
+## [1.4.0] - 2024-09-10
+### Añadido
+- Nueva clase `MALLOEnhancer` para mejorar la calidad de las instrucciones y respuestas mediante reflexión iterativa.
+- Función experimental `process_user_input_experimental` que implementa el enfoque de reflexión y mejora.
+- Integración de múltiples APIs de LLM (OpenAI, Anthropic, Mistral, Cohere, Groq, DeepInfra, DeepSeek, OpenRouter) en `MALLOEnhancer`.
+
+### Cambiado
+- Mejorada la obtención de claves API utilizando los secretos de Streamlit.
+- Actualizada la clase `AgentManager` para incluir el método `update_criteria`.
+
+### Optimizado
+- Implementación de cálculos de IFD (Instruction-Following Difficulty) y r-IFD (reversed-IFD) para evaluar la calidad de las instrucciones y respuestas.
+
+### Corregido
+- Solucionados varios errores relacionados con la inicialización de clientes de API y manejo de respuestas.
+
+### Experimental
+- Añadida la capacidad de habilitar el procesamiento experimental de entradas de usuario para investigación futura.
+
 ## [1.3.0] - 2024-09-08
 ### Cambiado
 - Mejorado el proceso de selección de agentes con la implementación de `get_prioritized_agents` en `AgentManager`.

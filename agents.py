@@ -39,6 +39,11 @@ class AgentManager:
         self.backup_default_agent = ('deepinfra', config['openrouter']['default_model'])
         self.meta_analysis_model = config['evaluation_models']['meta_analysis']['model']
         self.meta_analysis_api = config['evaluation_models']['meta_analysis']['api']
+        
+        # Habilitar el uso de modelos de respaldo - Experimental
+        # self.student_model = None
+        # self.performance_history = []
+        # self.criteria = {}
                         
         self.clients = {
             'openai': self.init_openai_client(),
@@ -71,6 +76,19 @@ class AgentManager:
                 all_agents.extend(self.get_available_models(agent_type))
             return all_agents
 
+    # Habilitar el uso de modelos de respaldo - Experimental
+    # Descomentar las siguientes funciones para habilitar el uso de modelos de respaldo
+    """
+    def set_student_model(self, model):
+        self.student_model = model
+
+    def update_performance_history(self, performance):
+        self.performance_history.append(performance)
+
+    def update_criteria(self, new_criteria):
+        self.criteria.update(new_criteria)
+    """
+        
     def get_prioritized_agents(self, query: str, complexity: float) -> List[Tuple[str, str]]:
         prioritized_agents = []
         for agent_type in self.processing_priority:
@@ -97,6 +115,7 @@ class AgentManager:
         # Añadir agentes por defecto al final de la lista si no están ya incluidos
         default_agents = [
             ('openrouter', self.config['openrouter']['default_model']),
+            ('deepseek', self.config['deepseek']['default_model']),
             ('deepinfra', self.config['deepinfra']['default_model'])
         ]
         for agent, model in default_agents:
