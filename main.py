@@ -95,11 +95,12 @@ def process_user_input(user_input, config, agent_manager):
             return cached_response
 
         with st.spinner("Procesando tu consulta..."):
+            details_placeholder = st.empty()
             start_time = time.time()
             
             initial_evaluation = evaluate_response(agent_manager, config, 'initial', enriched_query)
             
-            complexity, needs_web_search, needs_moa = evaluate_query_complexity(initial_evaluation, "")
+            complexity, needs_web_search, needs_moa, prompt_type = evaluate_query_complexity(initial_evaluation, "")
             
             if needs_web_search:
                 web_context = perform_web_search(user_input)
@@ -109,23 +110,32 @@ def process_user_input(user_input, config, agent_manager):
             
             prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity)
             
-            response, agent_info = agent_manager.process_query_with_fallback(enriched_query, prioritized_agents)
-            
-            agent_results = [{
-                "agent": agent_info["agent"],
-                "model": agent_info["model"],
-                "status": "success",
-                "response": response
-            }]
+            agent_results = []
+            for agent_type, agent_id, agent_name in prioritized_agents:
+                details_placeholder.write(f"Procesando con {agent_name}...")
+                # Aplicamos el prompt especializado solo al primer agente
+                if len(agent_results) == 0:
+                    result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
+                else:
+                    result = agent_manager.process_query(enriched_query, agent_type, agent_id)
+                agent_results.append({
+                    "agent": agent_type,
+                    "model": agent_id,
+                    "name": agent_name,
+                    "status": "success",
+                    "response": result
+                })
+                if agent_type == agent_manager.default_agent[0] and agent_id == agent_manager.default_agent[1]:
+                    break
 
+            response = agent_results[-1]["response"]  # Use the default agent's response
+            
             final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, response)
 
             processing_time = time.time() - start_time
             
-            # Realizar meta-análisis
-            meta_analysis_result = agent_manager.meta_analysis(user_input, response, initial_evaluation, final_evaluation)                      
-
-            # Generar la respuesta final basada en el meta-análisis
+            meta_analysis_result = agent_manager.meta_analysis(user_input, [r["response"] for r in agent_results], initial_evaluation, final_evaluation)
+            
             final_response = agent_manager.process_query(
                 f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
                 agent_manager.meta_analysis_api,
@@ -133,8 +143,9 @@ def process_user_input(user_input, config, agent_manager):
             )
 
             details = {
-                "selected_agent": agent_info["agent"],
-                "selected_model": agent_info["model"],
+                "selected_agent": agent_results[-1]["agent"],
+                "selected_model": agent_results[-1]["model"],
+                "selected_name": agent_results[-1]["name"],
                 "processing_time": f"{processing_time:.2f} segundos",
                 "complexity": complexity,
                 "needs_web_search": needs_web_search,

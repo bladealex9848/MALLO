@@ -14,6 +14,8 @@ from anthropic import Anthropic
 import cohere
 import requests
 import json
+import random
+
 
 from load_secrets import load_secrets, get_secret, secrets
 
@@ -53,7 +55,7 @@ class AgentManager:
         self.backup_default_agent = ('deepinfra', config['openrouter']['default_model'])
         self.meta_analysis_model = config['evaluation_models']['meta_analysis']['model']
         self.meta_analysis_api = config['evaluation_models']['meta_analysis']['api']
-        
+                
         # Habilitar el uso de modelos de respaldo - Experimental
         # self.student_model = None
         # self.performance_history = []
@@ -69,6 +71,21 @@ class AgentManager:
             'mistral': self.init_mistral_client(),
             'cohere': self.init_cohere_client()
         }
+
+    def apply_critical_analysis_prompt(self, query: str) -> str:
+        if random.random() < self.critical_analysis_probability:
+            prompt_type = self.determine_prompt_type(query)
+            prompt = self.critical_analysis_prompts.get(prompt_type, self.critical_analysis_prompts['default'])
+            return f"{prompt}\n\n{query}"
+        return query
+
+    def determine_prompt_type(self, query: str) -> str:
+        # Lógica simple para determinar el tipo de prompt basado en palabras clave
+        if re.search(r'\b(math|calculation|equation|number)\b', query, re.IGNORECASE):
+            return 'math'
+        elif re.search(r'\b(code|program|function|algorithm)\b', query, re.IGNORECASE):
+            return 'coding'
+        return 'default'
 
     def get_available_models(self, agent_type: str = None) -> List[str]:
         if agent_type:
@@ -103,38 +120,33 @@ class AgentManager:
         self.criteria.update(new_criteria)
     """
         
-    def get_prioritized_agents(self, query: str, complexity: float) -> List[Tuple[str, str]]:
+    def get_prioritized_agents(self, query: str, complexity: float) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
+        
+        # Siempre buscar asistentes especializados primero
+        for assistant in self.specialized_assistants:
+            if any(keyword.lower() in query.lower() for keyword in assistant['keywords']):
+                prioritized_agents.append(('assistant', assistant['id'], assistant['name']))
+        
+        # Añadir otros agentes basados en la prioridad configurada
         for agent_type in self.processing_priority:
-            if agent_type == 'specialized_assistants':
-                assistant_id = self.find_suitable_assistant(query)
-                if assistant_id:
-                    prioritized_agents.append(('assistant', assistant_id))
-            elif agent_type == 'moa':
+            if agent_type == 'moa':
                 if complexity > self.config['thresholds']['moa_complexity']:
-                    prioritized_agents.append(('moa', 'moa'))
-            elif agent_type == 'openrouter':
-                models = self.get_available_models('openrouter')
-                if models:
-                    prioritized_agents.append(('openrouter', models[0]))
-            elif agent_type == 'deepinfra':
-                models = self.get_available_models('deepinfra')
-                if models:
-                    prioritized_agents.append(('deepinfra', models[0]))
-            elif agent_type in ['groq', 'together', 'openai', 'anthropic', 'deepseek', 'cohere', 'ollama', 'mistral']:
+                    prioritized_agents.append(('moa', 'moa', 'Mixture of Agents'))
+            elif agent_type in ['openrouter', 'deepinfra', 'groq', 'together', 'openai', 'anthropic', 'deepseek', 'cohere', 'ollama', 'mistral']:
                 models = self.get_available_models(agent_type)
                 if models:
-                    prioritized_agents.append((agent_type, models[0]))
+                    prioritized_agents.append((agent_type, models[0], f"{agent_type.capitalize()} Model"))
         
         # Añadir agentes por defecto al final de la lista si no están ya incluidos
         default_agents = [
-            ('openrouter', self.config['openrouter']['default_model']),
-            ('deepseek', self.config['deepseek']['default_model']),
-            ('deepinfra', self.config['deepinfra']['default_model'])
+            ('openrouter', self.config['openrouter']['default_model'], 'OpenRouter Default'),
+            ('deepseek', self.config['deepseek']['default_model'], 'DeepSeek Default'),
+            ('deepinfra', self.config['deepinfra']['default_model'], 'DeepInfra Default')
         ]
-        for agent, model in default_agents:
+        for agent, model, name in default_agents:
             if not any(a[0] == agent for a in prioritized_agents):
-                prioritized_agents.append((agent, model))
+                prioritized_agents.append((agent, model, name))
         
         return prioritized_agents
 
@@ -297,11 +309,19 @@ class AgentManager:
             return True
         return False
 
-    def process_query(self, query: str, agent_type: str, agent_id: str, fallback_attempts: int = 0) -> str:
+    def apply_specialized_prompt(self, query: str, prompt_type: str) -> str:
+        prompt = self.critical_analysis_prompts.get(prompt_type, self.critical_analysis_prompts['default'])
+        return f"{prompt}\n\n{query}"
+
+    def process_query(self, query: str, agent_type: str, agent_id: str, prompt_type: str = None, fallback_attempts: int = 0) -> str:
         start_time = time.time()
-        max_fallback_attempts = 3  # Límite de intentos de fallback para evitar bucles infinitos
+        max_fallback_attempts = 3 # Número máximo de intentos de fallback antes de abortar
 
         try:
+            # Aplicar el prompt especializado si se proporciona
+            if prompt_type and random.random() < self.critical_analysis_probability:
+                query = self.apply_specialized_prompt(query, prompt_type)
+
             # Procesar la consulta con el agente seleccionado
             if agent_type == 'assistant':
                 response = self.process_with_assistant(agent_id, query)

@@ -111,6 +111,358 @@ openrouter:
     - "microsoft/phi-3-medium-128k-instruct:free"  
   temperature: 0.7
 
+# Configuración de prompts de análisis crítico
+critical_analysis:
+  probability: 0.2  # Probabilidad de usar el prompt de análisis crítico
+  prompts:
+    default: |
+      [Instrucción] Analiza la pregunta y la respuesta esperada siguiendo estos pasos:
+      1. Evaluación de la Pregunta:
+         a) Claridad y complejidad
+         b) Conocimientos previos necesarios
+         c) Posibles ambigüedades o malentendidos
+      2. Análisis de la Respuesta Esperada:
+         a) Precisión y corrección
+         b) Utilidad y claridad
+         c) Nivel de detalle requerido
+      3. Reformulación:
+         a) Proporciona una versión mejorada de la pregunta
+         b) Explica cómo esta nueva versión elimina ambigüedades o confusiones
+      4. Respuesta Detallada:
+         a) Proporciona una respuesta completa a la pregunta reformulada
+         b) Incluye explicaciones, ejemplos y contexto relevante
+      5. Autoevaluación:
+         a) Evalúa la calidad de la pregunta reformulada y la respuesta
+         b) Sugiere mejoras adicionales
+      6. Reflexión:
+         a) Comenta sobre cómo este análisis mejora la interacción entre humanos e IA
+         b) Discute las implicaciones más amplias de la pregunta y respuesta
+      [Respuesta Final]
+
+    math: |
+      [Instrucción] Analiza la pregunta matemática y sigue estos pasos:
+      1. Identificación de Conceptos:
+         a) Lista los conceptos matemáticos involucrados
+         b) Explica brevemente cada concepto
+      2. Evaluación de la Pregunta:
+         a) Claridad y complejidad
+         b) Conocimientos previos necesarios
+      3. Enfoque de Resolución:
+         a) Proporciona un método paso a paso para resolver el problema
+         b) Explica el razonamiento detrás de cada paso
+      4. Resolución Detallada:
+         a) Resuelve el problema mostrando todos los cálculos
+         b) Verifica el resultado final
+      5. Análisis de la Solución:
+         a) Interpreta el resultado en el contexto del problema
+         b) Discute posibles limitaciones o condiciones especiales
+      6. Extensiones:
+         a) Sugiere variaciones del problema para profundizar la comprensión
+         b) Proporciona ejemplos de aplicaciones prácticas
+      7. Recursos Adicionales:
+         a) Recomienda fuentes para aprender más sobre los conceptos involucrados
+      [Respuesta Final]
+
+    coding: |
+      [Instrucción] Analiza la pregunta de programación y sigue estos pasos:
+      1. Identificación del Problema:
+         a) Lenguaje de programación y conceptos involucrados
+         b) Requisitos funcionales y no funcionales
+      2. Evaluación de la Complejidad:
+         a) Complejidad algorítmica
+         b) Posibles desafíos de implementación
+      3. Diseño de la Solución:
+         a) Estructura de datos propuesta
+         b) Pseudocódigo o diagrama de flujo
+      4. Implementación:
+         a) Código completo y comentado
+         b) Explicación detallada de cada parte del código
+      5. Pruebas y Depuración:
+         a) Casos de prueba (incluyendo casos límite)
+         b) Técnicas de depuración recomendadas
+      6. Optimización:
+         a) Análisis de eficiencia (tiempo y espacio)
+         b) Sugerencias de optimización
+      7. Mejores Prácticas:
+         a) Discusión sobre estilo de código y convenciones
+         b) Consideraciones de mantenibilidad y escalabilidad
+      8. Recursos y Referencias:
+         a) Documentación relevante
+         b) Bibliotecas o frameworks útiles
+      [Respuesta Final]
+
+    legal: |
+      [Instrucción] Analiza la pregunta legal y sigue estos pasos:
+      1. Identificación del Área Legal:
+         a) Rama del derecho involucrada
+         b) Jurisdicción relevante
+      2. Análisis de los Hechos:
+         a) Hechos relevantes presentados
+         b) Información adicional necesaria
+      3. Identificación de Cuestiones Legales:
+         a) Principales cuestiones legales a abordar
+         b) Leyes, estatutos o precedentes aplicables
+      4. Investigación Legal:
+         a) Citas de leyes relevantes
+         b) Casos precedentes aplicables
+      5. Análisis Legal:
+         a) Aplicación de la ley a los hechos
+         b) Argumentos a favor y en contra
+      6. Conclusión y Recomendaciones:
+         a) Opinión legal fundamentada
+         b) Posibles cursos de acción
+      7. Consideraciones Éticas:
+         a) Implicaciones éticas de la situación
+         b) Responsabilidades profesionales relevantes
+      8. Recursos Adicionales:
+         a) Referencias a fuentes legales autorizadas
+         b) Sugerencias para consulta profesional si es necesario
+      [Respuesta Final]
+
+    scientific: |
+      [Instrucción] Analiza la pregunta científica y sigue estos pasos:
+      1. Identificación del Campo Científico:
+         a) Disciplina(s) científica(s) involucrada(s)
+         b) Conceptos clave relacionados
+      2. Contextualización:
+         a) Antecedentes históricos relevantes
+         b) Estado actual del conocimiento en el área
+      3. Análisis de la Pregunta:
+         a) Hipótesis implícita o explícita
+         b) Variables involucradas (dependientes e independientes)
+      4. Metodología:
+         a) Diseño experimental apropiado
+         b) Técnicas de recolección de datos
+      5. Análisis de Datos:
+         a) Métodos estadísticos aplicables
+         b) Interpretación de resultados
+      6. Discusión:
+         a) Implicaciones de los hallazgos
+         b) Limitaciones del estudio
+      7. Conclusiones:
+         a) Resumen de los hallazgos principales
+         b) Sugerencias para investigación futura
+      8. Impacto y Aplicaciones:
+         a) Relevancia para el campo de estudio
+         b) Posibles aplicaciones prácticas
+      9. Referencias y Recursos:
+         a) Fuentes científicas relevantes
+         b) Bases de datos o herramientas recomendadas
+      [Respuesta Final]
+
+    historical: |
+      [Instrucción] Analiza la pregunta histórica y sigue estos pasos:
+      1. Contextualización:
+         a) Período histórico relevante
+         b) Eventos clave relacionados
+      2. Análisis de Fuentes:
+         a) Fuentes primarias disponibles
+         b) Fuentes secundarias relevantes
+      3. Perspectivas Históricas:
+         a) Diferentes interpretaciones del evento o período
+         b) Debates historiográficos relevantes
+      4. Análisis Causal:
+         a) Factores que llevaron al evento o situación
+         b) Consecuencias a corto y largo plazo
+      5. Comparación Histórica:
+         a) Similitudes con otros eventos o períodos
+         b) Diferencias únicas del caso en cuestión
+      6. Impacto Cultural y Social:
+         a) Efectos en la sociedad de la época
+         b) Influencia en períodos posteriores
+      7. Evaluación Crítica:
+         a) Fiabilidad y sesgos de las fuentes
+         b) Limitaciones en nuestro conocimiento actual
+      8. Relevancia Contemporánea:
+         a) Conexiones con situaciones actuales
+         b) Lecciones aplicables al presente
+      9. Recursos Adicionales:
+         a) Lecturas recomendadas para profundizar
+         b) Archivos o museos relevantes
+      [Respuesta Final]
+
+    philosophical: |
+      [Instrucción] Analiza la pregunta filosófica y sigue estos pasos:
+      1. Identificación del Área Filosófica:
+         a) Rama de la filosofía involucrada
+         b) Conceptos filosóficos clave
+      2. Contextualización Histórica:
+         a) Origen y evolución del problema filosófico
+         b) Filósofos importantes que han abordado la cuestión
+      3. Análisis Conceptual:
+         a) Definición y clarificación de términos clave
+         b) Identificación de supuestos subyacentes
+      4. Argumentación:
+         a) Principales argumentos a favor y en contra
+         b) Análisis lógico de los argumentos
+      5. Escuelas de Pensamiento:
+         a) Diferentes perspectivas filosóficas sobre el tema
+         b) Comparación y contraste de estas perspectivas
+      6. Implicaciones:
+         a) Consecuencias lógicas de diferentes posiciones
+         b) Implicaciones éticas o prácticas
+      7. Conexiones Interdisciplinarias:
+         a) Relaciones con otras áreas del conocimiento
+         b) Aplicaciones en campos no filosóficos
+      8. Evaluación Crítica:
+         a) Fortalezas y debilidades de las diferentes posiciones
+         b) Propuesta de síntesis o nueva perspectiva
+      9. Reflexión Personal:
+         a) Invitación a la reflexión del lector
+         b) Preguntas abiertas para consideración futura
+      10. Recursos Adicionales:
+          a) Obras filosóficas clave sobre el tema
+          b) Recursos en línea para exploración adicional
+      [Respuesta Final]
+
+    ethical: |
+      [Instrucción] Analiza la cuestión ética y sigue estos pasos:
+      1. Identificación del Dilema Ético:
+         a) Descripción clara del problema ético
+         b) Partes interesadas involucradas
+      2. Principios Éticos Relevantes:
+         a) Identificación de principios éticos aplicables
+         b) Posibles conflictos entre principios
+      3. Análisis desde Diferentes Teorías Éticas:
+         a) Perspectiva utilitarista
+         b) Perspectiva deontológica
+         c) Ética de la virtud
+         d) Otras teorías éticas relevantes
+      4. Contexto y Circunstancias:
+         a) Factores contextuales importantes
+         b) Consideraciones culturales o sociales
+      5. Consecuencias:
+         a) Resultados potenciales de diferentes cursos de acción
+         b) Impacto a corto y largo plazo
+      6. Análisis de Alternativas:
+         a) Diferentes opciones de acción
+         b) Pros y contras de cada opción
+      7. Precedentes y Casos Similares:
+         a) Ejemplos históricos o contemporáneos relevantes
+         b) Cómo se han resuelto casos similares
+      8. Recomendación Ética:
+         a) Curso de acción propuesto
+         b) Justificación ética detallada
+      9. Implicaciones más Amplias:
+         a) Impacto potencial en políticas o prácticas
+         b) Consideraciones para futuros dilemas similares
+      10. Reflexión y Diálogo:
+          a) Preguntas para estimular la reflexión ética
+          b) Sugerencias para facilitar el diálogo ético
+      [Respuesta Final]
+
+    colombian_context: |
+      [Instrucción] Analiza la pregunta sobre el contexto colombiano y sigue estos pasos:
+      1. Identificación del Tema:
+        a) Región o ciudad específica de Colombia involucrada
+        b) Aspecto particular del contexto colombiano (geografía, historia, sociedad, etc.)
+      2. Contextualización:
+        a) Información general relevante sobre Colombia
+        b) Datos específicos sobre la región o tema en cuestión
+      3. Análisis Histórico:
+        a) Antecedentes históricos relevantes
+        b) Evolución del tema a lo largo del tiempo
+      4. Impacto Social y Cultural:
+        a) Influencia en la sociedad colombiana
+        b) Aspectos culturales relacionados
+      5. Perspectivas Actuales:
+        a) Situación actual del tema
+        b) Debates o controversias relacionadas
+      6. Comparación:
+        a) Similitudes y diferencias con otras regiones de Colombia
+        b) Contexto en relación con otros países latinoamericanos
+      7. Fuentes de Información:
+        a) Recursos académicos colombianos relevantes
+        b) Datos oficiales y estudios locales
+      8. Reflexión:
+        a) Importancia del tema para Colombia
+        b) Posibles desarrollos futuros
+      [Respuesta Final]
+
+    cultural: |
+      [Instrucción] Analiza la pregunta sobre cultura colombiana y sigue estos pasos:
+      1. Identificación del Elemento Cultural:
+        a) Tipo de expresión cultural (música, arte, literatura, gastronomía, etc.)
+        b) Origen y contexto histórico
+      2. Descripción Detallada:
+        a) Características principales
+        b) Variaciones regionales si aplica
+      3. Significado e Importancia:
+        a) Valor cultural y simbólico
+        b) Papel en la identidad colombiana
+      4. Evolución y Cambios:
+        a) Transformaciones a lo largo del tiempo
+        b) Influencias externas e internas
+      5. Expresiones Contemporáneas:
+        a) Formas actuales de manifestación
+        b) Adaptaciones modernas
+      6. Preservación y Promoción:
+        a) Esfuerzos de conservación
+        b) Políticas culturales relacionadas
+      7. Impacto Global:
+        a) Reconocimiento internacional
+        b) Influencia en otras culturas
+      8. Recursos y Referencias:
+        a) Artistas o exponentes destacados
+        b) Eventos o lugares relacionados
+      [Respuesta Final]
+
+    political: |
+      [Instrucción] Analiza la pregunta sobre política colombiana y sigue estos pasos:
+      1. Contexto Político:
+        a) Sistema político de Colombia
+        b) Estructura de gobierno relevante
+      2. Tema Específico:
+        a) Identificación del asunto político en cuestión
+        b) Actores políticos involucrados
+      3. Antecedentes Históricos:
+        a) Evolución histórica del tema
+        b) Eventos clave relacionados
+      4. Marco Legal:
+        a) Leyes y regulaciones relevantes
+        b) Aspectos constitucionales si aplica
+      5. Debate Actual:
+        a) Diferentes posturas y argumentos
+        b) Controversias o discusiones en curso
+      6. Impacto Social:
+        a) Efectos en la sociedad colombiana
+        b) Reacciones de diferentes grupos sociales
+      7. Análisis Comparativo:
+        a) Situación en otros países latinoamericanos
+        b) Estándares internacionales si aplica
+      8. Prospectiva:
+        a) Posibles desarrollos futuros
+        b) Implicaciones a largo plazo
+      [Respuesta Final]
+
+    economic: |
+      [Instrucción] Analiza la pregunta sobre economía colombiana y sigue estos pasos:
+      1. Contexto Económico:
+        a) Situación económica general de Colombia
+        b) Indicadores económicos relevantes
+      2. Tema Específico:
+        a) Identificación del asunto económico en cuestión
+        b) Sectores o industrias involucradas
+      3. Análisis Histórico:
+        a) Evolución del tema en la economía colombiana
+        b) Políticas económicas pasadas relevantes
+      4. Marco Regulatorio:
+        a) Leyes y regulaciones económicas aplicables
+        b) Instituciones económicas involucradas
+      5. Impacto Social:
+        a) Efectos en diferentes grupos socioeconómicos
+        b) Implicaciones para el empleo y el desarrollo
+      6. Perspectiva Internacional:
+        a) Comparación con otros países de la región
+        b) Influencia de factores económicos globales
+      7. Desafíos y Oportunidades:
+        a) Principales retos económicos
+        b) Áreas de potencial crecimiento o mejora
+      8. Proyecciones:
+        a) Tendencias económicas a corto y mediano plazo
+        b) Recomendaciones de expertos económicos
+      [Respuesta Final]
+
 # Configuración de asistentes especializados
 specialized_assistants:
   - id: "asst_MzMayuSJV8AhP6vacv2ee3Xx"
@@ -235,6 +587,22 @@ specialized_assistants:
   - id: "asst_eYvjSdxv1VUA1Su9zQ07oyoO"
     name: "Asistente de Análisis Documental"
     keywords: ["análisis", "documentación", "traducción", "procesamiento de textos", "revisión", "edición", "estrategia de contenido", "optimización", "comprensión lingüística", "categorías", "estructura de documentos", "resumen", "interpretación", "comparación", "validación de información", "minuciosidad", "información precisa", "búsqueda", "gestión de datos", "apoyo administrativo", "creación de informes", "análisis crítico", "lenguaje claro", "apoyo en proyectos", "documentos en inglés", "documentos en español"]
+  - id: "asst_F33bnQzBVqQLcjveUTC14GaM"
+    name: "Asistente especializado en transformación digital"
+    keywords: ["transformación digital", "tecnología", "innovación", "estrategia digital", "cambio organizacional", "procesos digitales", "automatización", "inteligencia artificial", "big data", "analítica", "ciberseguridad", "nube", "IoT", "experiencia del cliente", "transformación cultural", "capacitación", "gestión del cambio", "liderazgo digital", "infraestructura tecnológica", "estrategias de marketing", "transformación empresarial", "tecnologías emergentes", "transformación sectorial", "transformación educativa", "transformación gubernamental", "legaltech", "fintech", "healthtech", "agrotech", "edtech", "retailtech", "industria 4.0", "smart cities", "transformación sostenible", "transformación inclusiva", "transformación resiliente", "transformación ética", "transformación global", "transformación local", "transformación personal", "transformación social", "transformación económica", "transformación política", "transformación cultural", "transformación educativa", "transformación ambiental", "transformación tecnológica", "transformación digital en Colombia", "transformación digital en América Latina", "transformación digital en el mundo", "transformación digital en la empresa", "transformación digital en el gobierno", "transformación digital en la educación", "transformación digital en la salud", "transformación digital en la justicia", "transformación digital en la banca", "transformación digital en la industria", "transformación digital en el comercio", "transformación digital en la agricultura", "transformación digital en la energía", "transformación digital en el transporte", "transformación digital en la logística", "transformación digital en la manufactura", "transformación digital en la construcción", "transformación digital en el turismo", "transformación digital en la cultura", "transformación digital en el deporte", "transformación digital en la moda", "transformación digital en la música", "transformación digital en el cine", "transformación digital en la televisión", "transformación digital en la literatura", "transformación digital en las artes", "transformación digital en la ciencia", "transformación digital en la tecnología", "transformación digital en la innovación", "transformación digital en la creatividad", "transformación digital en la comunicación", "transformación digital en la información", "transformación digital en la educación", "transformación digital en la salud", "transformación digital en la justicia", "transformación digital en la banca", "transformación digital en la industria", "transformación digital en el comercio", "transformación digital en la agricultura", "transformación digital en la energía", "transformación digital en el transporte", "transformación digital en la logística", "transformación digital en la manufactura", "transformación digital en la construcción", "transformación digital"]
+  - id: "asst_HP2cp1DT2LItd1tl6o4Bggma"
+    name: "Asistente espacializado en JusticIALab"
+    keywords: ["innovación", "Rama Judicial", "transformación digital", "propuestas", "evaluación", "creatividad", "soluciones tecnológicas", "gestión judicial", "expedientes electrónicos", "servicios digitales", "participación", "concursos", "necesidades judiciales", "criterios de evaluación", "incentivos", "apoyo a la gestión", "sistemas de información", "proyectos colaborativos", "mejora continua", "eficiencia", "transparencia", "acceso a la justicia", "desarrollo institucional"]
+  - id: "asst_TKhi6U5Cwp0XUO51d2PYp8Pz"
+    name: "Asistente Experto en Gestión Documental Judicial"
+    keywords: ["gestión de documentos electrónicos", "digitalización", "expedientes electrónicos", "autenticidad", "integridad", "disposición final", "firmas electrónicas", "protocolos", "metadatos", "estructura de carpetas", "nomenclatura de archivos", "escaneo de documentos", "tablas de retención documental", "calidad documental", "ciclo de vida", "control de versiones", "acceso remoto", "almacenamiento seguro", "mejores prácticas", "servicios de la Rama Judicial"]
+  - id: "asst_Jq3qTXZkvpCdn7jcoeNJmDbF"
+    name: "Asesor Legal en Salud Colombiano"
+    keywords: ["responsabilidad médica", "negligencia médica", "consentimiento informado", "historia clínica", "derechos de los pacientes", "deberes de los profesionales de la salud", "bioética", "bioderecho", "jurisprudencia colombiana", "normas del sector salud", "ética médica", "procesos de reclamación", "guías clínicas", "tatamiento integral", "accesibilidad en salud", "derechos fundamentales en salud", "calidad del servicio de salud", "seguridad del paciente", "mala práctica médica", "responsabilidad civil médica"]
+  - id: "asst_U2RDKhpEi2anWNKrzaGfY0y9"
+    name: "Asesor Legal Anticorrupción Colombiano"
+    keywords: ["corrupción", "ética judicial", "cohecho", "concusión", "peculado", "contratación estatal", "corrupción tributaria", "corrupción electoral", "corrupción judicial", "corrupción privada", "transparencia", "integridad", "derechos de los usuarios", "Plan Anticorrupción", "Carta de Trato Digno", "canales de denuncia", "mecanismos de control", "legislación colombiana", "procedimientos judiciales", "últimas modificaciones legislativas"]
+
 
 # Configuración general
 general:

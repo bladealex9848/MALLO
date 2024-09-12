@@ -160,7 +160,7 @@ def check_openrouter_api() -> bool:
         logging.error(f"Error checking OpenRouter API: {str(e)}")
         return False
 
-def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bool]:
+def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bool, str]:
     full_text = f"{context}\n\n{query}"
     word_count = len(full_text.split())
     unique_words = len(set(full_text.split()))
@@ -195,7 +195,38 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
     needs_web_search = "actualidad" in full_text.lower() or "reciente" in full_text.lower()
     needs_moa = complexity > 0.7 or word_count > 200 or "MOA: SI" in full_text
     
-    return complexity, needs_web_search, needs_moa
+    prompt_type = determine_prompt_type(full_text)
+
+    return complexity, needs_web_search, needs_moa, prompt_type
+
+def determine_prompt_type(text: str) -> str:
+    # Convertimos el texto a minúsculas para facilitar la búsqueda
+    text = text.lower()
+
+    if re.search(r'\b(matemáticas|cálculo|ecuación|número|álgebra|geometría|trigonometría)\b', text):
+        return 'math'
+    elif re.search(r'\b(código|programación|función|algoritmo|software|desarrollo|lenguaje de programación|python|java)\b', text):
+        return 'coding'
+    elif re.search(r'\b(ley|legal|legislación|corte|derechos|demanda|abogado|juez|constitución|código civil|código penal)\b', text):
+        return 'legal'
+    elif re.search(r'\b(ciencia|experimento|hipótesis|teoría|investigación|laboratorio|método científico|biología|física|química)\b', text):
+        return 'scientific'
+    elif re.search(r'\b(historia|histórico|época|siglo|período|civilización|antiguo|colonial|independencia|república)\b', text):
+        return 'historical'
+    elif re.search(r'\b(filosofía|filosófico|ética|moralidad|metafísica|epistemología|lógica|existencialismo)\b', text):
+        return 'philosophical'
+    elif re.search(r'\b(ética|moral|correcto|incorrecto|deber|valor|principio|dilema ético)\b', text):
+        return 'ethical'
+    elif re.search(r'\b(colombia|colombiano|bogotá|medellín|cali|barranquilla|cartagena|andes|caribe|pacífico|amazonas)\b', text):
+        return 'colombian_context'
+    elif re.search(r'\b(cultura|tradición|costumbre|folclor|gastronomía|música|arte|literatura|deporte)\b', text):
+        return 'cultural'
+    elif re.search(r'\b(política|gobierno|congreso|presidente|elecciones|partidos|constitución|democracia)\b', text):
+        return 'political'
+    elif re.search(r'\b(economía|finanzas|mercado|empleo|impuestos|inflación|pib|comercio|industria)\b', text):
+        return 'economic'
+    else:
+        return 'default'
 
 def select_best_agent(query: str, agents: List[Dict[str, Any]]) -> str:
     complexity, _, _ = evaluate_query_complexity(query, "")
