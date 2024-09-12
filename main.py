@@ -360,8 +360,20 @@ def main():
         """)
 
         st.write("""
-        MALLO es un sistema avanzado de orquestación de múltiples agentes de Modelos de Lenguaje de Gran Escala (LLMs).
-        Proporciona respuestas precisas y contextuales utilizando una variedad de agentes y fuentes de información.
+        # MALLO: MultiAgent LLM Orchestrator
+
+        MALLO es un sistema avanzado de orquestación de múltiples agentes basados en Modelos de Lenguaje de Gran Escala (LLMs). 
+        Diseñado para proporcionar respuestas precisas, contextuales y adaptativas, MALLO integra:
+
+        - **Múltiples Modelos de IA**: Desde modelos locales hasta APIs de última generación como OpenAI, Anthropic, Groq y más.
+        - **Asistentes Especializados**: Expertos en diversos campos como derecho, tecnología y ciencias.
+        - **Análisis Contextual**: Evalúa la complejidad de cada consulta para seleccionar la mejor estrategia de respuesta.
+        - **Búsqueda Web Inteligente**: Enriquece las respuestas con información actualizada cuando es necesario.
+        - **Meta-análisis Avanzado**: Sintetiza respuestas de múltiples fuentes para una mayor precisión.
+        - **Adaptabilidad Dinámica**: Ajusta su enfoque basándose en el rendimiento y la retroalimentación.
+
+        MALLO no solo responde preguntas, sino que orquesta una sinergia de conocimientos y capacidades para ofrecer 
+        la mejor solución posible a cada consulta, adaptándose continuamente para mejorar su precisión y relevancia.
         """)
 
         st.sidebar.title("Estado del Sistema")

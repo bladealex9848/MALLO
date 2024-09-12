@@ -121,15 +121,16 @@ class AgentManager:
     def get_prioritized_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
         
-        # Buscar asistentes especializados primero basados en el prompt_type
-        specialized_assistants = [assistant for assistant in self.specialized_assistants 
-                                if prompt_type in assistant.get('specialties', [])]
+        # Buscar asistentes especializados primero
+        for assistant in self.specialized_assistants:
+            keyword_match = sum(1 for keyword in assistant['keywords'] if keyword.lower() in query.lower())
+            if keyword_match > 0:
+                prioritized_agents.append(('assistant', assistant['id'], assistant['name']))
         
-        if specialized_assistants:
-            prioritized_agents.extend([('assistant', assistant['id'], assistant['name']) 
-                                    for assistant in specialized_assistants[:2]])
+        # Ordenar los asistentes especializados por número de coincidencias de palabras clave
+        prioritized_agents.sort(key=lambda x: sum(1 for keyword in next(a for a in self.specialized_assistants if a['id'] == x[1])['keywords'] if keyword.lower() in query.lower()), reverse=True)
         
-        # Si no hay asistentes especializados o la complejidad es alta, añadir otros agentes
+        # Si no se encontró un asistente especializado o la complejidad es alta, añadir otros agentes
         if not prioritized_agents or complexity > 0.5:
             for agent_type in self.processing_priority:
                 if agent_type == 'moa' and complexity > self.config['thresholds']['moa_complexity']:
