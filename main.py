@@ -359,9 +359,7 @@ def main():
         ![Visitantes](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fmallollm.streamlit.app&label=Visitantes&labelColor=%235d5d5d&countColor=%231e7ebf&style=flat)
         """)
 
-        st.write("""
-        # MALLO: MultiAgent LLM Orchestrator
-
+        st.write(""" 
         MALLO es un sistema avanzado de orquestación de múltiples agentes basados en Modelos de Lenguaje de Gran Escala (LLMs). 
         Diseñado para proporcionar respuestas precisas, contextuales y adaptativas, MALLO integra:
 
