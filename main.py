@@ -111,26 +111,41 @@ def process_user_input(user_input, config, agent_manager):
             prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity)
             
             agent_results = []
-            for agent_type, agent_id, agent_name in prioritized_agents:
+            for agent_type, agent_id, agent_name in prioritized_agents[:3]:  # Limitar a los 3 mejores agentes
                 details_placeholder.write(f"Procesando con {agent_name}...")
-                result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
-                agent_results.append({
-                    "agent": agent_type,
-                    "model": agent_id,
-                    "name": agent_name,
-                    "status": "success",
-                    "response": result
-                })
-                if agent_type == agent_manager.default_agent[0] and agent_id == agent_manager.default_agent[1]:
-                    break
+                try:
+                    result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
+                    agent_results.append({
+                        "agent": agent_type,
+                        "model": agent_id,
+                        "name": agent_name,
+                        "status": "success",
+                        "response": result
+                    })
+                except Exception as e:
+                    logging.error(f"Error processing with {agent_name}: {str(e)}")
+                    agent_results.append({
+                        "agent": agent_type,
+                        "model": agent_id,
+                        "name": agent_name,
+                        "status": "error",
+                        "response": str(e)
+                    })
 
-            response = agent_results[-1]["response"]  # Use the default agent's response
+            if not agent_results or all(r["status"] == "error" for r in agent_results):
+                raise ValueError("No se pudo obtener una respuesta válida de ningún agente")
+
+            # Usar la respuesta del primer agente exitoso
+            response = next((r["response"] for r in agent_results if r["status"] == "success"), None)
             
+            if not response:
+                raise ValueError("No se pudo obtener una respuesta válida")
+
             final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, response)
 
             processing_time = time.time() - start_time
             
-            meta_analysis_result = agent_manager.meta_analysis(user_input, [r["response"] for r in agent_results], initial_evaluation, final_evaluation)
+            meta_analysis_result = agent_manager.meta_analysis(user_input, [r["response"] for r in agent_results if r["status"] == "success"], initial_evaluation, final_evaluation)
             
             final_response = agent_manager.process_query(
                 f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
@@ -139,9 +154,9 @@ def process_user_input(user_input, config, agent_manager):
             )
 
             details = {
-                "selected_agent": agent_results[-1]["agent"],
-                "selected_model": agent_results[-1]["model"],
-                "selected_name": agent_results[-1]["name"],
+                "selected_agent": agent_results[0]["agent"],
+                "selected_model": agent_results[0]["model"],
+                "selected_name": agent_results[0]["name"],
                 "processing_time": f"{processing_time:.2f} segundos",
                 "complexity": complexity,
                 "needs_web_search": needs_web_search,
@@ -169,7 +184,7 @@ def process_user_input(user_input, config, agent_manager):
 
     except Exception as e:
         logging.error(f"Se ha producido un error inesperado: {str(e)}")
-        return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", None
+        return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", {"error": str(e)}
 
 # Versión experimental con MALLOEnhancer y adaptación de criterios
 # Descomentar para activar la versión experimental y seguir evaluandola en producción antes de lanzarla oficialmente en la versión principal

@@ -128,30 +128,25 @@ class AgentManager:
     def get_prioritized_agents(self, query: str, complexity: float) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
         
-        # Siempre buscar asistentes especializados primero
+        # Buscar asistentes especializados primero
         for assistant in self.specialized_assistants:
             if any(keyword.lower() in query.lower() for keyword in assistant['keywords']):
                 prioritized_agents.append(('assistant', assistant['id'], assistant['name']))
         
-        # Añadir otros agentes basados en la prioridad configurada
-        for agent_type in self.processing_priority:
-            if agent_type == 'moa':
-                if complexity > self.config['thresholds']['moa_complexity']:
+        # Si no se encontró un asistente especializado, añadir otros agentes
+        if not prioritized_agents:
+            for agent_type in self.processing_priority:
+                if agent_type == 'moa' and complexity > self.config['thresholds']['moa_complexity']:
                     prioritized_agents.append(('moa', 'moa', 'Mixture of Agents'))
-            elif agent_type in ['openrouter', 'deepinfra', 'groq', 'together', 'openai', 'anthropic', 'deepseek', 'cohere', 'ollama', 'mistral']:
-                models = self.get_available_models(agent_type)
-                if models:
-                    prioritized_agents.append((agent_type, models[0], f"{agent_type.capitalize()} Model"))
+                elif agent_type in ['openrouter', 'deepinfra', 'groq', 'together', 'openai', 'anthropic', 'deepseek', 'cohere', 'ollama', 'mistral']:
+                    models = self.get_available_models(agent_type)
+                    if models:
+                        prioritized_agents.append((agent_type, models[0], f"{agent_type.capitalize()} Model"))
         
-        # Añadir agentes por defecto al final de la lista si no están ya incluidos
-        default_agents = [
-            ('openrouter', self.config['openrouter']['default_model'], 'OpenRouter Default'),
-            ('deepseek', self.config['deepseek']['default_model'], 'DeepSeek Default'),
-            ('deepinfra', self.config['deepinfra']['default_model'], 'DeepInfra Default')
-        ]
-        for agent, model, name in default_agents:
-            if not any(a[0] == agent for a in prioritized_agents):
-                prioritized_agents.append((agent, model, name))
+        # Añadir agente por defecto si no se encontró ninguno
+        if not prioritized_agents:
+            default_agent = ('openrouter', self.config['openrouter']['default_model'], 'OpenRouter Default')
+            prioritized_agents.append(default_agent)
         
         return prioritized_agents
 
@@ -316,7 +311,7 @@ class AgentManager:
 
     def process_query(self, query: str, agent_type: str, agent_id: str, prompt_type: str = None, fallback_attempts: int = 0) -> str:
         start_time = time.time()
-        max_fallback_attempts = 3 # Número máximo de intentos de fallback antes de abortar
+        max_fallback_attempts = 3  # Número máximo de intentos de fallback antes de abortar
 
         try:
             # Aplicar el prompt especializado si se proporciona
@@ -369,8 +364,8 @@ class AgentManager:
             else:
                 logging.error(f"Reached maximum fallback attempts ({max_fallback_attempts}). Unable to process query.")
 
-            # Si todos los intentos fallan, lanzar una excepción
-            raise ValueError(f"Failed to process query after {fallback_attempts} fallback attempts")
+            # Si todos los intentos fallan, lanzar una excepción con un mensaje más informativo
+            raise ValueError(f"Failed to process query after {fallback_attempts} fallback attempts. Last error: {str(e)}")
 
     def apply_specialized_prompt(self, query: str, prompt_type: str) -> str:
         prompt = self.critical_analysis_prompts.get(prompt_type, self.critical_analysis_prompts['default'])
