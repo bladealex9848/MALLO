@@ -150,16 +150,16 @@ class AgentManager:
         else:
             return initial_type
 
-def extract_recommendation(self, response: str) -> Tuple[str, str]:
-    # Extraer el tipo recomendado
-    type_match = re.search(r'Tipo recomendado:\s*(\w+)', response)
-    recommended_type = type_match.group(1) if type_match else 'default'
-    
-    # Extraer la confianza
-    confidence_match = re.search(r'Confianza:\s*(alta|media|baja)', response, re.IGNORECASE)
-    confidence = confidence_match.group(1).lower() if confidence_match else 'baja'
-    
-    return recommended_type, confidence
+    def extract_recommendation(self, response: str) -> Tuple[str, str]:
+        # Extraer el tipo recomendado
+        type_match = re.search(r'Tipo recomendado:\s*(\w+)', response)
+        recommended_type = type_match.group(1) if type_match else 'default'
+        
+        # Extraer la confianza
+        confidence_match = re.search(r'Confianza:\s*(alta|media|baja)', response, re.IGNORECASE)
+        confidence = confidence_match.group(1).lower() if confidence_match else 'baja'
+        
+        return recommended_type, confidence
 
     def get_prioritized_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
