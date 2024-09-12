@@ -137,17 +137,18 @@ def process_user_input(user_input, config, agent_manager):
             if not agent_results or all(r["status"] == "error" for r in agent_results):
                 raise ValueError("No se pudo obtener una respuesta válida de ningún agente")
 
-            successful_responses = [r["response"] for r in agent_results if r["status"] == "success"]
+            successful_responses = [r for r in agent_results if r["status"] == "success"]
             
-            if len(successful_responses) == 1:
-                final_response = successful_responses[0]
-            else:
-                meta_analysis_result = agent_manager.meta_analysis(user_input, successful_responses, initial_evaluation, "")
+            if needs_moa and len(successful_responses) > 1:
+                meta_analysis_result = agent_manager.meta_analysis(user_input, [r["response"] for r in successful_responses], initial_evaluation, "")
                 final_response = agent_manager.process_query(
                     f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
                     agent_manager.meta_analysis_api,
                     agent_manager.meta_analysis_model
                 )
+            else:
+                # Si no se necesita MOA o solo hay una respuesta exitosa, usar la primera respuesta exitosa
+                final_response = successful_responses[0]["response"]
 
             final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, final_response)
 
@@ -170,7 +171,7 @@ def process_user_input(user_input, config, agent_manager):
                     "failed_responses": len(agent_results) - len(successful_responses),
                     "average_response_time": f"{processing_time:.2f} segundos"                    
                 },
-                "meta_analysis": meta_analysis_result if len(successful_responses) > 1 else None,
+                "meta_analysis": meta_analysis_result if needs_moa and len(successful_responses) > 1 else None,
                 "final_response": final_response
             }
 

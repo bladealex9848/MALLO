@@ -83,14 +83,7 @@ class AgentManager:
             prompt = self.critical_analysis_prompts.get(prompt_type, self.critical_analysis_prompts['default'])
             return f"{prompt}\n\n{query}"
         return query
-
-    def determine_prompt_type(self, query: str) -> str:
-        # Lógica simple para determinar el tipo de prompt basado en palabras clave
-        if re.search(r'\b(math|calculation|equation|number)\b', query, re.IGNORECASE):
-            return 'math'
-        elif re.search(r'\b(code|program|function|algorithm)\b', query, re.IGNORECASE):
-            return 'coding'
-        return 'default'
+ 
 
     def get_available_models(self, agent_type: str = None) -> List[str]:
         if agent_type:
@@ -556,7 +549,7 @@ class AgentManager:
         )
         return aggregator_response.choices[0].message.content
     
-    def meta_analysis(self, query: str, responses: List[Dict[str, Any]], initial_evaluation: str, final_evaluation: str) -> str:
+    def meta_analysis(self, query: str, responses: List[str], initial_evaluation: str, final_evaluation: str) -> str:
         prompt = f"""
         Analiza las siguientes respuestas a la pregunta: "{query}"
 
@@ -566,15 +559,13 @@ class AgentManager:
         Evaluación inicial:
         {initial_evaluation}
 
-        Evaluación final:
-        {final_evaluation}
-
         Tu tarea es:
-        1. Sintetizar una respuesta final que incorpore los mejores elementos de todas las respuestas.
-        2. Corregir cualquier error identificado en la evaluación final.
-        3. Asegurarte de que la respuesta aborde todos los puntos clave mencionados en la evaluación inicial.
-        4. Proporcionar una explicación clara y concisa del razonamiento detrás de la respuesta.
-        5. Mantener la respuesta enfocada y relevante a la pregunta original.
+        1. Evaluar la corrección de cada respuesta.
+        2. Identificar la respuesta más precisa y correcta.
+        3. Sintetizar una respuesta final que incorpore la información correcta.
+        4. Asegurarte de que la respuesta aborde todos los puntos clave mencionados en la evaluación inicial.
+        5. Proporcionar una explicación clara y concisa del razonamiento detrás de la respuesta.
+        6. Mantener la respuesta enfocada y relevante a la pregunta original.
 
         Por favor, proporciona la respuesta sintetizada en un formato claro y estructurado.
         """
