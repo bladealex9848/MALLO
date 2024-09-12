@@ -4,6 +4,38 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.6.0] - 2024-09-12
+### Añadido
+- Implementación de un sistema de detección de tipo de consulta (`determine_prompt_type`) para categorizar las preguntas en diferentes áreas (matemáticas, programación, legal, científico, etc.).
+- Nuevo parámetro `prompt_type` en la función `get_prioritized_agents` para mejorar la selección de agentes especializados.
+- Integración de análisis crítico con probabilidad configurable (`critical_analysis_probability`) en el procesamiento de consultas.
+- Aplicación de prompts especializados basados en el tipo de consulta detectado.
+
+### Cambiado
+- Refactorización de `evaluate_query_complexity` para incluir la determinación del tipo de prompt.
+- Actualización de `get_prioritized_agents` en la clase `AgentManager` para priorizar la selección de agentes basada en el tipo de consulta y su complejidad.
+- Modificación de `process_user_input` para manejar el nuevo flujo de procesamiento con tipos de prompts y análisis crítico.
+- Optimización del proceso de meta-análisis para ejecutarse solo cuando hay múltiples respuestas exitosas.
+
+### Mejorado
+- Manejo más eficiente de la complejidad de las consultas, ajustando dinámicamente el número de agentes utilizados.
+- Mejor integración de asistentes especializados en el flujo de procesamiento.
+- Refinamiento del sistema de evaluación inicial y final para proporcionar un análisis más preciso de las consultas y respuestas.
+
+### Optimizado
+- Reducción del uso innecesario de recursos para consultas simples.
+- Mejora en la eficiencia del procesamiento al limitar el número de agentes basado en la complejidad de la consulta.
+
+### Corregido
+- Solución al problema de activación excesiva de agentes para consultas simples.
+- Corrección en la aplicación de búsqueda web y MOA (Mixture of Agents) basada en una evaluación más precisa de la necesidad.
+
+### Documentación
+- Actualización de la documentación interna para reflejar los nuevos cambios en el flujo de procesamiento y la selección de agentes.
+
+### Seguridad
+- Mejora en el manejo de errores para prevenir la exposición de información sensible en caso de fallos en el procesamiento.
+
 ## [1.5.0] - 2024-09-12
 ### Añadido
 - Implementación de prompts de análisis crítico especializados para diferentes tipos de consultas (matemáticas, programación, legal, científico, histórico, filosófico, ético, contexto colombiano, cultural, político, económico).
