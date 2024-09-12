@@ -125,16 +125,19 @@ class AgentManager:
         self.criteria.update(new_criteria)
     """
         
-    def get_prioritized_agents(self, query: str, complexity: float) -> List[Tuple[str, str, str]]:
+    def get_prioritized_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
         
-        # Buscar asistentes especializados primero
-        for assistant in self.specialized_assistants:
-            if any(keyword.lower() in query.lower() for keyword in assistant['keywords']):
-                prioritized_agents.append(('assistant', assistant['id'], assistant['name']))
+        # Buscar asistentes especializados primero basados en el prompt_type
+        specialized_assistants = [assistant for assistant in self.specialized_assistants 
+                                if prompt_type in assistant.get('specialties', [])]
         
-        # Si no se encontró un asistente especializado, añadir otros agentes
-        if not prioritized_agents:
+        if specialized_assistants:
+            prioritized_agents.extend([('assistant', assistant['id'], assistant['name']) 
+                                    for assistant in specialized_assistants[:2]])
+        
+        # Si no hay asistentes especializados o la complejidad es alta, añadir otros agentes
+        if not prioritized_agents or complexity > 0.5:
             for agent_type in self.processing_priority:
                 if agent_type == 'moa' and complexity > self.config['thresholds']['moa_complexity']:
                     prioritized_agents.append(('moa', 'moa', 'Mixture of Agents'))
@@ -148,7 +151,9 @@ class AgentManager:
             default_agent = ('openrouter', self.config['openrouter']['default_model'], 'OpenRouter Default')
             prioritized_agents.append(default_agent)
         
-        return prioritized_agents
+        # Limitar el número de agentes basado en la complejidad
+        max_agents = 1 if complexity < 0.3 else (2 if complexity < 0.7 else 3)
+        return prioritized_agents[:max_agents]
 
     def process_query_with_fallback(self, query: str, prioritized_agents: List[Tuple[str, str]]) -> Tuple[str, Dict[str, Any]]:
         for agent_type, agent_id in prioritized_agents:

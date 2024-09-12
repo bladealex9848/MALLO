@@ -108,12 +108,14 @@ def process_user_input(user_input, config, agent_manager):
             else:
                 web_context = ""
             
-            prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity)
+            prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
             
             agent_results = []
-            for agent_type, agent_id, agent_name in prioritized_agents[:3]:  # Limitar a los 3 mejores agentes
+            for agent_type, agent_id, agent_name in prioritized_agents:
                 details_placeholder.write(f"Procesando con {agent_name}...")
                 try:
+                    if random.random() < agent_manager.critical_analysis_probability:
+                        enriched_query = agent_manager.apply_specialized_prompt(enriched_query, prompt_type)
                     result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
                     agent_results.append({
                         "agent": agent_type,
@@ -135,43 +137,40 @@ def process_user_input(user_input, config, agent_manager):
             if not agent_results or all(r["status"] == "error" for r in agent_results):
                 raise ValueError("No se pudo obtener una respuesta válida de ningún agente")
 
-            # Usar la respuesta del primer agente exitoso
-            response = next((r["response"] for r in agent_results if r["status"] == "success"), None)
+            successful_responses = [r["response"] for r in agent_results if r["status"] == "success"]
             
-            if not response:
-                raise ValueError("No se pudo obtener una respuesta válida")
+            if len(successful_responses) == 1:
+                final_response = successful_responses[0]
+            else:
+                meta_analysis_result = agent_manager.meta_analysis(user_input, successful_responses, initial_evaluation, "")
+                final_response = agent_manager.process_query(
+                    f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
+                    agent_manager.meta_analysis_api,
+                    agent_manager.meta_analysis_model
+                )
 
-            final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, response)
+            final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, final_response)
 
             processing_time = time.time() - start_time
-            
-            meta_analysis_result = agent_manager.meta_analysis(user_input, [r["response"] for r in agent_results if r["status"] == "success"], initial_evaluation, final_evaluation)
-            
-            final_response = agent_manager.process_query(
-                f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
-                agent_manager.meta_analysis_api,
-                agent_manager.meta_analysis_model
-            )
 
             details = {
-                "selected_agent": agent_results[0]["agent"],
-                "selected_model": agent_results[0]["model"],
-                "selected_name": agent_results[0]["name"],
+                "selected_agents": [{"agent": r["agent"], "model": r["model"], "name": r["name"]} for r in agent_results],
                 "processing_time": f"{processing_time:.2f} segundos",
                 "complexity": complexity,
                 "needs_web_search": needs_web_search,
                 "needs_moa": needs_moa,
                 "web_context": web_context,
+                "prompt_type": prompt_type,
                 "initial_evaluation": initial_evaluation,
                 "agent_processing": agent_results,
                 "final_evaluation": final_evaluation,
                 "performance_metrics": {
                     "total_agents_called": len(agent_results),
-                    "successful_responses": sum(1 for r in agent_results if r["status"] == "success"),
-                    "failed_responses": sum(1 for r in agent_results if r["status"] == "error"),
+                    "successful_responses": len(successful_responses),
+                    "failed_responses": len(agent_results) - len(successful_responses),
                     "average_response_time": f"{processing_time:.2f} segundos"                    
                 },
-                "meta_analysis": meta_analysis_result,
+                "meta_analysis": meta_analysis_result if len(successful_responses) > 1 else None,
                 "final_response": final_response
             }
 
