@@ -189,6 +189,7 @@ def check_openrouter_api() -> bool:
         logging.error(f"Error checking OpenRouter API: {str(e)}")
         return False
 
+# Esta función se encarga de evaluar la complejidad de una consulta
 def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bool, str]:
     full_text = f"{context}\n\n{query}"
     word_count = len(full_text.split())
@@ -220,31 +221,94 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
 
     return complexity, needs_web_search, needs_moa, prompt_type
 
+# Función para determinar el tipo de prompt
 def determine_prompt_type(text: str) -> str:
     # Convertimos el texto a minúsculas para facilitar la búsqueda
     text = text.lower()
 
-    if re.search(r'\b(matemáticas|cálculo|ecuación|número|álgebra|geometría|trigonometría)\b', text):
+    # Lista ampliada de palabras clave, incluyendo duplicados sin tilde
+    math_keywords = ["matemáticas", "matematicas", "cálculo", "calculo", "ecuación", "ecuacion", "número", "numero",
+                     "álgebra", "algebra", "geometría", "geometria", "trigonometría", "trigonometria", "estadística",
+                     "probabilidad", "análisis", "calculo diferencial", "calculo integral", "lógica matemática"]
+
+    coding_keywords = ["código", "programación", "programacion", "función", "funcion", "algoritmo", "software",
+                       "desarrollo", "lenguaje de programación", "lenguaje de programacion", "python", "java", "c++",
+                       "javascript", "html", "css", "base de datos", "base de datos", "sql", "git", "github", "depuración",
+                       "depuracion", "algoritmos", "estructuras de datos", "estructuras de datos"]
+
+    legal_keywords = ["ley", "legal", "legislación", "legislacion", "corte", "derechos", "demanda", "abogado",
+                      "juez", "constitución", "constitucion", "código civil", "codigo civil", "código penal",
+                      "codigo penal", "jurisprudencia", "tribunal", "sentencia", "acusación", "acusacion", "defensa",
+                      "contrato", "delito", "pena", "proceso judicial", "proceso judicial"]
+
+    science_keywords = ["ciencia", "experimento", "hipótesis", "hipotesis", "teoría", "teoria", "investigación",
+                        "investigacion", "laboratorio", "método científico", "metodo cientifico", "biología", "biologia",
+                        "física", "fisica", "química", "quimica", "astronomía", "astronomia", "geología", "geologia",
+                        "ecología", "ecologia", "medio ambiente", "medio ambiente", "cambio climático", "cambio climatico"]
+
+    historical_keywords = ["historia", "histórico", "historico", "época", "epoca", "siglo", "período", "periodo",
+                           "civilización", "civilizacion", "antiguo", "colonial", "independencia", "república",
+                           "republica", "revolución", "revolucion", "guerra", "paz", "dictadura", "democracia",
+                           "imperio", "colonia", "prehistoria", "edad media", "edad moderna", "edad contemporánea",
+                           "edad contemporanea"]
+
+    philosophy_keywords = ["filosofía", "filosofia", "filosófico", "filosofico", "ética", "etica", "moralidad",
+                           "metafísica", "metafisica", "epistemología", "epistemologia", "lógica", "logica",
+                           "existencialismo", "razón", "razon", "conocimiento", "ser", "nada", "libertad",
+                           "determinismo", "alma", "cuerpo", "realidad", "apariencia", "verdad", "mentira", "belleza",
+                           "fealdad", "bien", "mal", "virtud", "vicio"]
+
+    ethical_keywords = ["ética", "etica", "moral", "correcto", "incorrecto", "deber", "valor", "principio",
+                        "dilema ético", "dilema etico", "responsabilidad", "justicia", "honestidad", "integridad",
+                        "respeto", "compasión", "solidaridad", "empatía", "empatia", "altruismo", "egoísmo", "egoismo"]
+
+    colombian_context_keywords = ["colombia", "colombiano", "bogotá", "medellín", "cali", "barranquilla", "cartagena",
+                                  "andes", "caribe", "pacífico", "pacifico", "amazonas", "orinoquía", "orinoquia",
+                                  "café", "cafe", "vallenato", "cumbia", "gabriel garcía márquez", "gabriel garcia marquez",
+                                  "feria de las flores", "feria de las flores", "carnaval de barranquilla",
+                                  "carnaval de barranquilla"]
+
+    cultural_keywords = ["cultura", "tradición", "tradicion", "costumbre", "folclor", "folclore", "gastronomía",
+                         "gastronomia", "música", "musica", "arte", "literatura", "deporte", "cine", "teatro", "danza",
+                         "pintura", "escultura", "arquitectura", "fotografía", "fotografia", "moda", "diseño", "diseño",
+                         "videojuegos", "videojuegos", "festival", "celebración", "celebracion", "ritual", "mito",
+                         "leyenda"]
+
+    political_keywords = ["política", "politica", "gobierno", "congreso", "presidente", "elecciones", "partidos",
+                          "constitución", "constitucion", "democracia", "izquierda", "derecha", "centro", "liberal",
+                          "conservador", "socialista", "comunista", "capitalista", "anarquista", "feminista",
+                          "ecologista", "nacionalista", "globalista", "poder", "autoridad", "estado", "nación",
+                          "nacion", "ciudadanía", "ciudadania", "derechos humanos", "derechos humanos", "libertad de expresión",
+                          "libertad de expresion", "igualdad", "justicia social", "justicia social"]
+
+    economic_keywords = ["economía", "economia", "finanzas", "mercado", "empleo", "impuestos", "inflación", "inflacion",
+                         "pib", "comercio", "industria", "producción", "produccion", "consumo", "ahorro", "inversión",
+                         "inversion", "oferta", "demanda", "precio", "competencia", "monopolio", "oligopolio",
+                         "globalización", "globalizacion", "desempleo", "desempleo", "pobreza", "riqueza", "desigualdad",
+                         "crecimiento económico", "crecimiento economico", "desarrollo sostenible", "desarrollo sostenible"]
+
+    # Búsqueda de coincidencias en el texto utilizando expresiones regulares
+    if any(re.search(rf"\b{keyword}\b", text) for keyword in math_keywords):
         return 'math'
-    elif re.search(r'\b(código|programación|función|algoritmo|software|desarrollo|lenguaje de programación|python|java)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in coding_keywords):
         return 'coding'
-    elif re.search(r'\b(ley|legal|legislación|corte|derechos|demanda|abogado|juez|constitución|código civil|código penal)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in legal_keywords):
         return 'legal'
-    elif re.search(r'\b(ciencia|experimento|hipótesis|teoría|investigación|laboratorio|método científico|biología|física|química)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in science_keywords):
         return 'scientific'
-    elif re.search(r'\b(historia|histórico|época|siglo|período|civilización|antiguo|colonial|independencia|república)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in historical_keywords):
         return 'historical'
-    elif re.search(r'\b(filosofía|filosófico|ética|moralidad|metafísica|epistemología|lógica|existencialismo)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in philosophy_keywords):
         return 'philosophical'
-    elif re.search(r'\b(ética|moral|correcto|incorrecto|deber|valor|principio|dilema ético)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in ethical_keywords):
         return 'ethical'
-    elif re.search(r'\b(colombia|colombiano|bogotá|medellín|cali|barranquilla|cartagena|andes|caribe|pacífico|amazonas)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in colombian_context_keywords):
         return 'colombian_context'
-    elif re.search(r'\b(cultura|tradición|costumbre|folclor|gastronomía|música|arte|literatura|deporte)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in cultural_keywords):
         return 'cultural'
-    elif re.search(r'\b(política|gobierno|congreso|presidente|elecciones|partidos|constitución|democracia)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in political_keywords):
         return 'political'
-    elif re.search(r'\b(economía|finanzas|mercado|empleo|impuestos|inflación|pib|comercio|industria)\b', text):
+    elif any(re.search(rf"\b{keyword}\b", text) for keyword in economic_keywords):
         return 'economic'
     else:
         return 'default'
