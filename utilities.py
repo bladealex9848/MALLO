@@ -38,14 +38,39 @@ logging.basicConfig(filename='mallo.log', level=logging.INFO,
 @st.cache_resource
 def load_nlp_model():
     try:
+        # Intentar cargar el modelo en español
         return spacy.load("es_core_news_sm")
     except OSError:
-        # Si el modelo no está instalado, lo descargamos
-        import spacy.cli
-        spacy.cli.download("es_core_news_sm")
-        return spacy.load("es_core_news_sm")
+        logging.warning("No se pudo cargar el modelo en español. Intentando descargar...")
+        try:
+            # Intentar descargar el modelo en español
+            spacy.cli.download("es_core_news_sm")
+            return spacy.load("es_core_news_sm")
+        except Exception as e:
+            logging.error(f"No se pudo descargar o cargar el modelo en español: {str(e)}")
+            logging.info("Intentando cargar el modelo en inglés como respaldo...")
+            try:
+                # Intentar cargar el modelo en inglés como respaldo
+                return spacy.load("en_core_web_sm")
+            except OSError:
+                logging.warning("No se pudo cargar el modelo en inglés. Intentando descargar...")
+                try:
+                    # Intentar descargar el modelo en inglés
+                    spacy.cli.download("en_core_web_sm")
+                    return spacy.load("en_core_web_sm")
+                except Exception as e:
+                    logging.error(f"No se pudo descargar o cargar ningún modelo: {str(e)}")
+                    raise RuntimeError("No se pudo cargar ningún modelo de lenguaje. Por favor, revisa la instalación de spaCy y los modelos.")
 
-nlp = load_nlp_model()
+# Uso de la función
+try:
+    nlp = load_nlp_model()
+    logging.info(f"Modelo cargado: {nlp.meta['lang']}_{nlp.meta['name']}")
+except Exception as e:
+    logging.error(f"Error al cargar el modelo de lenguaje: {str(e)}")
+    # Aquí puedes decidir cómo manejar este error, por ejemplo:
+    st.error("No se pudo cargar el modelo de lenguaje. Algunas funcionalidades pueden no estar disponibles.")
+    nlp = None
 
 def initialize_system(config: Dict[str, Any]) -> Dict[str, bool]:
     """Inicializa y verifica los componentes del sistema."""
