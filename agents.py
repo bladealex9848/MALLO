@@ -55,6 +55,11 @@ class AgentManager:
         self.backup_default_agent = ('deepinfra', config['openrouter']['default_model'])
         self.meta_analysis_model = config['evaluation_models']['meta_analysis']['model']
         self.meta_analysis_api = config['evaluation_models']['meta_analysis']['api']
+
+        # Añadir estas líneas
+        self.critical_analysis_config = config.get('critical_analysis', {})
+        self.critical_analysis_probability = self.critical_analysis_config.get('probability', 0.2)
+        self.critical_analysis_prompts = self.critical_analysis_config.get('prompts', {})
                 
         # Habilitar el uso de modelos de respaldo - Experimental
         # self.student_model = None
@@ -309,10 +314,6 @@ class AgentManager:
             return True
         return False
 
-    def apply_specialized_prompt(self, query: str, prompt_type: str) -> str:
-        prompt = self.critical_analysis_prompts.get(prompt_type, self.critical_analysis_prompts['default'])
-        return f"{prompt}\n\n{query}"
-
     def process_query(self, query: str, agent_type: str, agent_id: str, prompt_type: str = None, fallback_attempts: int = 0) -> str:
         start_time = time.time()
         max_fallback_attempts = 3 # Número máximo de intentos de fallback antes de abortar
@@ -325,6 +326,8 @@ class AgentManager:
             # Procesar la consulta con el agente seleccionado
             if agent_type == 'assistant':
                 response = self.process_with_assistant(agent_id, query)
+            elif agent_type == 'openai':
+                response = self.process_with_api(query, agent_id)
             else:
                 process_method = getattr(self, f"process_with_{agent_type}", None)
                 if process_method:
@@ -360,7 +363,7 @@ class AgentManager:
                 fallback_agent, fallback_model = self.get_fallback_agent()
                 if fallback_agent != agent_type or fallback_model != agent_id:
                     logging.info(f"Attempting fallback with {fallback_agent}:{fallback_model}")
-                    return self.process_query(query, fallback_agent, fallback_model, fallback_attempts + 1)
+                    return self.process_query(query, fallback_agent, fallback_model, prompt_type, fallback_attempts + 1)
                 else:
                     logging.error("Fallback agent is the same as the failed agent. Aborting fallback.")
             else:
@@ -368,6 +371,10 @@ class AgentManager:
 
             # Si todos los intentos fallan, lanzar una excepción
             raise ValueError(f"Failed to process query after {fallback_attempts} fallback attempts")
+
+    def apply_specialized_prompt(self, query: str, prompt_type: str) -> str:
+        prompt = self.critical_analysis_prompts.get(prompt_type, self.critical_analysis_prompts['default'])
+        return f"{prompt}\n\n{query}"
 
     def should_use_moa(self, query: str, complexity: float) -> bool:
         return complexity > self.moa_threshold

@@ -14,7 +14,7 @@ requests==2.32.3
 together==1.2.7
 groq==0.9.0
 spacy==3.7.5
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0.tar.gz
+https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.7.0/es_core_news_sm-3.7.0.tar.gz
 asyncio==3.4.3
 aiohttp==3.10.5
 polars==1.5.0

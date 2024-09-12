@@ -113,11 +113,7 @@ def process_user_input(user_input, config, agent_manager):
             agent_results = []
             for agent_type, agent_id, agent_name in prioritized_agents:
                 details_placeholder.write(f"Procesando con {agent_name}...")
-                # Aplicamos el prompt especializado solo al primer agente
-                if len(agent_results) == 0:
-                    result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
-                else:
-                    result = agent_manager.process_query(enriched_query, agent_type, agent_id)
+                result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
                 agent_results.append({
                     "agent": agent_type,
                     "model": agent_id,

@@ -4,6 +4,33 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.5.0] - 2024-09-12
+### Añadido
+- Implementación de prompts de análisis crítico especializados para diferentes tipos de consultas (matemáticas, programación, legal, científico, histórico, filosófico, ético, contexto colombiano, cultural, político, económico).
+- Nueva función `determine_prompt_type` para identificar el tipo de consulta y seleccionar el prompt adecuado.
+- Integración de un modelo de lenguaje en español (es_core_news_sm) para mejorar el procesamiento de consultas en español.
+
+### Cambiado
+- Actualizada la función `evaluate_query_complexity` para incluir la determinación del tipo de prompt.
+- Modificada la clase `AgentManager` para manejar los nuevos prompts especializados y su probabilidad de uso.
+- Actualizado el método `process_query` en `AgentManager` para aplicar los prompts especializados cuando sea apropiado.
+- Mejorada la función `process_user_input` para utilizar el nuevo sistema de prompts especializados.
+
+### Optimizado
+- Refactorizado el código para una mejor modularidad y mantenibilidad.
+- Mejorado el manejo de errores y logging en varias funciones clave.
+
+### Corregido
+- Solucionado el problema con el atributo faltante `critical_analysis_probability` en la clase `AgentManager`.
+- Corregidos varios errores relacionados con la inicialización y uso de clientes de API.
+
+### Actualizado
+- Actualizado el archivo `requirements.txt` para incluir el modelo de spaCy en español.
+- Modificada la función de carga del modelo de spaCy para usar el modelo en español y manejar su instalación automática si es necesario.
+
+### Documentación
+- Actualizada la documentación interna del código para reflejar los nuevos cambios y funcionalidades.
+
 ## [1.4.1] - 2024-09-10
 ### Cambiado
 - Implementado un nuevo sistema de gestión de secretos para mejorar la compatibilidad con [Render](https://render.com/). Este cambio permite la carga de secretos desde archivos locales y variables de entorno, proporcionando una solución más flexible y segura para el manejo de claves API y otros datos sensibles en la aplicación MALLO.

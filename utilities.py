@@ -30,8 +30,6 @@ except TypeError:
         def chat(self, *args, **kwargs):
             return "Mistral no está disponible en este momento."
 
-# Resto de tu código...
-
 # Configurar logging
 logging.basicConfig(filename='mallo.log', level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -39,7 +37,13 @@ logging.basicConfig(filename='mallo.log', level=logging.INFO,
 # Cargar el modelo de lenguaje de spaCy
 @st.cache_resource
 def load_nlp_model():
-    return spacy.load("en_core_web_sm")
+    try:
+        return spacy.load("es_core_news_sm")
+    except OSError:
+        # Si el modelo no está instalado, lo descargamos
+        import spacy.cli
+        spacy.cli.download("es_core_news_sm")
+        return spacy.load("es_core_news_sm")
 
 nlp = load_nlp_model()
 
@@ -171,7 +175,7 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
     avg_sentence_length = word_count / sentence_count if sentence_count > 0 else 0
     
     named_entities = len(doc.ents)
-    tech_terms = len(re.findall(r'\b(?:API|function|code|program|algorithm|database|network|server|cloud|machine learning|AI)\b', full_text, re.IGNORECASE))
+    tech_terms = len(re.findall(r'\b(?:API|función|código|programa|algoritmo|base de datos|red|servidor|nube|aprendizaje automático|IA)\b', full_text, re.IGNORECASE))
     
     features = [
         min(word_count / 100, 1),
