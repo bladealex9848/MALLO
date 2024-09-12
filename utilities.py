@@ -14,6 +14,7 @@ from openai import OpenAI
 from groq import Groq
 from anthropic import Anthropic
 import cohere
+from collections import Counter
 
 from load_secrets import load_secrets, get_secret, secrets
 
@@ -189,20 +190,26 @@ def check_openrouter_api() -> bool:
         logging.error(f"Error checking OpenRouter API: {str(e)}")
         return False
 
-# Esta función se encarga de evaluar la complejidad de una consulta
+# Función para evaluar la complejidad de una consulta
 def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bool, str]:
     full_text = f"{context}\n\n{query}"
+    
+    # Análisis básico del texto
     word_count = len(full_text.split())
     unique_words = len(set(full_text.split()))
     avg_word_length = sum(len(word) for word in full_text.split()) / word_count if word_count > 0 else 0
     
+    # Análisis con spaCy
     doc = nlp(full_text)
     sentence_count = len(list(doc.sents))
     avg_sentence_length = word_count / sentence_count if sentence_count > 0 else 0
     
     named_entities = len(doc.ents)
+    
+    # Búsqueda de términos técnicos
     tech_terms = len(re.findall(r'\b(?:API|función|código|programa|algoritmo|base de datos|red|servidor|nube|aprendizaje automático|IA)\b', full_text, re.IGNORECASE))
     
+    # Cálculo de características
     features = [
         min(word_count / 100, 1),
         min(unique_words / 50, 1),
@@ -212,13 +219,31 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
         min(tech_terms / 5, 1)
     ]
     
+    # Cálculo de complejidad
     complexity = sum(features) / len(features)
     
-    needs_web_search = "actualidad" in full_text.lower() or "reciente" in full_text.lower()
+    # Determinar si se necesita búsqueda web
+    needs_web_search = any(term in full_text.lower() for term in ["actualidad", "reciente", "último", "nueva", "actual"])
+    
+    # Determinar si se necesita MOA (Mixture of Agents)
     needs_moa = complexity > 0.7 or word_count > 200 or "MOA: SI" in full_text
     
+    # Determinar el tipo de prompt
     prompt_type = determine_prompt_type(full_text)
-
+    
+    # Ajustar la complejidad basada en el tipo de prompt
+    prompt_type_complexity_modifiers = {
+        'legal': 0.2,
+        'scientific': 0.15,
+        'philosophical': 0.2,
+        'economic': 0.1,
+        'political': 0.1
+    }
+    complexity += prompt_type_complexity_modifiers.get(prompt_type, 0)
+    
+    # Normalizar la complejidad final
+    complexity = min(max(complexity, 0), 1)
+    
     return complexity, needs_web_search, needs_moa, prompt_type
 
 # Función para determinar el tipo de prompt
@@ -226,92 +251,72 @@ def determine_prompt_type(text: str) -> str:
     # Convertimos el texto a minúsculas para facilitar la búsqueda
     text = text.lower()
 
-    # Lista ampliada de palabras clave, incluyendo duplicados sin tilde
-    math_keywords = ["matemáticas", "matematicas", "cálculo", "calculo", "ecuación", "ecuacion", "número", "numero",
-                     "álgebra", "algebra", "geometría", "geometria", "trigonometría", "trigonometria", "estadística",
-                     "probabilidad", "análisis", "calculo diferencial", "calculo integral", "lógica matemática"]
+    # Diccionario de tipos de prompt y sus palabras clave asociadas
+    prompt_types: Dict[str, List[str]] = {
+        'math': ["matemáticas", "matematicas", "cálculo", "calculo", "ecuación", "ecuacion", "número", "numero",
+                 "álgebra", "algebra", "geometría", "geometria", "trigonometría", "trigonometria", "estadística",
+                 "probabilidad", "análisis", "calculo diferencial", "calculo integral", "lógica matemática"],
+        'coding': ["código", "programación", "programacion", "función", "funcion", "algoritmo", "software",
+                   "desarrollo", "lenguaje de programación", "lenguaje de programacion", "python", "java", "c++",
+                   "javascript", "html", "css", "base de datos", "base de datos", "sql", "git", "github", "depuración",
+                   "depuracion", "algoritmos", "estructuras de datos", "estructuras de datos"],
+        'legal': ["ley", "legal", "legislación", "legislacion", "corte", "derechos", "demanda", "abogado",
+                  "juez", "constitución", "constitucion", "código civil", "codigo civil", "código penal",
+                  "codigo penal", "jurisprudencia", "tribunal", "sentencia", "acusación", "acusacion", "defensa",
+                  "contrato", "delito", "pena", "proceso judicial", "proceso judicial"],
+        'scientific': ["ciencia", "experimento", "hipótesis", "hipotesis", "teoría", "teoria", "investigación",
+                       "investigacion", "laboratorio", "método científico", "metodo cientifico", "biología", "biologia",
+                       "física", "fisica", "química", "quimica", "astronomía", "astronomia", "geología", "geologia",
+                       "ecología", "ecologia", "medio ambiente", "medio ambiente", "cambio climático", "cambio climatico"],
+        'historical': ["historia", "histórico", "historico", "época", "epoca", "siglo", "período", "periodo",
+                       "civilización", "civilizacion", "antiguo", "colonial", "independencia", "república",
+                       "republica", "revolución", "revolucion", "guerra", "paz", "dictadura", "democracia",
+                       "imperio", "colonia", "prehistoria", "edad media", "edad moderna", "edad contemporánea",
+                       "edad contemporanea"],
+        'philosophical': ["filosofía", "filosofia", "filosófico", "filosofico", "ética", "etica", "moralidad",
+                          "metafísica", "metafisica", "epistemología", "epistemologia", "lógica", "logica",
+                          "existencialismo", "razón", "razon", "conocimiento", "ser", "nada", "libertad",
+                          "determinismo", "alma", "cuerpo", "realidad", "apariencia", "verdad", "mentira", "belleza",
+                          "fealdad", "bien", "mal", "virtud", "vicio"],
+        'ethical': ["ética", "etica", "moral", "correcto", "incorrecto", "deber", "valor", "principio",
+                    "dilema ético", "dilema etico", "responsabilidad", "justicia", "honestidad", "integridad",
+                    "respeto", "compasión", "solidaridad", "empatía", "empatia", "altruismo", "egoísmo", "egoismo"],
+        'colombian_context': ["colombia", "colombiano", "bogotá", "medellín", "cali", "barranquilla", "cartagena",
+                              "andes", "caribe", "pacífico", "pacifico", "amazonas", "orinoquía", "orinoquia",
+                              "café", "cafe", "vallenato", "cumbia", "gabriel garcía márquez", "gabriel garcia marquez",
+                              "feria de las flores", "feria de las flores", "carnaval de barranquilla",
+                              "carnaval de barranquilla"],
+        'cultural': ["cultura", "tradición", "tradicion", "costumbre", "folclor", "folclore", "gastronomía",
+                     "gastronomia", "música", "musica", "arte", "literatura", "deporte", "cine", "teatro", "danza",
+                     "pintura", "escultura", "arquitectura", "fotografía", "fotografia", "moda", "diseño", "diseño",
+                     "videojuegos", "videojuegos", "festival", "celebración", "celebracion", "ritual", "mito",
+                     "leyenda"],
+        'political': ["política", "politica", "gobierno", "congreso", "presidente", "elecciones", "partidos",
+                      "constitución", "constitucion", "democracia", "izquierda", "derecha", "centro", "liberal",
+                      "conservador", "socialista", "comunista", "capitalista", "anarquista", "feminista",
+                      "ecologista", "nacionalista", "globalista", "poder", "autoridad", "estado", "nación",
+                      "nacion", "ciudadanía", "ciudadania", "derechos humanos", "derechos humanos", "libertad de expresión",
+                      "libertad de expresion", "igualdad", "justicia social", "justicia social"],
+        'economic': ["economía", "economia", "finanzas", "mercado", "empleo", "impuestos", "inflación", "inflacion",
+                     "pib", "comercio", "industria", "producción", "produccion", "consumo", "ahorro", "inversión",
+                     "inversion", "oferta", "demanda", "precio", "competencia", "monopolio", "oligopolio",
+                     "globalización", "globalizacion", "desempleo", "desempleo", "pobreza", "riqueza", "desigualdad",
+                     "crecimiento económico", "crecimiento economico", "desarrollo sostenible", "desarrollo sostenible"]
+    }
 
-    coding_keywords = ["código", "programación", "programacion", "función", "funcion", "algoritmo", "software",
-                       "desarrollo", "lenguaje de programación", "lenguaje de programacion", "python", "java", "c++",
-                       "javascript", "html", "css", "base de datos", "base de datos", "sql", "git", "github", "depuración",
-                       "depuracion", "algoritmos", "estructuras de datos", "estructuras de datos"]
+    # Contador para las coincidencias de cada tipo
+    type_counts = Counter()
 
-    legal_keywords = ["ley", "legal", "legislación", "legislacion", "corte", "derechos", "demanda", "abogado",
-                      "juez", "constitución", "constitucion", "código civil", "codigo civil", "código penal",
-                      "codigo penal", "jurisprudencia", "tribunal", "sentencia", "acusación", "acusacion", "defensa",
-                      "contrato", "delito", "pena", "proceso judicial", "proceso judicial"]
+    # Buscar coincidencias para cada tipo de prompt
+    for prompt_type, keywords in prompt_types.items():
+        type_counts[prompt_type] = sum(1 for keyword in keywords if re.search(rf"\b{re.escape(keyword)}\b", text))
 
-    science_keywords = ["ciencia", "experimento", "hipótesis", "hipotesis", "teoría", "teoria", "investigación",
-                        "investigacion", "laboratorio", "método científico", "metodo cientifico", "biología", "biologia",
-                        "física", "fisica", "química", "quimica", "astronomía", "astronomia", "geología", "geologia",
-                        "ecología", "ecologia", "medio ambiente", "medio ambiente", "cambio climático", "cambio climatico"]
-
-    historical_keywords = ["historia", "histórico", "historico", "época", "epoca", "siglo", "período", "periodo",
-                           "civilización", "civilizacion", "antiguo", "colonial", "independencia", "república",
-                           "republica", "revolución", "revolucion", "guerra", "paz", "dictadura", "democracia",
-                           "imperio", "colonia", "prehistoria", "edad media", "edad moderna", "edad contemporánea",
-                           "edad contemporanea"]
-
-    philosophy_keywords = ["filosofía", "filosofia", "filosófico", "filosofico", "ética", "etica", "moralidad",
-                           "metafísica", "metafisica", "epistemología", "epistemologia", "lógica", "logica",
-                           "existencialismo", "razón", "razon", "conocimiento", "ser", "nada", "libertad",
-                           "determinismo", "alma", "cuerpo", "realidad", "apariencia", "verdad", "mentira", "belleza",
-                           "fealdad", "bien", "mal", "virtud", "vicio"]
-
-    ethical_keywords = ["ética", "etica", "moral", "correcto", "incorrecto", "deber", "valor", "principio",
-                        "dilema ético", "dilema etico", "responsabilidad", "justicia", "honestidad", "integridad",
-                        "respeto", "compasión", "solidaridad", "empatía", "empatia", "altruismo", "egoísmo", "egoismo"]
-
-    colombian_context_keywords = ["colombia", "colombiano", "bogotá", "medellín", "cali", "barranquilla", "cartagena",
-                                  "andes", "caribe", "pacífico", "pacifico", "amazonas", "orinoquía", "orinoquia",
-                                  "café", "cafe", "vallenato", "cumbia", "gabriel garcía márquez", "gabriel garcia marquez",
-                                  "feria de las flores", "feria de las flores", "carnaval de barranquilla",
-                                  "carnaval de barranquilla"]
-
-    cultural_keywords = ["cultura", "tradición", "tradicion", "costumbre", "folclor", "folclore", "gastronomía",
-                         "gastronomia", "música", "musica", "arte", "literatura", "deporte", "cine", "teatro", "danza",
-                         "pintura", "escultura", "arquitectura", "fotografía", "fotografia", "moda", "diseño", "diseño",
-                         "videojuegos", "videojuegos", "festival", "celebración", "celebracion", "ritual", "mito",
-                         "leyenda"]
-
-    political_keywords = ["política", "politica", "gobierno", "congreso", "presidente", "elecciones", "partidos",
-                          "constitución", "constitucion", "democracia", "izquierda", "derecha", "centro", "liberal",
-                          "conservador", "socialista", "comunista", "capitalista", "anarquista", "feminista",
-                          "ecologista", "nacionalista", "globalista", "poder", "autoridad", "estado", "nación",
-                          "nacion", "ciudadanía", "ciudadania", "derechos humanos", "derechos humanos", "libertad de expresión",
-                          "libertad de expresion", "igualdad", "justicia social", "justicia social"]
-
-    economic_keywords = ["economía", "economia", "finanzas", "mercado", "empleo", "impuestos", "inflación", "inflacion",
-                         "pib", "comercio", "industria", "producción", "produccion", "consumo", "ahorro", "inversión",
-                         "inversion", "oferta", "demanda", "precio", "competencia", "monopolio", "oligopolio",
-                         "globalización", "globalizacion", "desempleo", "desempleo", "pobreza", "riqueza", "desigualdad",
-                         "crecimiento económico", "crecimiento economico", "desarrollo sostenible", "desarrollo sostenible"]
-
-    # Búsqueda de coincidencias en el texto utilizando expresiones regulares
-    if any(re.search(rf"\b{keyword}\b", text) for keyword in math_keywords):
-        return 'math'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in coding_keywords):
-        return 'coding'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in legal_keywords):
-        return 'legal'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in science_keywords):
-        return 'scientific'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in historical_keywords):
-        return 'historical'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in philosophy_keywords):
-        return 'philosophical'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in ethical_keywords):
-        return 'ethical'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in colombian_context_keywords):
-        return 'colombian_context'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in cultural_keywords):
-        return 'cultural'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in political_keywords):
-        return 'political'
-    elif any(re.search(rf"\b{keyword}\b", text) for keyword in economic_keywords):
-        return 'economic'
-    else:
-        return 'default'
+    # Si hay coincidencias, devolver el tipo con más coincidencias
+    if type_counts:
+        return max(type_counts, key=type_counts.get)
+    
+    # Si no hay coincidencias, devolver 'default'
+    return 'default'
 
 def select_best_agent(query: str, agents: List[Dict[str, Any]]) -> str:
     complexity, _, _ = evaluate_query_complexity(query, "")

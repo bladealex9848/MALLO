@@ -101,6 +101,7 @@ def process_user_input(user_input, config, agent_manager):
             initial_evaluation = evaluate_response(agent_manager, config, 'initial', enriched_query)
             
             complexity, needs_web_search, needs_moa, prompt_type = evaluate_query_complexity(initial_evaluation, "")
+            prompt_type = agent_manager.validate_prompt_type(user_input, prompt_type)
             
             if needs_web_search:
                 web_context = perform_web_search(user_input)

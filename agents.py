@@ -117,7 +117,50 @@ class AgentManager:
     def update_criteria(self, new_criteria):
         self.criteria.update(new_criteria)
     """
+
+    # Valida el tipo de prompt crítico a utilizar
+    def validate_prompt_type(self, query: str, initial_type: str) -> str:
+        config = self.config['prompt_selection']
         
+        # Usar el modelo especificado para validar el tipo de prompt
+        validation_prompt = f"""
+        Analiza la siguiente consulta y determina el tipo más apropiado de prompt a utilizar.
+        Tipos disponibles: {', '.join(self.critical_analysis_prompts.keys())}
+        
+        Consulta: {query}
+        
+        Tipo inicial sugerido: {initial_type}
+        
+        Proporciona tu recomendación en el siguiente formato:
+        Tipo recomendado: [tipo]
+        Confianza: [alta/media/baja]
+        Justificación: [tu justificación]
+        """
+        
+        response = self.process_query(validation_prompt,
+                                    config['default_model'].split(':')[0],
+                                    config['default_model'].split(':')[1])
+        
+        # Extraer el tipo recomendado y la confianza de la respuesta
+        recommended_type, confidence = self.extract_recommendation(response)
+        
+        # Si la confianza es alta, usar el tipo recomendado; de lo contrario, mantener el inicial
+        if confidence == 'alta':
+            return recommended_type
+        else:
+            return initial_type
+
+def extract_recommendation(self, response: str) -> Tuple[str, str]:
+    # Extraer el tipo recomendado
+    type_match = re.search(r'Tipo recomendado:\s*(\w+)', response)
+    recommended_type = type_match.group(1) if type_match else 'default'
+    
+    # Extraer la confianza
+    confidence_match = re.search(r'Confianza:\s*(alta|media|baja)', response, re.IGNORECASE)
+    confidence = confidence_match.group(1).lower() if confidence_match else 'baja'
+    
+    return recommended_type, confidence
+
     def get_prioritized_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
         

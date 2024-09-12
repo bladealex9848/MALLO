@@ -706,3 +706,8 @@ evaluation_models:
     backup_model: "nousresearch/hermes-3-llama-3.1-405b"
     backup_api2: "groq"
     backup_model2: "llama-3.1-70b-versatile"
+
+prompt_selection:
+  default_model: "cohere:command-r-plus"  # Modelo por defecto para selección de prompt
+  fallback_type: "default"  # Tipo de prompt a usar si no se puede determinar
+  threshold: 0.6  # Umbral de confianza para la selección automática
