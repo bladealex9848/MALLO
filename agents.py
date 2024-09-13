@@ -15,7 +15,9 @@ import cohere
 import requests
 import json
 import random
-
+from utilities import (
+    log_error
+)
 
 from load_secrets import load_secrets, get_secret, secrets
 
@@ -32,13 +34,125 @@ except TypeError:
         def chat(self, *args, **kwargs):
             return "Mistral no está disponible en este momento."
 
-from utilities import (
-    log_error
-)
+# Clase de selección de agentes
+class AgentSelector:
+    def __init__(self, config: Dict, specialized_assistants: List[Dict]):
+        self.config = config
+        self.specialized_assistants = specialized_assistants
+        self.default_model = config['agent_selection']['default_model']
+        self.fallback_type = config['agent_selection']['fallback_type']
+        self.threshold = config['agent_selection']['threshold']
+        self.cohere_client = cohere.Client(api_key=get_secret("COHERE_API_KEY"))
 
+    # Seleccionar el agente más adecuado para una consulta
+    def select_agent(self, query: str) -> Tuple[str, float]:
+        query_embedding = self.get_embedding(query)
+        best_score = 0
+        best_agent = None
+
+        for assistant in self.specialized_assistants:
+            score = self.calculate_similarity(query_embedding, assistant)
+            if score > best_score:
+                best_score = score
+                best_agent = assistant
+
+        if best_score >= self.threshold:
+            return best_agent['id'], best_score
+        else:
+            return self.get_fallback_agent()
+
+    # Obtener el agente de reserva
+    def get_embedding(self, text: str) -> List[float]:
+        response = self.cohere_client.embed(
+            texts=[text],
+            model='embed-english-v3.0',
+            input_type='search_query'
+        )
+        return response.embeddings[0]
+
+    # Calcular la similitud entre dos vectores de incrustación
+    def calculate_similarity(self, query_embedding: List[float], assistant: Dict) -> float:
+        assistant_embedding = self.get_embedding(" ".join(assistant['keywords']))
+        return self.cosine_similarity(query_embedding, assistant_embedding)
+
+    # Calcular la similitud del coseno entre dos vectores
+    def cosine_similarity(self, a: List[float], b: List[float]) -> float:
+        dot_product = sum(x * y for x, y in zip(a, b))
+        magnitude_a = sum(x * x for x in a) ** 0.5
+        magnitude_b = sum(x * x for x in b) ** 0.5
+        return dot_product / (magnitude_a * magnitude_b)
+
+    # Obtener el agente de reserva
+    def get_fallback_agent(self) -> Tuple[str, float]:
+        for assistant in self.specialized_assistants:
+            if assistant['name'] == self.fallback_type:
+                return assistant['id'], 0.0
+        return self.specialized_assistants[0]['id'], 0.0
+
+# Validar la selección del agente
+def validate_agent_selection(query: str, initial_agent: str, config: Dict, specialized_assistants: List[Dict]) -> str:
+    validation_prompt = f"""
+    Analiza la siguiente consulta y determina si el agente seleccionado es el más apropiado.
+    
+    Consulta: {query}
+    
+    Agente inicial seleccionado: {initial_agent}
+    
+    Agentes disponibles:
+    {', '.join([assistant['name'] for assistant in specialized_assistants])}
+    
+    Proporciona tu recomendación en el siguiente formato:
+    Agente recomendado: [nombre del agente]
+    Confianza: [alta/media/baja]
+    Justificación: [tu justificación]
+    """
+    
+    cohere_client = cohere.Client(api_key=get_secret("COHERE_API_KEY"))
+    response = cohere_client.generate(
+        model=config['agent_selection']['validation_model'],
+        prompt=validation_prompt,
+        max_tokens=300,
+        temperature=0.7,
+    )
+    
+    recommended_agent, confidence = extract_recommendation(response.generations[0].text)
+    
+    return recommended_agent if confidence == 'alta' else initial_agent
+
+# Extraer la recomendación y la confianza de la respuesta generada
+def extract_recommendation(response: str) -> Tuple[str, str]:
+    agent_match = re.search(r'Agente recomendado:\s*(\w+)', response)
+    recommended_agent = agent_match.group(1) if agent_match else None
+    
+    confidence_match = re.search(r'Confianza:\s*(alta|media|baja)', response, re.IGNORECASE)
+    confidence = confidence_match.group(1).lower() if confidence_match else 'baja'
+    
+    return recommended_agent, confidence
+
+# Clase de gestión de agentes
+def select_specialized_agent(self, query: str) -> Optional[Dict]:
+    best_score = 0
+    best_agent = None
+    for agent in self.specialized_assistants:
+        score = sum(keyword.lower() in query.lower() for keyword in agent['keywords'])
+        if score > best_score:
+            best_score = score
+            best_agent = agent
+    
+    if best_score > 0:
+        return {
+            'type': 'specialized',
+            'id': best_agent['id'],
+            'name': best_agent['name']
+        }
+    return None
+
+# Clase de gestión de agentes
 class AgentManager:
     def __init__(self, config: Dict[str, Any]):   
         self.config = config
+        self.specialized_assistants = config.get('specialized_assistants', [])
+        self.agent_selector = AgentSelector(config, self.specialized_assistants)
         self.clients = {}  # Inicializa esto con tus clientes de API
         self.agent_speeds = {}
         self.ollama_models = self.get_ollama_models()
@@ -65,7 +179,8 @@ class AgentManager:
         # self.student_model = None
         # self.performance_history = []
         # self.criteria = {}
-                        
+
+        # Inicializar los clientes de API                
         self.clients = {
             'openai': self.init_openai_client(),
             'together': self.init_together_client(),
@@ -77,6 +192,19 @@ class AgentManager:
             'cohere': self.init_cohere_client()
         }
 
+    # Actualizar los modelos disponibles
+    def get_appropriate_agent(self, query: str, complexity: float) -> Tuple[str, str]:
+        agent_id, score = self.agent_selector.select_agent(query)
+        selected_agent = next((a for a in self.specialized_assistants if a['id'] == agent_id), None)
+        
+        if selected_agent:
+            validated_agent = validate_agent_selection(query, selected_agent['name'], self.config, self.specialized_assistants)
+            if validated_agent != selected_agent['name']:
+                agent_id = next((a['id'] for a in self.specialized_assistants if a['name'] == validated_agent), agent_id)
+        
+        return 'assistant', agent_id
+
+    # Procesar la consulta con el agente seleccionado
     def apply_critical_analysis_prompt(self, query: str) -> str:
         if random.random() < self.critical_analysis_probability:
             prompt_type = self.determine_prompt_type(query)
@@ -84,7 +212,7 @@ class AgentManager:
             return f"{prompt}\n\n{query}"
         return query
  
-
+    # Determinar el tipo de prompt crítico a utilizar
     def get_available_models(self, agent_type: str = None) -> List[str]:
         if agent_type:
             return {
@@ -150,6 +278,7 @@ class AgentManager:
         else:
             return initial_type
 
+    # Extraer la recomendación y la confianza de la respuesta generada
     def extract_recommendation(self, response: str) -> Tuple[str, str]:
         # Extraer el tipo recomendado
         type_match = re.search(r'Tipo recomendado:\s*(\w+)', response)
@@ -161,6 +290,7 @@ class AgentManager:
         
         return recommended_type, confidence
 
+    # Determinar el tipo de prompt crítico a utilizar
     def get_prioritized_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
         
@@ -192,6 +322,7 @@ class AgentManager:
         max_agents = 1 if complexity < 0.3 else (2 if complexity < 0.7 else 3)
         return prioritized_agents[:max_agents]
 
+    # Procesar la consulta con el agente seleccionado y el tipo de prompt crítico
     def process_query_with_fallback(self, query: str, prioritized_agents: List[Tuple[str, str]]) -> Tuple[str, Dict[str, Any]]:
         for agent_type, agent_id in prioritized_agents:
             try:
@@ -208,6 +339,7 @@ class AgentManager:
             logging.error(f"Error processing query with local model: {str(e)}")
             raise ValueError("No se pudo procesar la consulta con ningún agente disponible")    
 
+    # Procesar la consulta con el agente seleccionado
     def init_client(self, client_name: str, client_class, api_key: str, **kwargs):
         try:
             return client_class(api_key=api_key, **kwargs)
@@ -215,12 +347,15 @@ class AgentManager:
             logging.warning(f"Error al inicializar {client_name} client: {str(e)}")
             return None
 
+    # Inicializar el cliente de OpenAI
     def init_openai_client(self):
         return self.init_client('OpenAI', OpenAI, get_secret("OPENAI_API_KEY"))
 
+    # Inicializar el cliente de Together
     def init_together_client(self):
         return self.init_client('Together', Together, get_secret("TOGETHER_API_KEY"))
 
+    # Inicializar el cliente de Groq
     def init_groq_client(self):
         client = self.init_client('Groq', Groq, get_secret("GROQ_API_KEY"))
         if client:
@@ -231,24 +366,31 @@ class AgentManager:
                 logging.warning(f"Error al probar Groq client: {str(e)}")
         return None
 
+    # Inicializar el cliente de DeepInfra
     def init_deepinfra_client(self):
         return self.init_client('DeepInfra', OpenAI, get_secret("DEEPINFRA_API_KEY"), base_url="https://api.deepinfra.com/v1/openai")
 
+    # Inicializar el cliente de Anthropic
     def init_anthropic_client(self):
         return self.init_client('Anthropic', Anthropic, get_secret("ANTHROPIC_API_KEY"))
 
+    # Inicializar el cliente de DeepSeek
     def init_deepseek_client(self):
         return self.init_client('DeepSeek', OpenAI, get_secret("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com/v1")
 
+    # Inicializar el cliente de Mistral
     def init_mistral_client(self):
         return self.init_client('Mistral', Mistral, get_secret("MISTRAL_API_KEY"))
 
+    # Inicializar el cliente de Cohere
     def init_cohere_client(self):
         return self.init_client('Cohere', cohere.Client, get_secret("COHERE_API_KEY"))
     
+    # Inicializar el cliente de OpenRouter
     def init_openrouter_client(self):
         return get_secret("OPENROUTER_API_KEY")    
     
+    # Procesar la consulta con el agente seleccionado
     def get_ollama_models(self) -> List[str]:
         try:
             response = requests.get(f"{self.config['ollama']['base_url']}/api/tags", timeout=5)
@@ -259,6 +401,7 @@ class AgentManager:
             logging.warning("No se pudieron obtener los modelos de Ollama")
             return []
 
+    # Verificar la disponibilidad de los modelos
     def verify_models(self) -> Dict[str, List[str]]:
         available_models = {'local': self.ollama_models}
         for agent_type in ['api', 'groq', 'together']:
@@ -268,6 +411,7 @@ class AgentManager:
             ]
         return available_models
 
+    # Probar la disponibilidad de un modelo
     def test_model_availability(self, agent_type: str, model: str) -> bool:
         if agent_type == 'local':
             return True
@@ -278,6 +422,7 @@ class AgentManager:
             logging.warning(f"Model {agent_type}:{model} is not available: {str(e)}")
             return False
 
+    # Actualizar los modelos fiables
     def update_reliable_models(self, speed_test_results: Dict[str, float]):
         self.reliable_models = sorted(
             [model for model in speed_test_results.keys() if model.split(':')[1] in self.available_models[model.split(':')[0]]],
@@ -285,6 +430,7 @@ class AgentManager:
         )
         self.reliable_models.insert(0, f"local:{self.default_local_model}")
 
+    # Obtener el agente de reserva
     def get_appropriate_agent(self, query: str, complexity: float) -> Tuple[str, str]:
         scores = self.calculate_agent_scores(query, complexity)
         
@@ -301,7 +447,8 @@ class AgentManager:
                 return agent_type, model_name
         
         return 'local', self.default_local_model
-
+    
+    # Calcular los puntajes de los agentes
     def calculate_agent_scores(self, query: str, complexity: float) -> Dict[str, float]:
         scores = {}
         
@@ -327,6 +474,7 @@ class AgentManager:
 
         return scores
 
+    # Validar la selección del agente
     def is_suitable(self, agent_type: str, model: str, complexity: float) -> bool:
         thresholds = self.config['thresholds']
         if agent_type == 'deepinfra' and complexity < thresholds['api_complexity']:
@@ -351,6 +499,7 @@ class AgentManager:
             return True
         return False
 
+    # Procesar la consulta con el agente seleccionado
     def process_query(self, query: str, agent_type: str, agent_id: str, prompt_type: str = None, fallback_attempts: int = 0) -> str:
         start_time = time.time()
         max_fallback_attempts = 3  # Número máximo de intentos de fallback antes de abortar

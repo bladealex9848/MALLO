@@ -109,13 +109,20 @@ def process_user_input(user_input, config, agent_manager):
             else:
                 web_context = ""
             
-            prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
+            # Intentar seleccionar un agente especializado primero
+            specialized_agent = agent_manager.select_specialized_agent(enriched_query)
+            
+            if specialized_agent:
+                prioritized_agents = [(specialized_agent['type'], specialized_agent['id'], specialized_agent['name'])]
+            else:
+                # Si no hay agente especializado, usar modelos generales con prompts especializados
+                prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
             
             agent_results = []
             for agent_type, agent_id, agent_name in prioritized_agents:
                 details_placeholder.write(f"Procesando con {agent_name}...")
                 try:
-                    if random.random() < agent_manager.critical_analysis_probability:
+                    if agent_type != 'specialized' and random.random() < agent_manager.critical_analysis_probability:
                         enriched_query = agent_manager.apply_specialized_prompt(enriched_query, prompt_type)
                     result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
                     agent_results.append({
@@ -148,7 +155,6 @@ def process_user_input(user_input, config, agent_manager):
                     agent_manager.meta_analysis_model
                 )
             else:
-                # Si no se necesita MOA o solo hay una respuesta exitosa, usar la primera respuesta exitosa
                 final_response = successful_responses[0]["response"]
 
             final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, final_response)
