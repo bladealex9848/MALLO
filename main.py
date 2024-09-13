@@ -125,14 +125,14 @@ def process_user_input(user_input, config, agent_manager):
                     break
             
             prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
-
+        
             agent_results = []
             for agent_type, agent_id, agent_name in prioritized_agents:
                 details_placeholder.write(f"Procesando con {agent_name}...")
                 try:
-                    if agent_type != 'specialized' and random.random() < agent_manager.critical_analysis_probability:
-                        enriched_query = agent_manager.apply_specialized_prompt(enriched_query, prompt_type)
-                    result = agent_manager.process_query(enriched_query, agent_type, agent_id, prompt_type)
+                    # Aplicar el prompt especializado a todos los agentes
+                    enriched_query_with_prompt = agent_manager.apply_specialized_prompt(enriched_query, prompt_type)
+                    result = agent_manager.process_query(enriched_query_with_prompt, agent_type, agent_id, prompt_type)
                     agent_results.append({
                         "agent": agent_type,
                         "model": agent_id,
