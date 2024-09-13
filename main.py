@@ -109,14 +109,25 @@ def process_user_input(user_input, config, agent_manager):
             else:
                 web_context = ""
             
-            # Intentar seleccionar un agente especializado primero
+            # Obtener el asistente especializado más relevante
             specialized_agent = agent_manager.select_specialized_agent(enriched_query)
             
+            # Inicializar la lista de agentes priorizados
+            prioritized_agents = []
+            
+            # Si se encontró un asistente especializado, agregarlo primero
             if specialized_agent:
-                prioritized_agents = [(specialized_agent['type'], specialized_agent['id'], specialized_agent['name'])]
-            else:
-                # Si no hay agente especializado, usar modelos generales con prompts especializados
-                prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
+                prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
+            
+            # Obtener agentes generales con prompts especializados
+            general_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
+            
+            # Agregar agentes generales hasta tener 3 en total
+            for agent in general_agents:
+                if len(prioritized_agents) < 3:
+                    prioritized_agents.append(agent)
+                else:
+                    break
             
             agent_results = []
             for agent_type, agent_id, agent_name in prioritized_agents:
@@ -193,85 +204,7 @@ def process_user_input(user_input, config, agent_manager):
         logging.error(f"Se ha producido un error inesperado: {str(e)}")
         return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", {"error": str(e)}
 
-# Versión experimental con MALLOEnhancer y adaptación de criterios
-# Descomentar para activar la versión experimental y seguir evaluandola en producción antes de lanzarla oficialmente en la versión principal
-if False:
-    '''
-    def process_user_input_experimental(user_input, config, agent_manager):
-        try:
-            conversation_context = st.session_state.get('context', '')
-            enriched_query = f"{conversation_context}\n\nNueva consulta: {user_input}"
-
-            cached_response = get_cached_response(enriched_query)
-            if cached_response:
-                st.success("Respuesta obtenida de la caché")
-                return cached_response
-
-            with st.spinner("Procesando tu consulta..."):
-                start_time = time.time()
-                
-                enhancer = MALLOEnhancer(agent_manager, 'config.yaml', max_iterations=3)
-                
-                initial_evaluation = evaluate_response(agent_manager, config, 'initial', enriched_query)
-                
-                complexity, needs_web_search, needs_moa = evaluate_query_complexity(initial_evaluation, "")
-                
-                if needs_web_search:
-                    web_context = perform_web_search(user_input)
-                    enriched_query = f"{enriched_query}\nContexto web: {web_context}"
-                
-                prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity)
-                
-                response, agent_info = agent_manager.process_query_with_fallback(enriched_query, prioritized_agents)
-                
-                # Aplicar la reflexión iterativa
-                enhanced_data = enhancer.iterative_reflection(enriched_query, response)
-                
-                final_evaluation = evaluate_response(agent_manager, config, 'final', enhanced_data['instruction'], enhanced_data['response'])
-
-                processing_time = time.time() - start_time
-                
-                # Realizar meta-análisis con los datos mejorados
-                meta_analysis_result = agent_manager.meta_analysis(enhanced_data['instruction'], enhanced_data['response'], initial_evaluation, final_evaluation)
-                
-                # Adaptar los criterios basándose en el rendimiento
-                new_criteria = adapt_criteria(agent_manager.performance_history)
-                agent_manager.update_criteria(new_criteria)
-
-                # Generar la respuesta final basada en el meta-análisis
-                final_response = agent_manager.process_query(
-                    f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
-                    agent_manager.meta_analysis_api,
-                    agent_manager.meta_analysis_model
-                )
-
-                details = {
-                    "selected_agent": agent_info["agent"],
-                    "selected_model": agent_info["model"],
-                    "processing_time": f"{processing_time:.2f} segundos",
-                    "complexity": complexity,
-                    "needs_web_search": needs_web_search,
-                    "needs_moa": needs_moa,
-                    "web_context": web_context if needs_web_search else "",
-                    "initial_evaluation": initial_evaluation,
-                    "enhanced_instruction": enhanced_data['instruction'],
-                    "enhanced_response": enhanced_data['response'],
-                    "final_evaluation": final_evaluation,
-                    "meta_analysis": meta_analysis_result,
-                    "final_response": final_response
-                }
-
-                new_context = summarize_conversation(conversation_context, user_input, final_response, agent_manager, config)
-                st.session_state['context'] = new_context
-
-                cache_response(enriched_query, (final_response, details))
-
-                return final_response, details
-
-        except Exception as e:
-            logging.error(f"Se ha producido un error inesperado: {str(e)}")
-            return f"Lo siento, ha ocurrido un error al procesar tu consulta: {str(e)}. Por favor, intenta de nuevo.", None
-    '''
+# Evaluar la respuesta del modelo de lenguaje y proporcionar retroalimentación
 def evaluate_response(agent_manager, config, evaluation_type, query, response=None):
     eval_config = config['evaluation_models'][evaluation_type]
     

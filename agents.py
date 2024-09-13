@@ -129,7 +129,7 @@ def extract_recommendation(response: str) -> Tuple[str, str]:
     
     return recommended_agent, confidence
 
-# Clase de gestión de agentes
+# Clase de gestión de agentes especializados donde se selecciona el agente más adecuado para una consulta
 def select_specialized_agent(self, query: str) -> Optional[Dict]:
     best_score = 0
     best_agent = None
