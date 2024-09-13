@@ -11,7 +11,7 @@ import yaml
 import os
 import json
 import re
-from agents import AgentManager
+from agents import (AgentManager, AgentSelector)
 from utilities import (
     initialize_system, cache_response, get_cached_response, summarize_text,
     perform_web_search, log_error, log_warning, log_info, evaluate_query_complexity
