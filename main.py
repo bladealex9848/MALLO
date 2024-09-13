@@ -3,15 +3,11 @@ from config_streamlit import set_streamlit_page_config
 set_streamlit_page_config()
 
 import streamlit as st
-# from compatibility_check import check_compatibility
-# if not check_compatibility():
-#    st.error("El entorno no es compatible. Por favor, revisa las versiones de las dependencias.")
-#    st.stop()
 import yaml
 import os
 import json
 import re
-from agents import (AgentManager, AgentSelector)
+from agents import AgentManager
 from utilities import (
     initialize_system, cache_response, get_cached_response, summarize_text,
     perform_web_search, log_error, log_warning, log_info, evaluate_query_complexity
@@ -22,7 +18,6 @@ import polars as pl
 import random
 import logging
 from typing import Tuple, Dict, Any
-# from mallo_enhancer import MALLOEnhancer, adapt_criteria # Importar para la versión experimental
 
 from load_secrets import load_secrets, get_secret, secrets
 
@@ -109,18 +104,24 @@ def process_user_input(user_input, config, agent_manager):
             else:
                 web_context = ""
             
+            # Obtener el asistente especializado más relevante
             specialized_agent = agent_manager.select_specialized_agent(enriched_query)
+            
+            # Inicializar la lista de agentes priorizados
             prioritized_agents = []
             
+            # Si se encontró un asistente especializado, agregarlo primero
             if specialized_agent:
                 prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
             
+            # Obtener agentes generales con prompts especializados
             general_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
             
+            # Agregar agentes generales hasta tener 3 en total
             for agent in general_agents:
-                if len(prioritized_agents) < 3 and agent not in prioritized_agents:
+                if len(prioritized_agents) < 3:
                     prioritized_agents.append(agent)
-                if len(prioritized_agents) == 3:
+                else:
                     break
             
             agent_results = []
@@ -154,7 +155,11 @@ def process_user_input(user_input, config, agent_manager):
             
             if needs_moa and len(successful_responses) > 1:
                 meta_analysis_result = agent_manager.meta_analysis(user_input, [r["response"] for r in successful_responses], initial_evaluation, "")
-                final_response = meta_analysis_result
+                final_response = agent_manager.process_query(
+                    f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
+                    agent_manager.meta_analysis_api,
+                    agent_manager.meta_analysis_model
+                )
             else:
                 final_response = successful_responses[0]["response"]
 
