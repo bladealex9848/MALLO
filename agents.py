@@ -176,7 +176,7 @@ class AgentManager:
         return recommended_agent if confidence == 'alta' else initial_agent
 
     # Extraer la recomendación y la confianza de la respuesta generada
-    def extract_recommendation(response: str) -> Tuple[str, str]:
+    def extract_recommendation_(response: str) -> Tuple[str, str]:
         agent_match = re.search(r'Agente recomendado:\s*(\w+)', response)
         recommended_agent = agent_match.group(1) if agent_match else None
         
@@ -292,34 +292,42 @@ class AgentManager:
     # Determinar el tipo de prompt crítico a utilizar
     def get_prioritized_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
+        used_models = set()
+        used_agent_types = set()
         
-        # Buscar asistentes especializados primero
-        for assistant in self.specialized_assistants:
-            keyword_match = sum(1 for keyword in assistant['keywords'] if keyword.lower() in query.lower())
-            if keyword_match > 0:
-                prioritized_agents.append(('assistant', assistant['id'], assistant['name']))
+        # Primero, intentar seleccionar un agente especializado
+        specialized_agent = self.select_specialized_agent(query)
+        if specialized_agent:
+            prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
+            used_models.add(specialized_agent['id'])
+            used_agent_types.add(specialized_agent['type'])
         
-        # Ordenar los asistentes especializados por número de coincidencias de palabras clave
-        prioritized_agents.sort(key=lambda x: sum(1 for keyword in next(a for a in self.specialized_assistants if a['id'] == x[1])['keywords'] if keyword.lower() in query.lower()), reverse=True)
+        # Luego, seleccionar agentes generales
+        general_agents = self.get_general_agents(query, complexity, prompt_type)
         
-        # Si no se encontró un asistente especializado o la complejidad es alta, añadir otros agentes
-        if not prioritized_agents or complexity > 0.5:
+        for agent_type, agent_id, agent_name in general_agents:
+            if len(prioritized_agents) >= 3:
+                break
+            if agent_id not in used_models and agent_type not in used_agent_types:
+                prioritized_agents.append((agent_type, agent_id, agent_name))
+                used_models.add(agent_id)
+                used_agent_types.add(agent_type)
+        
+        # Si aún no tenemos 3 agentes, añadir agentes adicionales de diferentes tipos
+        if len(prioritized_agents) < 3:
             for agent_type in self.processing_priority:
-                if agent_type == 'moa' and complexity > self.config['thresholds']['moa_complexity']:
-                    prioritized_agents.append(('moa', 'moa', 'Mixture of Agents'))
-                elif agent_type in ['openrouter', 'deepinfra', 'groq', 'together', 'openai', 'anthropic', 'deepseek', 'cohere', 'ollama', 'mistral']:
-                    models = self.get_available_models(agent_type)
-                    if models:
-                        prioritized_agents.append((agent_type, models[0], f"{agent_type.capitalize()} Model"))
+                if len(prioritized_agents) >= 3:
+                    break
+                if agent_type not in used_agent_types:
+                    available_models = self.get_available_models(agent_type)
+                    for model in available_models:
+                        if model not in used_models:
+                            prioritized_agents.append((agent_type, model, f"{agent_type.capitalize()} Model"))
+                            used_models.add(model)
+                            used_agent_types.add(agent_type)
+                            break
         
-        # Añadir agente por defecto si no se encontró ninguno
-        if not prioritized_agents:
-            default_agent = ('openrouter', self.config['openrouter']['default_model'], 'OpenRouter Default')
-            prioritized_agents.append(default_agent)
-        
-        # Limitar el número de agentes basado en la complejidad
-        max_agents = 1 if complexity < 0.3 else (2 if complexity < 0.7 else 3)
-        return prioritized_agents[:max_agents]
+        return prioritized_agents[:3]  # Aseguramos que no se devuelvan más de 3 agentes
 
     # Procesar la consulta con el agente seleccionado y el tipo de prompt crítico
     def process_query_with_fallback(self, query: str, prioritized_agents: List[Tuple[str, str]]) -> Tuple[str, Dict[str, Any]]:
@@ -430,7 +438,7 @@ class AgentManager:
         self.reliable_models.insert(0, f"local:{self.default_local_model}")
 
     # Obtener el agente de reserva
-    def get_appropriate_agent(self, query: str, complexity: float) -> Tuple[str, str]:
+    def get_appropriate_agent_(self, query: str, complexity: float) -> Tuple[str, str]:
         scores = self.calculate_agent_scores(query, complexity)
         
         for assistant in self.specialized_assistants:
@@ -838,3 +846,17 @@ def evaluate_query_complexity(query: str) -> float:
     except Exception as e:
         logging.error(f"Error al evaluar la complejidad de la consulta: {str(e)}")
         return 0.5
+    
+def get_general_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
+    general_agents = []
+    for agent_type in self.processing_priority:
+        if agent_type != 'specialized_assistants':
+            models = self.get_available_models(agent_type)
+            for model in models:
+                if self.is_suitable(agent_type, model, complexity):
+                    general_agents.append((agent_type, model, f"{agent_type.capitalize()} Model"))
+    
+    # Ordenar los agentes generales por algún criterio de relevancia
+    general_agents.sort(key=lambda x: self.calculate_relevance(x, query, prompt_type), reverse=True)
+    
+    return general_agents
