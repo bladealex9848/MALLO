@@ -129,6 +129,40 @@ class AgentManager:
             'cohere': self.init_cohere_client()
         }
 
+    def get_general_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
+        general_agents = []
+        for agent_type in self.processing_priority:
+            if agent_type != 'specialized_assistants' and agent_type != 'moa':
+                models = self.get_available_models(agent_type)
+                for model in models:
+                    if self.is_suitable(agent_type, model, complexity):
+                        general_agents.append((agent_type, model, f"{agent_type.capitalize()} Model"))
+        
+        # Ordenar los agentes generales por relevancia
+        general_agents.sort(key=lambda x: self.calculate_relevance(x, query, prompt_type), reverse=True)
+        
+        return general_agents
+
+    def calculate_relevance(self, agent: Tuple[str, str, str], query: str, prompt_type: str) -> float:
+        # Esta es una función de ejemplo. Deberías adaptarla según tus necesidades específicas.
+        agent_type, model, _ = agent
+        relevance = 0.0
+        
+        # Dar mayor relevancia a ciertos tipos de agentes según el prompt_type
+        if prompt_type == 'math' and agent_type in ['openai', 'anthropic']:
+            relevance += 0.5
+        elif prompt_type == 'coding' and agent_type in ['openai', 'anthropic', 'cohere']:
+            relevance += 0.5
+        
+        # Considerar la complejidad del modelo (esto es un ejemplo, ajusta según tus modelos)
+        if 'large' in model.lower() or 'advanced' in model.lower():
+            relevance += 0.3
+        
+        # Añadir un poco de aleatoriedad para diversidad
+        relevance += random.random() * 0.2
+        
+        return relevance
+
     # Actualizar los modelos disponibles
     def get_appropriate_agent(self, query: str, complexity: float) -> Tuple[str, str]:
         agent_id, score = self.agent_selector.select_agent(query)
@@ -841,37 +875,3 @@ def evaluate_query_complexity(query: str) -> float:
     except Exception as e:
         logging.error(f"Error al evaluar la complejidad de la consulta: {str(e)}")
         return 0.5
-    
-def get_general_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
-    general_agents = []
-    for agent_type in self.processing_priority:
-        if agent_type != 'specialized_assistants' and agent_type != 'moa':
-            models = self.get_available_models(agent_type)
-            for model in models:
-                if self.is_suitable(agent_type, model, complexity):
-                    general_agents.append((agent_type, model, f"{agent_type.capitalize()} Model"))
-    
-    # Ordenar los agentes generales por relevancia
-    general_agents.sort(key=lambda x: self.calculate_relevance(x, query, prompt_type), reverse=True)
-    
-    return general_agents
-
-def calculate_relevance(self, agent: Tuple[str, str, str], query: str, prompt_type: str) -> float:
-    # Esta es una función de ejemplo. Deberías adaptarla según tus necesidades específicas.
-    agent_type, model, _ = agent
-    relevance = 0.0
-    
-    # Dar mayor relevancia a ciertos tipos de agentes según el prompt_type
-    if prompt_type == 'math' and agent_type in ['openai', 'anthropic']:
-        relevance += 0.5
-    elif prompt_type == 'coding' and agent_type in ['openai', 'anthropic', 'cohere']:
-        relevance += 0.5
-    
-    # Considerar la complejidad del modelo (esto es un ejemplo, ajusta según tus modelos)
-    if 'large' in model.lower() or 'advanced' in model.lower():
-        relevance += 0.3
-    
-    # Añadir un poco de aleatoriedad para diversidad
-    relevance += random.random() * 0.2
-    
-    return relevance
