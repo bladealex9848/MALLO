@@ -326,7 +326,7 @@ class AgentManager:
         
         # Primero, intentar seleccionar un agente especializado
         specialized_agent = self.select_specialized_agent(query)
-        if specialized_agent:
+        if specialized_agent and specialized_agent['id'] not in used_models:
             prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
             used_models.add(specialized_agent['id'])
             used_agent_types.add(specialized_agent['type'])
@@ -632,13 +632,23 @@ class AgentManager:
         return self._process_with_openai_like_client(self.clients['deepinfra'], query, model)
 
     def process_with_anthropic(self, query: str, model: str) -> str:
-        message = self.clients['anthropic'].messages.create(
-            model=model,
-            max_tokens=self.config['general']['max_tokens'],
-            temperature=self.config['general']['temperature'],
-            messages=[{"role": "user", "content": query}]
-        )
-        return message.content
+        try:
+            message = self.clients['anthropic'].messages.create(
+                model=model,
+                max_tokens=self.config['general']['max_tokens'],
+                temperature=self.config['general']['temperature'],
+                messages=[{"role": "user", "content": query}]
+            )
+            # Asegúrate de que estamos devolviendo un string
+            if isinstance(message.content, list) and len(message.content) > 0:
+                return message.content[0].text
+            elif hasattr(message.content, 'text'):
+                return message.content.text
+            else:
+                return str(message.content)
+        except Exception as e:
+            logging.error(f"Error processing with Anthropic: {str(e)}")
+            return f"Error al procesar con Anthropic API: {str(e)}"
 
     def process_with_deepseek(self, query: str, model: str) -> str:
         return self._process_with_openai_like_client(self.clients['deepseek'], query, model)
