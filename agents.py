@@ -89,64 +89,6 @@ class AgentSelector:
                 return assistant['id'], 0.0
         return self.specialized_assistants[0]['id'], 0.0
 
-# Validar la selección del agente
-def validate_agent_selection(query: str, initial_agent: str, config: Dict, specialized_assistants: List[Dict]) -> str:
-    validation_prompt = f"""
-    Analiza la siguiente consulta y determina si el agente seleccionado es el más apropiado.
-    
-    Consulta: {query}
-    
-    Agente inicial seleccionado: {initial_agent}
-    
-    Agentes disponibles:
-    {', '.join([assistant['name'] for assistant in specialized_assistants])}
-    
-    Proporciona tu recomendación en el siguiente formato:
-    Agente recomendado: [nombre del agente]
-    Confianza: [alta/media/baja]
-    Justificación: [tu justificación]
-    """
-    
-    cohere_client = cohere.Client(api_key=get_secret("COHERE_API_KEY"))
-    response = cohere_client.generate(
-        model=config['agent_selection']['validation_model'],
-        prompt=validation_prompt,
-        max_tokens=300,
-        temperature=0.7,
-    )
-    
-    recommended_agent, confidence = extract_recommendation(response.generations[0].text)
-    
-    return recommended_agent if confidence == 'alta' else initial_agent
-
-# Extraer la recomendación y la confianza de la respuesta generada
-def extract_recommendation(response: str) -> Tuple[str, str]:
-    agent_match = re.search(r'Agente recomendado:\s*(\w+)', response)
-    recommended_agent = agent_match.group(1) if agent_match else None
-    
-    confidence_match = re.search(r'Confianza:\s*(alta|media|baja)', response, re.IGNORECASE)
-    confidence = confidence_match.group(1).lower() if confidence_match else 'baja'
-    
-    return recommended_agent, confidence
-
-# Clase de gestión de agentes especializados donde se selecciona el agente más adecuado para una consulta
-def select_specialized_agent(self, query: str) -> Optional[Dict]:
-    best_score = 0
-    best_agent = None
-    for agent in self.specialized_assistants:
-        score = sum(keyword.lower() in query.lower() for keyword in agent['keywords'])
-        if score > best_score:
-            best_score = score
-            best_agent = agent
-    
-    if best_score > 0:
-        return {
-            'type': 'specialized',
-            'id': best_agent['id'],
-            'name': best_agent['name']
-        }
-    return None
-
 # Clase de gestión de agentes
 class AgentManager:
     def __init__(self, config: Dict[str, Any]):   
@@ -203,6 +145,64 @@ class AgentManager:
                 agent_id = next((a['id'] for a in self.specialized_assistants if a['name'] == validated_agent), agent_id)
         
         return 'assistant', agent_id
+
+    # Validar la selección del agente
+def validate_agent_selection(query: str, initial_agent: str, config: Dict, specialized_assistants: List[Dict]) -> str:
+    validation_prompt = f"""
+    Analiza la siguiente consulta y determina si el agente seleccionado es el más apropiado.
+    
+    Consulta: {query}
+    
+    Agente inicial seleccionado: {initial_agent}
+    
+    Agentes disponibles:
+    {', '.join([assistant['name'] for assistant in specialized_assistants])}
+    
+    Proporciona tu recomendación en el siguiente formato:
+    Agente recomendado: [nombre del agente]
+    Confianza: [alta/media/baja]
+    Justificación: [tu justificación]
+    """
+    
+    cohere_client = cohere.Client(api_key=get_secret("COHERE_API_KEY"))
+    response = cohere_client.generate(
+        model=config['agent_selection']['validation_model'],
+        prompt=validation_prompt,
+        max_tokens=300,
+        temperature=0.7,
+    )
+    
+    recommended_agent, confidence = extract_recommendation(response.generations[0].text)
+    
+    return recommended_agent if confidence == 'alta' else initial_agent
+
+# Extraer la recomendación y la confianza de la respuesta generada
+def extract_recommendation(response: str) -> Tuple[str, str]:
+    agent_match = re.search(r'Agente recomendado:\s*(\w+)', response)
+    recommended_agent = agent_match.group(1) if agent_match else None
+    
+    confidence_match = re.search(r'Confianza:\s*(alta|media|baja)', response, re.IGNORECASE)
+    confidence = confidence_match.group(1).lower() if confidence_match else 'baja'
+    
+    return recommended_agent, confidence
+
+# Clase de gestión de agentes especializados donde se selecciona el agente más adecuado para una consulta
+def select_specialized_agent(self, query: str) -> Optional[Dict]:
+    best_score = 0
+    best_agent = None
+    for agent in self.specialized_assistants:
+        score = sum(keyword.lower() in query.lower() for keyword in agent['keywords'])
+        if score > best_score:
+            best_score = score
+            best_agent = agent
+    
+    if best_score > 0:
+        return {
+            'type': 'specialized',
+            'id': best_agent['id'],
+            'name': best_agent['name']
+        }
+    return None
 
     # Procesar la consulta con el agente seleccionado
     def apply_critical_analysis_prompt(self, query: str) -> str:
