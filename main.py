@@ -124,6 +124,8 @@ def process_user_input(user_input, config, agent_manager):
                 else:
                     break
             
+            prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
+
             agent_results = []
             for agent_type, agent_id, agent_name in prioritized_agents:
                 details_placeholder.write(f"Procesando con {agent_name}...")

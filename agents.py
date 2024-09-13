@@ -329,7 +329,7 @@ class AgentManager:
         if specialized_agent and specialized_agent['id'] not in used_models:
             prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
             used_models.add(specialized_agent['id'])
-            used_agent_types.add(specialized_agent['type'])
+            used_agent_types.add('specialized')  # Marcar 'specialized' como usado
         
         # Luego, seleccionar agentes generales
         general_agents = self.get_general_agents(query, complexity, prompt_type)
@@ -343,11 +343,11 @@ class AgentManager:
                 used_agent_types.add(agent_type)
         
         # Si aún no tenemos 3 agentes, añadir agentes adicionales de diferentes tipos
-        if len(prioritized_agents) < 3:
+        while len(prioritized_agents) < 3:
             for agent_type in self.processing_priority:
                 if len(prioritized_agents) >= 3:
                     break
-                if agent_type not in used_agent_types:
+                if agent_type not in used_agent_types and agent_type != 'specialized_assistants':
                     available_models = self.get_available_models(agent_type)
                     for model in available_models:
                         if model not in used_models:
@@ -355,6 +355,8 @@ class AgentManager:
                             used_models.add(model)
                             used_agent_types.add(agent_type)
                             break
+            if len(prioritized_agents) == len(used_agent_types):  # Si no se pueden añadir más agentes únicos
+                break
         
         return prioritized_agents[:3]  # Aseguramos que no se devuelvan más de 3 agentes
 
