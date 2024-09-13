@@ -16,22 +16,27 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
 - Actualización de `get_prioritized_agents` en la clase `AgentManager` para priorizar la selección de agentes basada en el tipo de consulta y su complejidad.
 - Modificación de `process_user_input` para manejar el nuevo flujo de procesamiento con tipos de prompts y análisis crítico.
 - Optimización del proceso de meta-análisis para ejecutarse solo cuando hay múltiples respuestas exitosas.
+- Actualización de la lógica para aplicar prompts especializados a todos los agentes, eliminando la selección aleatoria.
 
 ### Mejorado
 - Manejo más eficiente de la complejidad de las consultas, ajustando dinámicamente el número de agentes utilizados.
 - Mejor integración de asistentes especializados en el flujo de procesamiento.
 - Refinamiento del sistema de evaluación inicial y final para proporcionar un análisis más preciso de las consultas y respuestas.
+- Consistencia mejorada en la aplicación de prompts especializados a través de todos los agentes.
 
 ### Optimizado
 - Reducción del uso innecesario de recursos para consultas simples.
 - Mejora en la eficiencia del procesamiento al limitar el número de agentes basado en la complejidad de la consulta.
+- Eliminación de la selección aleatoria de agentes para la aplicación de prompts especializados.
 
 ### Corregido
 - Solución al problema de activación excesiva de agentes para consultas simples.
 - Corrección en la aplicación de búsqueda web y MOA (Mixture of Agents) basada en una evaluación más precisa de la necesidad.
+- Resolución del problema de selección de agentes duplicados, especialmente para agentes especializados.
 
 ### Documentación
 - Actualización de la documentación interna para reflejar los nuevos cambios en el flujo de procesamiento y la selección de agentes.
+- Clarificación sobre el uso consistente de prompts especializados en todos los agentes.
 
 ### Seguridad
 - Mejora en el manejo de errores para prevenir la exposición de información sensible en caso de fallos en el procesamiento.

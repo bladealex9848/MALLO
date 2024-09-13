@@ -296,19 +296,23 @@ def main():
         ![Visitantes](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fmallollm.streamlit.app&label=Visitantes&labelColor=%235d5d5d&countColor=%231e7ebf&style=flat)
         """)
 
-        st.write(""" 
+        st.write("""
         MALLO es un sistema avanzado de orquestación de múltiples agentes basados en Modelos de Lenguaje de Gran Escala (LLMs). 
         Diseñado para proporcionar respuestas precisas, contextuales y adaptativas, MALLO integra:
 
-        - **Múltiples Modelos de IA**: Desde modelos locales hasta APIs de última generación como OpenAI, Anthropic, Groq y más.
-        - **Asistentes Especializados**: Expertos en diversos campos como derecho, tecnología y ciencias.
-        - **Análisis Contextual**: Evalúa la complejidad de cada consulta para seleccionar la mejor estrategia de respuesta.
+        - **Múltiples Modelos de IA**: Desde modelos locales hasta APIs de última generación como OpenAI, Anthropic, Groq, DeepInfra, DeepSeek, Mistral, Cohere y más.
+        - **Asistentes Especializados**: Expertos en diversos campos como derecho, tecnología, ciencias, matemáticas y otros dominios específicos.
+        - **Análisis Contextual Avanzado**: Evalúa la complejidad y tipo de cada consulta para seleccionar la mejor estrategia de respuesta y los agentes más adecuados.
+        - **Prompts Especializados**: Aplica prompts adaptados al tipo de consulta (matemática, legal, científica, etc.) para mejorar la precisión de las respuestas.
         - **Búsqueda Web Inteligente**: Enriquece las respuestas con información actualizada cuando es necesario.
-        - **Meta-análisis Avanzado**: Sintetiza respuestas de múltiples fuentes para una mayor precisión.
-        - **Adaptabilidad Dinámica**: Ajusta su enfoque basándose en el rendimiento y la retroalimentación.
+        - **Meta-análisis Avanzado**: Sintetiza y evalúa respuestas de múltiples fuentes para una mayor precisión y coherencia.
+        - **Adaptabilidad Dinámica**: Ajusta su enfoque basándose en el rendimiento, la complejidad de la consulta y la retroalimentación.
+        - **Prevención de Redundancia**: Implementa estrategias para evitar la selección de agentes duplicados, asegurando diversidad en las respuestas.
+        - **Evaluación Continua**: Incorpora sistemas de evaluación inicial y final para garantizar la calidad y relevancia de las respuestas.
 
-        MALLO no solo responde preguntas, sino que orquesta una sinergia de conocimientos y capacidades para ofrecer 
-        la mejor solución posible a cada consulta, adaptándose continuamente para mejorar su precisión y relevancia.
+        MALLO no solo responde preguntas, sino que orquesta una sinergia de conocimientos y capacidades para ofrecer
+        la mejor solución posible a cada consulta. Se adapta continuamente para mejorar su precisión, relevancia y eficiencia,
+        optimizando el uso de recursos según la complejidad de cada tarea.
         """)
 
         st.sidebar.title("Estado del Sistema")

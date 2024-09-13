@@ -10,19 +10,20 @@
 5. [Instalación](#instalación)
 6. [Configuración](#configuración)
 7. [Uso](#uso)
-8. [Arquitectura del Sistema](#arquitectura-del-sistema)
-9. [Componentes Principales](#componentes-principales)
-10. [Flujo de Trabajo](#flujo-de-trabajo)
-11. [APIs y Servicios Integrados](#apis-y-servicios-integrados)
-12. [Manejo de Errores y Logging](#manejo-de-errores-y-logging)
-13. [Optimización y Caché](#optimización-y-caché)
-14. [Pruebas](#pruebas)
-15. [Contribución](#contribución)
-16. [Registro de Cambios](#registro-de-cambios)
-17. [ExperimentaLABs](#experimentalabs)
-18. [Roadmap](#roadmap)
-19. [Licencia](#licencia)
-20. [Contacto](#contacto)
+8. [TIPS y Trucos](#tips-y-trucos)
+9. [Arquitectura del Sistema](#arquitectura-del-sistema)
+10. [Componentes Principales](#componentes-principales)
+11. [Flujo de Trabajo](#flujo-de-trabajo)
+12. [APIs y Servicios Integrados](#apis-y-servicios-integrados)
+13. [Manejo de Errores y Logging](#manejo-de-errores-y-logging)
+14. [Optimización y Caché](#optimización-y-caché)
+15. [Pruebas](#pruebas)
+16. [Contribución](#contribución)
+17. [Registro de Cambios](#registro-de-cambios)
+18. [ExperimentaLABs](#experimentalabs)
+19. [Roadmap](#roadmap)
+20. [Licencia](#licencia)
+21. [Contacto](#contacto)
 
 ## Descripción
 
@@ -183,6 +184,58 @@ La interfaz de usuario te permitirá:
 2. Ver las respuestas generadas por el sistema.
 3. Explorar detalles sobre el procesamiento de cada consulta.
 4. Acceder a información sobre el estado del sistema y rendimiento de los agentes.
+
+## TIPS y Trucos
+
+### Palabras Clave para Prompts Especializados
+
+MALLO está diseñado para detectar automáticamente el tipo de consulta y aplicar prompts especializados. Sin embargo, puedes ayudar al sistema a seleccionar el prompt más adecuado incluyendo ciertas palabras clave en tu consulta. Aquí te presentamos algunas sugerencias:
+
+1. **Matemáticas**: 
+   Palabras clave: "cálculo", "ecuación", "álgebra", "geometría", "estadística", "probabilidad"
+
+2. **Programación**: 
+   Palabras clave: "código", "algoritmo", "función", "debug", "software", "desarrollo"
+
+3. **Legal**: 
+   Palabras clave: "ley", "legislación", "jurídico", "contrato", "demanda", "jurisprudencia"
+
+4. **Científico**: 
+   Palabras clave: "experimento", "hipótesis", "teoría", "investigación", "método científico"
+
+5. **Histórico**: 
+   Palabras clave: "época", "siglo", "período", "civilización", "evento histórico"
+
+6. **Filosófico**: 
+   Palabras clave: "ética", "metafísica", "epistemología", "lógica", "existencialismo"
+
+7. **Contexto Colombiano**: 
+   Palabras clave: "Colombia", "Bogotá", "Medellín", "Andes", "Caribe", "cultura colombiana"
+
+8. **Cultural**: 
+   Palabras clave: "arte", "literatura", "música", "tradición", "costumbres"
+
+9. **Político**: 
+   Palabras clave: "gobierno", "elecciones", "política pública", "partidos políticos", "constitución"
+
+10. **Económico**: 
+    Palabras clave: "mercado", "inflación", "PIB", "finanzas", "economía"
+
+Incluir estas palabras clave en tu consulta puede ayudar a MALLO a aplicar el prompt especializado más adecuado, lo que potencialmente mejorará la precisión y relevancia de las respuestas.
+
+### Mejores Prácticas
+
+1. **Sé Específico**: Cuanto más específica sea tu consulta, mejor podrá MALLO seleccionar los agentes y prompts adecuados.
+
+2. **Contexto**: Proporciona contexto adicional cuando sea necesario. Por ejemplo, si estás haciendo una pregunta sobre historia colombiana, menciona explícitamente "en el contexto de la historia de Colombia".
+
+3. **Usa Terminología Relevante**: Incluir términos técnicos o específicos del campo puede ayudar a MALLO a identificar mejor el dominio de conocimiento.
+
+4. **Solicita Análisis**: Si necesitas un análisis más profundo, puedes incluir frases como "analiza en profundidad" o "proporciona un análisis detallado".
+
+5. **Pide Múltiples Perspectivas**: Si deseas que MALLO utilice múltiples agentes, puedes solicitar explícitamente "diferentes perspectivas" o "análisis desde varios ángulos".
+
+Recuerda que MALLO está diseñado para ser intuitivo y adaptativo, pero proporcionar estas pistas adicionales puede ayudar a obtener respuestas más precisas y relevantes.
 
 ## Arquitectura del Sistema
 
