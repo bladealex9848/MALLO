@@ -43,7 +43,7 @@ class AgentSelector:
         self.fallback_type = config['agent_selection']['fallback_type']
         self.threshold = config['agent_selection']['threshold']
         self.cohere_client = cohere.Client(api_key=get_secret("COHERE_API_KEY"))
-
+        
     # Seleccionar el agente más adecuado para una consulta
     def select_agent(self, query: str) -> Tuple[str, float]:
         query_embedding = self.get_embedding(query)
@@ -110,18 +110,13 @@ class AgentManager:
         self.default_agent = ('openrouter', config['deepinfra']['default_model'])
         self.backup_default_agent = ('deepinfra', config['openrouter']['default_model'])
         self.meta_analysis_model = config['evaluation_models']['meta_analysis']['model']
-        self.meta_analysis_api = config['evaluation_models']['meta_analysis']['api']
+        self.meta_analysis_api = config['evaluation_models']['meta_analysis']['api']        
 
         # Añadir estas líneas
         self.critical_analysis_config = config.get('critical_analysis', {})
         self.critical_analysis_probability = self.critical_analysis_config.get('probability', 0.2)
         self.critical_analysis_prompts = self.critical_analysis_config.get('prompts', {})
-                
-        # Habilitar el uso de modelos de respaldo - Experimental
-        # self.student_model = None
-        # self.performance_history = []
-        # self.criteria = {}
-
+                        
         # Inicializar los clientes de API                
         self.clients = {
             'openai': self.init_openai_client(),
@@ -850,13 +845,33 @@ def evaluate_query_complexity(query: str) -> float:
 def get_general_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
     general_agents = []
     for agent_type in self.processing_priority:
-        if agent_type != 'specialized_assistants':
+        if agent_type != 'specialized_assistants' and agent_type != 'moa':
             models = self.get_available_models(agent_type)
             for model in models:
                 if self.is_suitable(agent_type, model, complexity):
                     general_agents.append((agent_type, model, f"{agent_type.capitalize()} Model"))
     
-    # Ordenar los agentes generales por algún criterio de relevancia
+    # Ordenar los agentes generales por relevancia
     general_agents.sort(key=lambda x: self.calculate_relevance(x, query, prompt_type), reverse=True)
     
     return general_agents
+
+def calculate_relevance(self, agent: Tuple[str, str, str], query: str, prompt_type: str) -> float:
+    # Esta es una función de ejemplo. Deberías adaptarla según tus necesidades específicas.
+    agent_type, model, _ = agent
+    relevance = 0.0
+    
+    # Dar mayor relevancia a ciertos tipos de agentes según el prompt_type
+    if prompt_type == 'math' and agent_type in ['openai', 'anthropic']:
+        relevance += 0.5
+    elif prompt_type == 'coding' and agent_type in ['openai', 'anthropic', 'cohere']:
+        relevance += 0.5
+    
+    # Considerar la complejidad del modelo (esto es un ejemplo, ajusta según tus modelos)
+    if 'large' in model.lower() or 'advanced' in model.lower():
+        relevance += 0.3
+    
+    # Añadir un poco de aleatoriedad para diversidad
+    relevance += random.random() * 0.2
+    
+    return relevance
