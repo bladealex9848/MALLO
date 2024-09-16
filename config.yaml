@@ -38,29 +38,6 @@ openai:
       prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "multimodal"]
   master_model: "gpt-4o-mini"
 
-# Configuración de Together
-together:
-  default_model: "Qwen/Qwen2-72B-Instruct"
-  models:
-    - name: "Qwen/Qwen2-72B-Instruct"
-      specialty: "general"
-      capabilities: ["instruction_following", "large_scale", "chinese_language_proficiency"] 
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "google/gemma-2-27b-it"
-      specialty: "general"
-      capabilities: ["instruction_tuned", "medium_scale", "italian_language_proficiency"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
-      specialty: "general"
-      capabilities: ["fast_inference", "instruction_optimized"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "deepseek-ai/deepseek-llm-67b-chat"
-      specialty: "general"
-      capabilities: ["conversational", "large_scale"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-  max_tokens: 512
-  temperature: 0.7
-
 # Configuración de Groq
 groq:
   fast_model: "llama-3.1-8b-instant"
@@ -69,7 +46,7 @@ groq:
     - name: "llama-3.1-70b-versatile"
       specialty: "general"
       capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+      prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
     - name: "whisper-large-v3"
       specialty: "audio_transcription"
       capabilities: ["speech_to_text", "multi_language"]
@@ -163,6 +140,29 @@ deepinfra:
       capabilities: ["critical_thinking", "self_reflection"]
       prompt_types: ["analytical", "philosophical", "ethical"]
 
+# Configuración de Together
+together:
+  default_model: "Qwen/Qwen2-72B-Instruct"
+  models:
+    - name: "Qwen/Qwen2-72B-Instruct"
+      specialty: "general"
+      capabilities: ["instruction_following", "large_scale", "chinese_language_proficiency"] 
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "google/gemma-2-27b-it"
+      specialty: "general"
+      capabilities: ["instruction_tuned", "medium_scale", "italian_language_proficiency"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+      specialty: "general"
+      capabilities: ["fast_inference", "instruction_optimized"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "deepseek-ai/deepseek-llm-67b-chat"
+      specialty: "general"
+      capabilities: ["conversational", "large_scale"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+  max_tokens: 512
+  temperature: 0.7
+
 # Configuración de Anthropic
 anthropic:
   fast_models: "claude-3-haiku-20240307"
@@ -191,41 +191,13 @@ deepseek:
       capabilities: ["code_generation", "technical_analysis"]
       prompt_types: ["coding"]
 
-# Configuración de Mistral
-mistral:
-  fast_models: "open-mistral-nemo"
-  default_model: "open-mistral-nemo"
-  models:
-    - name: "open-mistral-nemo"
-      specialty: "general"
-      capabilities: ["fast_inference", "instruction_following"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "mistral-large-latest"
-      specialty: "general"
-      capabilities: ["advanced_reasoning", "large_scale"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    - name: "codestral-latest"
-      specialty: "coding"
-      capabilities: ["code_generation", "code_analysis"]
-      prompt_types: ["coding"]
-
-# Configuración de Cohere
-cohere:
-  fast_models: "command-r-plus"
-  default_model: "command-r-plus"
-  models:
-    - name: "command-r-plus"
-      specialty: "general"
-      capabilities: ["instruction_following", "diverse_tasks"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
 # Configuración de OpenRouter
 openrouter:
   fast_models: "mattshumer/reflection-70b:free"
   default_model: "nousresearch/hermes-3-llama-3.1-405b"
   models:
     - name: "nousresearch/hermes-3-llama-3.1-405b"
-      specialty: "general"
+      specialty: "legal"
       capabilities: [
         "large_scale",
         "advanced_reasoning",
@@ -240,7 +212,7 @@ openrouter:
         "generalist_assistant",
         "code_generation"
       ]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "creative", "analytical", "tool_use"]
+      prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "creative", "analytical", "tool_use"]
     - name: "mattshumer/reflection-70b:free"
       specialty: "analytical"
       capabilities: ["critical_thinking", "self_reflection"]
@@ -282,6 +254,34 @@ openrouter:
       capabilities: ["long_context", "instruction_optimized"]
       prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
   temperature: 0.7
+
+  # Configuración de Mistral
+mistral:
+  fast_models: "open-mistral-nemo"
+  default_model: "open-mistral-nemo"
+  models:
+    - name: "open-mistral-nemo"
+      specialty: "general"
+      capabilities: ["fast_inference", "instruction_following"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "mistral-large-latest"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "large_scale"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+    - name: "codestral-latest"
+      specialty: "coding"
+      capabilities: ["code_generation", "code_analysis"]
+      prompt_types: ["coding"]
+
+# Configuración de Cohere
+cohere:
+  fast_models: "command-r-plus"
+  default_model: "command-r-plus"
+  models:
+    - name: "command-r-plus"
+      specialty: "general"
+      capabilities: ["instruction_following", "diverse_tasks"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
 # Configuración de prompts de análisis crítico
 critical_analysis:
