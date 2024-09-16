@@ -15,11 +15,59 @@ from groq import Groq
 from anthropic import Anthropic
 import cohere
 from collections import Counter
+import yaml
 
 from load_secrets import load_secrets, get_secret, secrets
 
 # Carga todos los secretos al inicio de la aplicación
 load_secrets()
+
+# Cargar la configuración desde config.yaml
+def load_config() -> Dict[str, Any]:
+    try:
+        with open('config.yaml', 'r') as file:
+            return yaml.safe_load(file)
+    except FileNotFoundError:
+        logging.error("No se pudo encontrar el archivo config.yaml")
+        return {}
+    except yaml.YAMLError as e:
+        logging.error(f"Error al leer el archivo config.yaml: {e}")
+        return {}
+
+# Cargar la configuración
+config = load_config()
+
+# Extraer los tipos de prompt de la configuración
+critical_analysis_config = config.get('critical_analysis', {})
+prompt_types = critical_analysis_config.get('prompts', {})
+
+# Si prompt_types está vacío, usa un diccionario predeterminado
+if not prompt_types:
+    prompt_types = {
+        'default': 'Análisis general',
+        'math': 'Análisis matemático',
+        'coding': 'Análisis de código',
+        'legal': 'Análisis legal',
+        'scientific': 'Análisis científico',
+        'historical': 'Análisis histórico',
+        'philosophical': 'Análisis filosófico',
+        'ethical': 'Análisis ético',
+        'colombian_context': 'Análisis del contexto colombiano',
+        'cultural': 'Análisis cultural',
+        'political': 'Análisis político',
+        'economic': 'Análisis económico',
+        'general': 'Análisis general',
+        'audio_transcription': 'Análisis de transcripción de audio',
+        'multimodal': 'Análisis multimodal',
+        'tool_use': 'Análisis de uso de herramientas',
+        'content_moderation': 'Análisis de moderación de contenido',
+        'creative': 'Análisis creativo',
+        'analytical': 'Análisis analítico'
+    }
+
+# Extraer otras configuraciones relevantes
+general_config = config.get('general', {})
+thresholds = config.get('thresholds', {})
 
 try:
     from mistralai import Mistral
@@ -206,8 +254,8 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
     
     named_entities = len(doc.ents)
     
-    # Búsqueda de términos técnicos
-    tech_terms = len(re.findall(r'\b(?:API|función|código|programa|algoritmo|base de datos|red|servidor|nube|aprendizaje automático|IA)\b', full_text, re.IGNORECASE))
+    # Búsqueda de términos técnicos (ampliada para incluir términos en español e inglés)
+    tech_terms = len(re.findall(r'\b(?:API|función|function|código|code|programa|program|algoritmo|algorithm|base de datos|database|red|network|servidor|server|nube|cloud|aprendizaje automático|machine learning|IA|AI)\b', full_text, re.IGNORECASE))
     
     # Cálculo de características
     features = [
@@ -219,16 +267,16 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
         min(tech_terms / 5, 1)
     ]
     
-    # Cálculo de complejidad
+    # Cálculo de complejidad inicial
     complexity = sum(features) / len(features)
     
     # Determinar si se necesita búsqueda web
-    needs_web_search = any(term in full_text.lower() for term in ["actualidad", "reciente", "último", "nueva", "actual"])
+    needs_web_search = any(term in full_text.lower() for term in ["actualidad", "reciente", "último", "nueva", "actual", "recent", "latest", "new", "current"])
     
     # Determinar si se necesita MOA (Mixture of Agents)
     needs_moa = complexity > 0.7 or word_count > 200 or "MOA: SI" in full_text
     
-    # Determinar el tipo de prompt
+    # Determinar el tipo de prompt y las capacidades requeridas
     prompt_type = determine_prompt_type(full_text)
     
     # Ajustar la complejidad basada en el tipo de prompt
@@ -237,7 +285,15 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
         'scientific': 0.15,
         'philosophical': 0.2,
         'economic': 0.1,
-        'political': 0.1
+        'political': 0.1,
+        'math': 0.2,
+        'coding': 0.2,
+        'creative': 0.1,
+        'analytical': 0.15,
+        'multimodal': 0.1,
+        'audio_transcription': 0.05,
+        'tool_use': 0.15,
+        'content_moderation': 0.05
     }
     complexity += prompt_type_complexity_modifiers.get(prompt_type, 0)
     
@@ -245,6 +301,47 @@ def evaluate_query_complexity(query: str, context: str) -> Tuple[float, bool, bo
     complexity = min(max(complexity, 0), 1)
     
     return complexity, needs_web_search, needs_moa, prompt_type
+
+def _determine_prompt_type(text: str) -> str:
+    text = text.lower()
+    for p_type, prompt_info in prompt_types.items():
+        # Asegúrate de que prompt_info sea un diccionario y tenga una clave 'keywords'
+        if isinstance(prompt_info, dict) and 'keywords' in prompt_info:
+            keywords = prompt_info['keywords']
+            if isinstance(keywords, list):
+                if any(keyword.lower() in text for keyword in keywords):
+                    return p_type
+            elif isinstance(keywords, str):
+                if keywords.lower() in text:
+                    return p_type
+    return 'default'
+
+def determine_prompt_type_and_capabilities(text: str) -> Tuple[str, List[str]]:
+    text = text.lower()
+    prompt_type = 'general'
+    capabilities = []
+    
+    # Usar los tipos de prompt definidos en config.yaml o los predeterminados
+    for p_type, prompt in prompt_types.items():
+        if any(keyword.lower() in text for keyword in prompt.lower().split()):
+            prompt_type = p_type
+            break
+    
+    # Determinar capacidades requeridas basadas en el contenido
+    if re.search(r'\b(código|programación|function|algorithm)\b', text):
+        capabilities.append("code_generation")
+    if re.search(r'\b(matemáticas|cálculo|ecuación|algebra)\b', text):
+        capabilities.append("advanced_reasoning")
+    if re.search(r'\b(imagen|visual|gráfico)\b', text):
+        capabilities.append("vision_language")
+    if re.search(r'\b(audio|voz|sonido)\b', text):
+        capabilities.append("speech_to_text")
+    if len(text.split()) > 500:
+        capabilities.append("long_context")
+    if re.search(r'\b(análisis|evalúa|compara)\b', text):
+        capabilities.append("critical_thinking")
+    
+    return prompt_type, capabilities
 
 # Función para determinar el tipo de prompt
 def determine_prompt_type(text: str) -> str:
@@ -301,22 +398,58 @@ def determine_prompt_type(text: str) -> str:
                      "pib", "comercio", "industria", "producción", "produccion", "consumo", "ahorro", "inversión",
                      "inversion", "oferta", "demanda", "precio", "competencia", "monopolio", "oligopolio",
                      "globalización", "globalizacion", "desempleo", "desempleo", "pobreza", "riqueza", "desigualdad",
-                     "crecimiento económico", "crecimiento economico", "desarrollo sostenible", "desarrollo sostenible"]
+                     "crecimiento económico", "crecimiento economico", "desarrollo sostenible", "desarrollo sostenible"],
+
+        'general': ["general", "básico", "basico", "común", "comun", "ordinario", "típico", "tipico", 
+                    "estándar", "estandar", "normal", "regular", "convencional", "usual", "habitual", 
+                    "frecuente", "cotidiano", "diario", "rutinario"],
+        
+        'audio_transcription': ["transcripción", "transcripcion", "audio", "voz", "sonido", "grabación", 
+                                "grabacion", "speech to text", "reconocimiento de voz", "reconocimiento del habla", 
+                                "subtítulos", "subtitulos", "conversión de audio a texto", "conversion de audio a texto"],
+        
+        'multimodal': ["multimodal", "texto e imagen", "imagen y texto", "visual y textual", "multimedia", 
+                       "contenido mixto", "análisis de imagen", "analisis de imagen", "descripción de imagen", 
+                       "descripcion de imagen", "interpretación visual", "interpretacion visual"],
+        
+        'tool_use': ["uso de herramientas", "herramientas", "APIs", "integración", "integracion", "funciones externas", 
+                     "llamadas a API", "automatización", "automatizacion", "scripts", "plugins", "extensiones", 
+                     "interacción con sistemas", "interaccion con sistemas"],
+        
+        'content_moderation': ["moderación", "moderacion", "filtrado de contenido", "seguridad de contenido", 
+                               "detección de spam", "deteccion de spam", "control de calidad", "revisión de contenido", 
+                               "revision de contenido", "políticas de contenido", "politicas de contenido", 
+                               "contenido inapropiado", "contenido ofensivo"],
+        
+        'creative': ["creativo", "imaginativo", "innovador", "original", "artístico", "artistico", "inventivo", 
+                     "inspirador", "novedoso", "único", "unico", "fuera de lo común", "fuera de lo comun", 
+                     "pensamiento lateral", "lluvia de ideas", "brainstorming", "diseño creativo", "diseño creativo"],
+        
+        'analytical': ["analítico", "analitico", "análisis", "analisis", "evaluación", "evaluacion", "crítico", 
+                       "critico", "examen detallado", "investigación", "investigacion", "estudio", "revisión", 
+                       "revision", "interpretación", "interpretacion", "diagnóstico", "diagnostico", 
+                       "resolución de problemas", "resolucion de problemas"]
     }
 
     # Contador para las coincidencias de cada tipo
     type_counts = Counter()
-
-    # Buscar coincidencias para cada tipo de prompt
-    for prompt_type, keywords in prompt_types.items():
-        type_counts[prompt_type] = sum(1 for keyword in keywords if re.search(rf"\b{re.escape(keyword)}\b", text))
-
-    # Si hay coincidencias, devolver el tipo con más coincidencias
-    if type_counts:
-        return max(type_counts, key=type_counts.get)
     
-    # Si no hay coincidencias, devolver 'default'
-    return 'default'
+    # Recorremos cada tipo de prompt y sus palabras clave asociadas
+    for prompt_type, keywords in prompt_types.items():
+        # Contamos las coincidencias de cada palabra clave en el texto
+        keyword_matches = sum(1 for keyword in keywords if re.search(r'\b' + re.escape(keyword) + r'\b', text))
+        # Almacenamos el número de coincidencias para este tipo de prompt
+        type_counts[prompt_type] = keyword_matches
+    
+    # Determinamos el tipo de prompt con más coincidencias
+    most_common_type = type_counts.most_common(1)
+    
+    # Si hay al menos una coincidencia, devolvemos el tipo de prompt más común
+    if most_common_type:
+        return most_common_type[0][0]
+    else:
+        # Si no hay coincidencias, devolvemos un tipo de prompt por defecto
+        return 'general'
 
 def select_best_agent(query: str, agents: List[Dict[str, Any]]) -> str:
     complexity, _, _ = evaluate_query_complexity(query, "")
@@ -354,7 +487,7 @@ def cache_response(query: str, response: Tuple[str, Dict[str, Any]]):
         'timestamp': datetime.now()
     }
 
-def get_cached_response(query: str) -> Tuple[str, Dict[str, Any]] or None:
+def get_cached_response(query: str) -> Tuple[str, Dict[str, Any]]:
     key = hashlib.md5(query.encode()).hexdigest()
     if key in cache:
         cached_item = cache[key]

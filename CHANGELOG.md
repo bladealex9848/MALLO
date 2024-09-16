@@ -4,6 +4,70 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.8.0] - 2024-09-16
+### Cambiado
+- Refactorización completa de la función `get_prioritized_agents` para mejorar la selección de agentes basada en especialidades y tipos de prompt.
+- Actualización de la lógica de selección de agentes para priorizar modelos especializados según el tipo de prompt.
+- Modificación de la función `get_general_agents` para tener en cuenta las capacidades y tipos de prompts de los modelos generales.
+
+### Mejorado
+- Implementación de una función auxiliar `find_specialized_models` para buscar eficientemente modelos con especialidades específicas en la configuración.
+- Optimización del uso de la información contenida en `config.yaml` para una selección de agentes más precisa y adaptable.
+- Mayor flexibilidad en la selección de agentes, considerando tanto agentes especializados como modelos con capacidades específicas.
+
+### Corregido
+- Resolución del problema de duplicación de agentes especializados en la lista de agentes seleccionados.
+- Corrección de errores relacionados con el manejo de tipos de datos en la selección de agentes.
+
+### Optimizado
+- Mejora en la eficiencia de la selección de agentes, reduciendo la redundancia y priorizando modelos relevantes.
+- Refinamiento del proceso de selección para asegurar una distribución equilibrada entre agentes especializados y generales.
+
+### Documentación
+- Actualización de los comentarios en el código para reflejar los cambios en la lógica de selección de agentes.
+- Adición de explicaciones detalladas sobre el nuevo proceso de priorización de agentes en la documentación interna.
+
+### Seguridad
+- Mejora en el manejo de excepciones para prevenir exposición de información sensible durante el proceso de selección de agentes.
+
+### Experimental
+- Introducción de un sistema de puntuación para evaluar la relevancia de los agentes seleccionados basado en el histórico de rendimiento (pendiente de implementación completa).
+
+## [1.7.0] - 2024-09-15
+### Añadido
+- Implementación de un sistema de selección de prompts críticos basado en el tipo de consulta.
+- Nuevos tipos de prompt crítico: audio_transcription, multimodal, tool_use, content_moderation, creative, y analytical.
+- Función `determine_prompt_type_and_capabilities` para identificar el tipo de prompt y las capacidades requeridas.
+- Integración de capacidades específicas para cada modelo en la configuración.
+- Sistema de fallback para la selección de agentes y prompts.
+
+### Cambiado
+- Refactorización de la función `evaluate_query_complexity` para incluir la determinación del tipo de prompt.
+- Actualización de la estructura de configuración en `config.yaml` para soportar nuevos campos de especialidad y capacidades por modelo.
+- Mejora en la lógica de selección de agentes en `get_prioritized_agents` para considerar especialidades y capacidades.
+- Optimización de la función `process_user_input` para manejar múltiples agentes y realizar meta-análisis cuando es necesario.
+
+### Mejorado
+- Mayor robustez en el manejo de errores y situaciones inesperadas en la carga de configuración.
+- Implementación de un sistema de caché más eficiente para respuestas frecuentes.
+- Mejora en la evaluación de la complejidad de las consultas, incluyendo factores lingüísticos y contextuales.
+
+### Corregido
+- Solucionado el problema de "too many values to unpack" en la función `evaluate_query_complexity`.
+- Corregido el error "'str' object cannot be interpreted as an integer" en la función `determine_prompt_type`.
+- Ajustes en la carga de configuración para manejar correctamente la estructura anidada de `prompt_types`.
+
+### Optimizado
+- Rendimiento mejorado en la selección de agentes y procesamiento de consultas.
+- Reducción del uso de recursos en consultas repetitivas mediante un sistema de caché mejorado.
+
+### Documentación
+- Actualización de la documentación interna para reflejar los nuevos cambios y funcionalidades.
+- Mejora en los comentarios del código para mayor claridad y mantenibilidad.
+
+### Experimental
+- Introducción de características experimentales para la reflexión iterativa y mejora continua de respuestas.
+
 ## [1.6.0] - 2024-09-12
 ### Añadido
 - Implementación de un sistema de detección de tipo de consulta (`determine_prompt_type`) para categorizar las preguntas en diferentes áreas (matemáticas, programación, legal, científico, etc.).

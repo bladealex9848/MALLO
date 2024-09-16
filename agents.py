@@ -131,14 +131,14 @@ class AgentManager:
 
     def get_general_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         general_agents = []
-        for agent_type in self.processing_priority:
-            if agent_type != 'specialized_assistants' and agent_type != 'moa':
-                models = self.get_available_models(agent_type)
-                for model in models:
-                    if self.is_suitable(agent_type, model, complexity):
-                        general_agents.append((agent_type, model, f"{agent_type.capitalize()} Model"))
+        for api, config in self.config.items():
+            if isinstance(config, dict) and 'models' in config:
+                for model in config['models']:
+                    if isinstance(model, dict) and 'specialty' in model and 'prompt_types' in model:
+                        if model['specialty'] == 'general' or prompt_type in model['prompt_types']:
+                            general_agents.append((api, model['name'], f"{api.capitalize()} {model['name']}"))
         
-        # Ordenar los agentes generales por relevancia
+        # Ordenar los agentes generales por relevancia (puedes implementar tu propia lógica de ordenación aquí)
         general_agents.sort(key=lambda x: self.calculate_relevance(x, query, prompt_type), reverse=True)
         
         return general_agents
@@ -214,22 +214,26 @@ class AgentManager:
         
         return recommended_agent, confidence
 
-    # Clase de gestión de agentes especializados donde se selecciona el agente más adecuado para una consulta
-    def select_specialized_agent(self, query: str) -> Optional[Dict]:
+    # Clase de gestión de agentes especializados donde se selecciona el agente más adecuado para una consulta    
+    def select_specialized_agent(self, query: str) -> Optional[Dict[str, str]]:
         best_score = 0
         best_agent = None
+        query_lower = query.lower()
+        
         for agent in self.specialized_assistants:
-            score = sum(keyword.lower() in query.lower() for keyword in agent['keywords'])
+            score = sum(1 for keyword in agent['keywords'] 
+                        if re.search(r'\b' + re.escape(keyword.lower()) + r'\b', query_lower))
             if score > best_score:
                 best_score = score
                 best_agent = agent
         
-        if best_score > 0:
+        if best_agent:
             return {
                 'type': 'specialized',
                 'id': best_agent['id'],
                 'name': best_agent['name']
             }
+        
         return None
 
     # Procesar la consulta con el agente seleccionado
@@ -260,20 +264,7 @@ class AgentManager:
             for agent_type in ['api', 'groq', 'together', 'local', 'openrouter', 'deepinfra', 'anthropic', 'deepseek', 'mistral', 'cohere']:
                 all_agents.extend(self.get_available_models(agent_type))
             return all_agents
-
-    # Habilitar el uso de modelos de respaldo - Experimental
-    # Descomentar las siguientes funciones para habilitar el uso de modelos de respaldo
-    """
-    def set_student_model(self, model):
-        self.student_model = model
-
-    def update_performance_history(self, performance):
-        self.performance_history.append(performance)
-
-    def update_criteria(self, new_criteria):
-        self.criteria.update(new_criteria)
-    """
-
+    
     # Valida el tipo de prompt crítico a utilizar
     def validate_prompt_type(self, query: str, initial_type: str) -> str:
         config = self.config['prompt_selection']
@@ -321,44 +312,85 @@ class AgentManager:
     # Determinar el tipo de prompt crítico a utilizar
     def get_prioritized_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         prioritized_agents = []
-        used_models = set()
         used_agent_types = set()
-        
-        # Primero, intentar seleccionar un agente especializado
-        specialized_agent = self.select_specialized_agent(query)
-        if specialized_agent and specialized_agent['id'] not in used_models:
-            prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
-            used_models.add(specialized_agent['id'])
-            used_agent_types.add('specialized')  # Marcar 'specialized' como usado
-        
-        # Luego, seleccionar agentes generales
+        used_models = set()
+
+        # Función auxiliar para encontrar modelos especializados
+        def find_specialized_models(prompt_type):
+            specialized_models = []
+            for api, config in self.config.items():
+                if isinstance(config, dict) and 'models' in config:
+                    for model in config['models']:
+                        if isinstance(model, dict) and 'specialty' in model and 'prompt_types' in model:
+                            if model['specialty'] == prompt_type or prompt_type in model['prompt_types']:
+                                specialized_models.append((api, model['name'], f"{api.capitalize()} {model['name']}"))
+            return specialized_models
+
+        # Primero, intentar seleccionar un modelo especializado para el prompt_type
+        specialized_models = find_specialized_models(prompt_type)
+        for agent_type, model, name in specialized_models:
+            if agent_type not in used_agent_types and model not in used_models:
+                prioritized_agents.append((agent_type, model, name))
+                used_agent_types.add(agent_type)
+                used_models.add(model)
+                break
+
+        # Si no se encontró un modelo especializado, intentar seleccionar un agente especializado
+        if not prioritized_agents:
+            specialized_agent = self.select_specialized_agent(query)
+            if specialized_agent:
+                prioritized_agents.append((
+                    'specialized',
+                    specialized_agent['id'],
+                    specialized_agent['name']
+                ))
+                used_agent_types.add('specialized')
+
+        # Añadir agentes generales hasta tener un total de 3 agentes
         general_agents = self.get_general_agents(query, complexity, prompt_type)
-        
-        for agent_type, agent_id, agent_name in general_agents:
+        for agent in general_agents:
             if len(prioritized_agents) >= 3:
                 break
-            if agent_id not in used_models and agent_type not in used_agent_types:
-                prioritized_agents.append((agent_type, agent_id, agent_name))
-                used_models.add(agent_id)
+            agent_type, model, name = agent
+            if agent_type not in used_agent_types and model not in used_models:
+                prioritized_agents.append(agent)
                 used_agent_types.add(agent_type)
-        
-        # Si aún no tenemos 3 agentes, añadir agentes adicionales de diferentes tipos
-        while len(prioritized_agents) < 3:
-            for agent_type in self.processing_priority:
-                if len(prioritized_agents) >= 3:
-                    break
-                if agent_type not in used_agent_types and agent_type != 'specialized_assistants':
-                    available_models = self.get_available_models(agent_type)
-                    for model in available_models:
-                        if model not in used_models:
-                            prioritized_agents.append((agent_type, model, f"{agent_type.capitalize()} Model"))
-                            used_models.add(model)
-                            used_agent_types.add(agent_type)
-                            break
-            if len(prioritized_agents) == len(used_agent_types):  # Si no se pueden añadir más agentes únicos
+                used_models.add(model)
+
+        # Si aún no tenemos 3 agentes, añadir agentes por defecto
+        default_agents = [
+            ('groq', self.config['groq']['default_model'], 'Groq Default'),
+            ('openrouter', self.config['openrouter']['default_model'], 'OpenRouter Default'),
+            ('deepinfra', self.config['deepinfra']['default_model'], 'DeepInfra Default')
+        ]
+        for agent_type, model, name in default_agents:
+            if len(prioritized_agents) >= 3:
                 break
+            if agent_type not in used_agent_types and model not in used_models:
+                prioritized_agents.append((agent_type, model, name))
+                used_agent_types.add(agent_type)
+                used_models.add(model)
+
+        return prioritized_agents[:3]
+
+    def is_suitable_for_prompt_type(self, agent_type: str, model_id: str, prompt_type: str) -> bool:
+        # Implementa la lógica para determinar si un agente/modelo es adecuado para un tipo de prompt específico
+        # Por ahora, simplemente retornamos True
+        return True
+
+    def find_suitable_assistant(self, query: str) -> Optional[str]:
+        best_score = 0
+        best_assistant_id = None
+        query_lower = query.lower()
         
-        return prioritized_agents[:3]  # Aseguramos que no se devuelvan más de 3 agentes
+        for assistant in self.specialized_assistants:
+            score = sum(1 for keyword in assistant['keywords'] 
+                        if keyword.lower() in query_lower)
+            if score > best_score:
+                best_score = score
+                best_assistant_id = assistant['id']
+        
+        return best_assistant_id
 
     # Procesar la consulta con el agente seleccionado y el tipo de prompt crítico
     def process_query_with_fallback(self, query: str, prioritized_agents: List[Tuple[str, str]]) -> Tuple[str, Dict[str, Any]]:
@@ -544,8 +576,9 @@ class AgentManager:
 
         try:
             # Aplicar el prompt especializado si se proporciona
-            if prompt_type and random.random() < self.critical_analysis_probability:
-                query = self.apply_specialized_prompt(query, prompt_type)
+            if prompt_type and prompt_type in self.critical_analysis_prompts:
+                specialized_prompt = self.critical_analysis_prompts[prompt_type]
+                query = f"{specialized_prompt}\n\n{query}"
 
             # Procesar la consulta con el agente seleccionado
             if agent_type == 'assistant':
@@ -601,13 +634,7 @@ class AgentManager:
         return f"{prompt}\n\n{query}"
 
     def should_use_moa(self, query: str, complexity: float) -> bool:
-        return complexity > self.moa_threshold
-
-    def find_suitable_assistant(self, query: str) -> Optional[str]:
-        for assistant in self.specialized_assistants:
-            if any(keyword.lower() in query.lower() for keyword in assistant['keywords']):
-                return assistant['id']
-        return None
+        return complexity > self.moa_threshold    
 
     def get_fallback_agent(self) -> Tuple[str, str]:
         if self.clients.get('openrouter'):

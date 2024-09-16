@@ -17,6 +17,7 @@ import asyncio
 import polars as pl
 import random
 import logging
+import traceback
 from typing import Tuple, Dict, Any
 
 from load_secrets import load_secrets, get_secret, secrets
@@ -104,33 +105,27 @@ def process_user_input(user_input, config, agent_manager):
             else:
                 web_context = ""
             
-            # Obtener el asistente especializado más relevante
             specialized_agent = agent_manager.select_specialized_agent(enriched_query)
-            
-            # Inicializar la lista de agentes priorizados
+            general_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
+
             prioritized_agents = []
-            
-            # Si se encontró un asistente especializado, agregarlo primero
             if specialized_agent:
                 prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
-            
-            # Obtener agentes generales con prompts especializados
-            general_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
-            
-            # Agregar agentes generales hasta tener 3 en total
+
+            # Añadir agentes generales hasta tener un máximo de 3 agentes en total
             for agent in general_agents:
-                if len(prioritized_agents) < 3:
-                    prioritized_agents.append(agent)
-                else:
+                if len(prioritized_agents) >= 3:
                     break
+                if agent not in prioritized_agents:  # Evitar duplicados
+                    prioritized_agents.append(agent)
+
+            # Asegurarse de que no hay más de 3 agentes
+            prioritized_agents = prioritized_agents[:3]
             
-            prioritized_agents = agent_manager.get_prioritized_agents(enriched_query, complexity, prompt_type)
-        
             agent_results = []
             for agent_type, agent_id, agent_name in prioritized_agents:
                 details_placeholder.write(f"Procesando con {agent_name}...")
                 try:
-                    # Aplicar el prompt especializado a todos los agentes
                     enriched_query_with_prompt = agent_manager.apply_specialized_prompt(enriched_query, prompt_type)
                     result = agent_manager.process_query(enriched_query_with_prompt, agent_type, agent_id, prompt_type)
                     agent_results.append({
@@ -150,13 +145,18 @@ def process_user_input(user_input, config, agent_manager):
                         "response": str(e)
                     })
 
-            if not agent_results or all(r["status"] == "error" for r in agent_results):
-                raise ValueError("No se pudo obtener una respuesta válida de ningún agente")
-
             successful_responses = [r for r in agent_results if r["status"] == "success"]
             
+            if not successful_responses:
+                raise ValueError("No se pudo obtener una respuesta válida de ningún agente")
+
             if needs_moa and len(successful_responses) > 1:
-                meta_analysis_result = agent_manager.meta_analysis(user_input, [r["response"] for r in successful_responses], initial_evaluation, "")
+                meta_analysis_result = agent_manager.meta_analysis(
+                    user_input, 
+                    [r["response"] for r in successful_responses], 
+                    initial_evaluation, 
+                    ""
+                )
                 final_response = agent_manager.process_query(
                     f"Basándote en este meta-análisis, proporciona una respuesta conversacional y directa a la pregunta '{user_input}'. La respuesta debe ser natural, como si estuvieras charlando con un amigo, sin usar frases como 'Basándome en el análisis' o 'La respuesta es'. Simplemente responde de manera clara y concisa: {meta_analysis_result}",
                     agent_manager.meta_analysis_api,
@@ -199,6 +199,7 @@ def process_user_input(user_input, config, agent_manager):
 
     except Exception as e:
         logging.error(f"Se ha producido un error inesperado: {str(e)}")
+        logging.error(traceback.format_exc())
         return "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, intenta de nuevo.", {"error": str(e)}
 
 # Evaluar la respuesta del modelo de lenguaje y proporcionar retroalimentación
@@ -300,15 +301,19 @@ def main():
         MALLO es un sistema avanzado de orquestación de múltiples agentes basados en Modelos de Lenguaje de Gran Escala (LLMs). 
         Diseñado para proporcionar respuestas precisas, contextuales y adaptativas, MALLO integra:
 
-        - **Múltiples Modelos de IA**: Desde modelos locales hasta APIs de última generación como OpenAI, Anthropic, Groq, DeepInfra, DeepSeek, Mistral, Cohere y más.
-        - **Asistentes Especializados**: Expertos en diversos campos como derecho, tecnología, ciencias, matemáticas y otros dominios específicos.
+        - **Múltiples Modelos de IA**: Desde modelos locales hasta APIs de última generación como OpenAI, Anthropic, Groq, DeepInfra, DeepSeek, Mistral, Cohere, OpenRouter y más.
+        - **Asistentes Especializados**: Expertos en diversos campos como derecho, tecnología, ciencias, matemáticas, lingüística, análisis documental y otros dominios específicos.
         - **Análisis Contextual Avanzado**: Evalúa la complejidad y tipo de cada consulta para seleccionar la mejor estrategia de respuesta y los agentes más adecuados.
-        - **Prompts Especializados**: Aplica prompts adaptados al tipo de consulta (matemática, legal, científica, etc.) para mejorar la precisión de las respuestas.
+        - **Prompts Especializados**: Aplica prompts adaptados al tipo de consulta (matemática, legal, científica, coding, etc.) para mejorar la precisión de las respuestas.
+        - **Selección Inteligente de Agentes**: Prioriza la selección de agentes basándose en sus especialidades, capacidades y el tipo de prompt requerido.
         - **Búsqueda Web Inteligente**: Enriquece las respuestas con información actualizada cuando es necesario.
         - **Meta-análisis Avanzado**: Sintetiza y evalúa respuestas de múltiples fuentes para una mayor precisión y coherencia.
         - **Adaptabilidad Dinámica**: Ajusta su enfoque basándose en el rendimiento, la complejidad de la consulta y la retroalimentación.
         - **Prevención de Redundancia**: Implementa estrategias para evitar la selección de agentes duplicados, asegurando diversidad en las respuestas.
         - **Evaluación Continua**: Incorpora sistemas de evaluación inicial y final para garantizar la calidad y relevancia de las respuestas.
+        - **Sistema de Fallback Robusto**: Garantiza respuestas incluso cuando los agentes primarios no están disponibles.
+        - **Capacidades Multimodales**: Maneja consultas que involucran texto, audio, imágenes y análisis de herramientas.
+        - **Optimización de Recursos**: Utiliza un sistema de caché eficiente para respuestas frecuentes, reduciendo el uso de recursos.
 
         MALLO no solo responde preguntas, sino que orquesta una sinergia de conocimientos y capacidades para ofrecer
         la mejor solución posible a cada consulta. Se adapta continuamente para mejorar su precisión, relevancia y eficiencia,
