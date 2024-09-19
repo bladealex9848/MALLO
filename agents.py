@@ -261,7 +261,7 @@ class AgentManager:
             }.get(agent_type, [])
         else:
             all_agents = []
-            for agent_type in ['api', 'groq', 'together', 'local', 'openrouter', 'deepinfra', 'anthropic', 'deepseek', 'mistral', 'cohere']:
+            for agent_type in ['groq', 'deepseek',  'openrouter', 'together', 'deepinfra', 'anthropic', 'mistral', 'cohere', 'api', 'local']:
                 all_agents.extend(self.get_available_models(agent_type))
             return all_agents
     
@@ -639,10 +639,12 @@ class AgentManager:
     def get_fallback_agent(self) -> Tuple[str, str]:
         if self.clients.get('openrouter'):
             return 'openrouter', self.config['openrouter']['default_model']
-        elif self.clients.get('openai'):
-            return 'api', self.config['openai']['default_model']
         elif self.clients.get('groq'):
             return 'groq', self.config['groq']['default_model']
+        elif self.clients.get('deepseek'):
+            return 'deepseek', self.config['deepseek']['default_model']
+        elif self.clients.get('openai'):
+            return 'api', self.config['openai']['default_model']        
         elif self.clients.get('together'):
             return 'together', self.config['together']['default_model']
         else:

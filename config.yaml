@@ -167,11 +167,7 @@ together:
 anthropic:
   fast_models: "claude-3-haiku-20240307"
   default_model: "claude-3-haiku-20240307"
-  models:
-    - name: "claude-3-5-sonnet-20240620"
-      specialty: "general"
-      capabilities: ["advanced_reasoning", "long_context"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+  models:    
     - name: "claude-3-haiku-20240307"
       specialty: "general"
       capabilities: ["fast_response", "concise_output"]
@@ -1068,12 +1064,12 @@ utilities:
 # Configuración de evaluación de modelos
 evaluation_models:
   initial:
-    api: "openai"
-    model: "gpt-4o-mini"
+    api: "groq"
+    model: "llama-3.1-70b-versatile"
     backup_api: "openrouter"
     backup_model: "mattshumer/reflection-70b:free"
-    backup_api2: "cohere"
-    backup_model2: "command-r-plus"    
+    backup_api2: "openai"
+    backup_model2: "gpt-4o-mini"    
   final:
     api: "openrouter"
     model: "nousresearch/hermes-3-llama-3.1-405b"
