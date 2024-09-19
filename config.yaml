@@ -213,6 +213,23 @@ openrouter:
         "code_generation"
       ]
       prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "creative", "analytical", "tool_use"]
+    - name: "deepseek/deepseek-chat"
+      specialty: "general"
+      capabilities: [
+        "large_scale",
+        "advanced_reasoning",
+        "agentic_capabilities",
+        "roleplaying",
+        "multi_turn_conversation",
+        "long_context_coherence",
+        "user_aligned",
+        "powerful_steering",
+        "function_calling",
+        "structured_output",
+        "generalist_assistant",
+        "code_generation"
+      ]
+      prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "creative", "analytical", "tool_use"]
     - name: "mattshumer/reflection-70b:free"
       specialty: "analytical"
       capabilities: ["critical_thinking", "self_reflection"]
@@ -1058,15 +1075,15 @@ evaluation_models:
     backup_api2: "cohere"
     backup_model2: "command-r-plus"    
   final:
-    api: "openai"
-    model: "gpt-4o-mini"
+    api: "openrouter"
+    model: "nousresearch/hermes-3-llama-3.1-405b"
     backup_api: "openrouter"
     backup_model: "mattshumer/reflection-70b:free"
     backup_api2: "deepseek"
     backup_model2: "deepseek-chat"
   meta_analysis:
-    api: "openai"
-    model: "gpt-4o-mini"
+    api: "deepseek"
+    model: "deepseek-chat"
     backup_api: "openrouter"
     backup_model: "nousresearch/hermes-3-llama-3.1-405b"
     backup_api2: "groq"
