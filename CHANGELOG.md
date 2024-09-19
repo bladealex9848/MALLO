@@ -4,6 +4,50 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.9.0] - 2024-09-18
+
+### Añadido
+- Integración del modelo DeepSeek 2.5 a través de OpenRouter.
+  - Este modelo combina las capacidades de DeepSeek-V2-Chat y DeepSeek-Coder-V2-Instruct, ofreciendo una solución versátil para tareas generales y de codificación.
+
+### Cambiado
+- Actualización de la configuración del meta-analista:
+  - Se ha establecido DeepSeek 2.5 como el modelo predeterminado para el meta-análisis.
+- Modificación en la configuración del análisis final:
+  - Hermes 3 (nousresearch/hermes-3-llama-3.1-405b) ha sido designado como el modelo principal para el análisis final.
+
+### Justificación de los cambios
+
+1. Integración de DeepSeek 2.5:
+   - Versatilidad mejorada: La combinación de capacidades generales y de codificación en un solo modelo permite una mayor flexibilidad en el manejo de consultas diversas.
+   - Optimización de recursos: Al utilizar un modelo que abarca múltiples dominios, se reduce la necesidad de cambiar entre diferentes modelos especializados, potencialmente mejorando la eficiencia del sistema.
+   - Alineación mejorada con preferencias humanas: DeepSeek 2.5 ha sido optimizado para seguir instrucciones de manera más precisa, lo que puede resultar en respuestas más relevantes y contextuales.
+
+2. DeepSeek 2.5 como meta-analista predeterminado:
+   - Capacidad de síntesis mejorada: Las habilidades combinadas de chat general y codificación hacen que DeepSeek 2.5 sea ideal para sintetizar información de diversas fuentes y dominios.
+   - Mejor comprensión de contexto: La optimización en el seguimiento de instrucciones puede llevar a un meta-análisis más preciso y coherente.
+   - Potencial para manejar consultas técnicas y no técnicas: La versatilidad del modelo permite un meta-análisis más robusto en una amplia gama de temas.
+
+3. Hermes 3 para análisis final:
+   - Capacidades de razonamiento avanzadas: Hermes 3 ha demostrado un rendimiento excepcional en tareas que requieren razonamiento complejo, haciéndolo ideal para el análisis final de respuestas.
+   - Manejo de contexto a largo plazo: La habilidad de Hermes 3 para mantener coherencia en conversaciones de múltiples turnos es crucial para un análisis final que tenga en cuenta todo el contexto de la interacción.
+   - Alineación con instrucciones precisas: La capacidad de Hermes 3 para seguir instrucciones de manera exacta y adaptativa es esencial para realizar un análisis final riguroso y ajustado a los requerimientos específicos de cada consulta.
+
+### Impacto esperado
+- Mayor precisión en las respuestas generadas por el sistema MALLO.
+- Mejora en la capacidad de manejar consultas complejas y multifacéticas.
+- Potencial reducción en el tiempo de procesamiento para ciertos tipos de consultas.
+- Mejor adaptabilidad a una amplia gama de estilos de consulta y dominios de conocimiento.
+
+### Próximos pasos
+- Monitorear el rendimiento de DeepSeek 2.5 y Hermes 3 en sus nuevos roles.
+- Recopilar feedback de usuarios para evaluar la mejora en la calidad de las respuestas.
+- Considerar ajustes finos en los prompts y parámetros de configuración para optimizar el rendimiento de los nuevos modelos en sus respectivos roles.
+
+### Notas adicionales
+- Se mantiene la configuración de modelos de respaldo para garantizar la robustez del sistema en caso de fallos o indisponibilidad de los modelos principales.
+- Se recomienda realizar pruebas exhaustivas en diversos escenarios para validar la eficacia de estos cambios en diferentes tipos de consultas y cargas de trabajo.
+
 ## [1.8.0] - 2024-09-16
 ### Cambiado
 - Refactorización completa de la función `get_prioritized_agents` para mejorar la selección de agentes basada en especialidades y tipos de prompt.
