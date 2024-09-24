@@ -976,7 +976,89 @@ specialized_assistants:
   - id: "asst_U2RDKhpEi2anWNKrzaGfY0y9"
     name: "Asesor Legal Anticorrupción Colombiano"
     keywords: ["corrupción", "ética judicial", "cohecho", "concusión", "peculado", "contratación estatal", "corrupción tributaria", "corrupción electoral", "corrupción judicial", "corrupción privada", "transparencia", "integridad", "derechos de los usuarios", "Plan Anticorrupción", "Carta de Trato Digno", "canales de denuncia", "mecanismos de control", "legislación colombiana", "procedimientos judiciales", "últimas modificaciones legislativas"]
-
+  - id: "asst_hFL7ZJI9yJm71GM6JOZSwLkr"
+    name: "Asesor en Gestión de Calidad en Salud"
+    keywords: [
+    "Calidad",
+    "Acreditación",
+    "PAMEC",
+    "Gestión de Salud",
+    "Mejoramiento Continuo",
+    "Auditoría",
+    "Normativa de Salud",
+    "Salud Ambulatoria",
+    "Salud Hospitalaria",
+    "Sistemas de Calidad",
+    "Seguridad del Paciente",
+    "Gestión del Riesgo",
+    "Atención al Usuario",
+    "Estandarización",
+    "Cumplimiento Normativo",
+    "Interoperabilidad",
+    "Plan de Mejoramiento",
+    "Equipos de Mejoramiento",
+    "Estrategias de Mejora",
+    "Gestión de Procesos",
+    "Evidencia Clínica",
+    "Resultados en Salud",
+    "Mejoramiento de Procesos",
+    "Calidad Asistencial",
+    "Educación Continua",
+    "Satisfacción del Paciente",
+    "Gestión de Información",
+    "Monitoreo y Evaluación",
+    "Protocolos de Atención",
+    "Indicadores de Calidad",
+    "Gestión de Recursos",
+    "Auditorías Internas",
+    "Acreditación Institucional",
+    "Calidad de la Atención",
+    "Prácticas Seguras",
+    "Manejo de Incidencias",
+    "Responsabilidad Profesional",
+    "Acciones Correctivas",
+    "Planificación Estratégica",
+    "Desarrollo Organizacional",
+    "Gestión de Proyectos",
+    "Cultura de Calidad",
+    "Mejoramiento de la Atención",
+    "Aseguramiento de la Calidad",
+    "Competencia Profesional",
+    "Sistemas de Gestión",
+    "Trabajo en Equipo",
+    "Liderazgo en Salud",
+    "Políticas de Calidad",
+    "Evaluación Externa",
+    "Autocontrol",
+    "Eficiencia Administrativa",
+    "Construcción de Conocimiento",
+    "Sistemas de Información en Salud",
+    "Reducción de Riesgos",
+    "Transparencia",
+    "Accesibilidad a Servicios",
+    "Compromiso Institucional",
+    "Gestión del Cambio",
+    "Enfoque en el Paciente",
+    "Benchmarking en Salud",
+    "Ética Profesional",
+    "Red de Atención Integral",
+    "Optimización de Procesos",
+    "Estrategias de Participación",
+    "Calidad Percibida",
+    "Estándares de Referencia",
+    "Patologías Crónicas",
+    "Investigación en Salud",
+    "Evaluación de Programas",
+    "Colaboración Interinstitucional",
+    "Regulación Sanitaria",
+    "Innovación en Salud",
+    "TECNOLOGÍAS de la Información",
+    "Sistemas de Salud",
+    "Rendimiento del Personal",
+    "Closure de Procesos",
+    "Calidad en la Comunicación",
+    "Desempeño Organizacional"
+]
 
 # Configuración general
 general:
@@ -1074,12 +1156,12 @@ evaluation_models:
     backup_api2: "deepseek"
     backup_model2: "deepseek-chat"
   meta_analysis:
-    api: "deepseek"
-    model: "deepseek-chat"
+    api: "openai"
+    model: "gpt-4o-mini"
     backup_api: "openrouter"
     backup_model: "nousresearch/hermes-3-llama-3.1-405b"
-    backup_api2: "groq"
-    backup_model2: "llama-3.1-70b-versatile"
+    backup_api2: "deepseek"
+    backup_model2: "deepseek-chat"
 
 # Configuración de selección de prompts para los agentes
 prompt_selection:
