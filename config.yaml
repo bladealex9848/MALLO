@@ -190,9 +190,9 @@ deepseek:
 # Configuración de OpenRouter
 openrouter:
   fast_models: "mattshumer/reflection-70b:free"
-  default_model: "nousresearch/hermes-3-llama-3.1-405b"
+  default_model: "nousresearch/hermes-3-llama-3.1-405b:free"
   models:
-    - name: "nousresearch/hermes-3-llama-3.1-405b"
+    - name: "nousresearch/hermes-3-llama-3.1-405b:free"
       specialty: "legal"
       capabilities: [
         "large_scale",
@@ -1149,8 +1149,8 @@ evaluation_models:
     backup_api2: "openai"
     backup_model2: "gpt-4o-mini"    
   final:
-    api: "openrouter"
-    model: "nousresearch/hermes-3-llama-3.1-405b"
+    api: "anthropic"
+    model: "claude-3-haiku-20240307"
     backup_api: "openrouter"
     backup_model: "mattshumer/reflection-70b:free"
     backup_api2: "deepseek"
@@ -1158,10 +1158,10 @@ evaluation_models:
   meta_analysis:
     api: "openai"
     model: "gpt-4o-mini"
-    backup_api: "openrouter"
-    backup_model: "nousresearch/hermes-3-llama-3.1-405b"
+    backup_api: "anthropic"
+    backup_model: "claude-3-haiku-20240307"
     backup_api2: "deepseek"
-    backup_model2: "deepseek-chat"
+    backup_model2: "deepseek-chat"    
 
 # Configuración de selección de prompts para los agentes
 prompt_selection:
