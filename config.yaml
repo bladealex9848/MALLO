@@ -976,7 +976,7 @@ specialized_assistants:
   - id: "asst_U2RDKhpEi2anWNKrzaGfY0y9"
     name: "Asesor Legal Anticorrupción Colombiano"
     keywords: ["corrupción", "ética judicial", "cohecho", "concusión", "peculado", "contratación estatal", "corrupción tributaria", "corrupción electoral", "corrupción judicial", "corrupción privada", "transparencia", "integridad", "derechos de los usuarios", "Plan Anticorrupción", "Carta de Trato Digno", "canales de denuncia", "mecanismos de control", "legislación colombiana", "procedimientos judiciales", "últimas modificaciones legislativas"]
-  - id: "asst_hFL7ZJI9yJm71GM6JOZSwLkr"
+  - id: "asst_bhP2DkheIoBrZ0EIsV3TlTFw"
     name: "Asesor en Gestión de Calidad en Salud"
     keywords: [
     "Calidad",
@@ -1057,8 +1057,10 @@ specialized_assistants:
     "Rendimiento del Personal",
     "Closure de Procesos",
     "Calidad en la Comunicación",
-    "Desempeño Organizacional"
-]
+    "Desempeño Organizacional"]
+  - id: "asst_hFL7ZJI9yJm71GM6JOZSwLkr"
+    name: "Asesor en Traslados de Servidores Judiciales en Colombia"
+    keywords: ["sistema judicial", "traslados", "servidores judiciales", "Colombia", "legislación", "normativa", "derechos", "procedimientos", "recursos legales", "Ley 270 de 1996", "Ley 771 de 2002", "Acuerdo PCSJA17-10754", "Acuerdo PCSJA22-11956", "Código de Procedimiento Administrativo", "salud", "seguridad", "traslado recíproco", "requisitos", "plazos", "solicitudes", "denegación", "modificaciones"]
 
 # Configuración general
 general:
