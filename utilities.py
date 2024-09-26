@@ -16,6 +16,7 @@ from anthropic import Anthropic
 import cohere
 from collections import Counter
 import yaml
+from together import Together
 
 from load_secrets import load_secrets, get_secret, secrets
 
@@ -133,7 +134,8 @@ def initialize_system(config: Dict[str, Any]) -> Dict[str, bool]:
         "DeepSeek API": check_deepseek_api(),
         "Mistral API": check_mistral_api(),
         "Cohere API": check_cohere_api(),
-        "OpenRouter API": check_openrouter_api()
+        "OpenRouter API": check_openrouter_api(),
+        "Together API": check_together_api()
     }
     logging.info(f"System status: {status}")
     return status
@@ -145,6 +147,28 @@ def check_openai_api() -> bool:
         return True
     except Exception as e:
         logging.error(f"Error checking OpenAI API: {str(e)}")
+        return False
+
+# Conexión con Together API
+'''
+import os
+from together import Together
+
+client = Together(api_key=os.environ.get('TOGETHER_API_KEY'))
+
+response = client.chat.completions.create(
+    model="meta-llama/Llama-Vision-Free",
+    messages=[{"role": "user", "content": "What are some fun things to do in New York?"}],
+)
+print(response.choices[0].message.content)
+'''
+def check_together_api() -> bool:
+    try:
+        client = Together(api_key=secrets["TOGETHER_API_KEY"])
+        client.chat.completions.create(model="meta-llama/Llama-Vision-Free", messages=[{"role": "user", "content": "Test"}])
+        return True
+    except Exception as e:
+        logging.error(f"Error checking Together API: {str(e)}")
         return False
 
 def check_groq_api() -> bool:
@@ -228,7 +252,7 @@ def check_openrouter_api() -> bool:
                 "X-Title": "MALLO",
             },
             data=json.dumps({
-                "model": "mattshumer/reflection-70b:free",
+                "model": "meta-llama/llama-3.2-11b-vision-instruct:free",
                 "messages": [{"role": "user", "content": "Test"}]
             })
         )

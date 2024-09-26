@@ -149,21 +149,26 @@ deepinfra:
 
 # Configuración de Together
 together:
-  default_model: "Qwen/Qwen2-72B-Instruct"
+  fast_models: "meta-llama/Llama-Vision-Free"
+  default_model: "meta-llama/Llama-Vision-Free"
   models:
-    - name: "Qwen/Qwen2-72B-Instruct"
+    - name: "meta-llama/Llama-Vision-Free"
+      specialty: "general"
+      capabilities: ["fast_inference", "broad_knowledge", "multimodal_understanding"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "multimodal"]
+    - name: "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo"
       specialty: "general"
       capabilities: ["instruction_following", "large_scale", "chinese_language_proficiency"] 
       prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "google/gemma-2-27b-it"
+    - name: "meta-llama/Llama-3.2-3B-Instruct-Turbo"
       specialty: "general"
       capabilities: ["instruction_tuned", "medium_scale", "italian_language_proficiency"]
       prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+    - name: "Gryphe/MythoMax-L2-13b-Lite"
       specialty: "general"
       capabilities: ["fast_inference", "instruction_optimized"]
       prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "deepseek-ai/deepseek-llm-67b-chat"
+    - name: "mistralai/Mistral-7B-Instruct-v0.3"
       specialty: "general"
       capabilities: ["conversational", "large_scale"]
       prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
@@ -196,7 +201,7 @@ deepseek:
 
 # Configuración de OpenRouter
 openrouter:
-  fast_models: "mattshumer/reflection-70b:free"
+  fast_models: "meta-llama/llama-3.2-11b-vision-instruct:free"
   default_model: "nousresearch/hermes-3-llama-3.1-405b:free"
   models:
     - name: "nousresearch/hermes-3-llama-3.1-405b:free"
@@ -216,7 +221,7 @@ openrouter:
         "code_generation"
       ]
       prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "creative", "analytical", "tool_use"]
-    - name: "deepseek/deepseek-chat"
+    - name: "microsoft/phi-3-medium-128k-instruct:free"
       specialty: "general"
       capabilities: [
         "large_scale",
@@ -233,7 +238,7 @@ openrouter:
         "code_generation"
       ]
       prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "creative", "analytical", "tool_use"]
-    - name: "mattshumer/reflection-70b:free"
+    - name: "meta-llama/llama-3.2-11b-vision-instruct:free"
       specialty: "analytical"
       capabilities: ["critical_thinking", "self_reflection"]
       prompt_types: ["analytical", "philosophical", "ethical"]
@@ -1126,12 +1131,12 @@ usage_limits:
 # Configuración de MOA (Mixture of Agents)
 moa:
   enabled: true
-  aggregator_model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
+  aggregator_model: "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo"
   proposal_models:
-    - "Qwen/Qwen2-72B-Instruct"
-    - "google/gemma-2-27b-it"
-    - "zero-one-ai/Yi-34B-Chat"
-    - "deepseek-ai/deepseek-llm-67b-chat"
+    - "meta-llama/Llama-Vision-Free"
+    - "meta-llama/Llama-3.2-3B-Instruct-Turbo"
+    - "Gryphe/MythoMax-L2-13b-Lite"
+    - "mistralai/Mistral-7B-Instruct-v0.3"
   max_layers: 3
   aggregator_system_prompt: "You are an expert aggregator. Synthesize the following responses into a single, coherent answer, taking into account the web context if provided."
 
@@ -1154,7 +1159,7 @@ evaluation_models:
     api: "groq"
     model: "llama-3.2-90b-text-preview"
     backup_api: "openrouter"
-    backup_model: "mattshumer/reflection-70b:free"
+    backup_model: "google/gemini-pro-1.5-exp"
     backup_api2: "openai"
     backup_model2: "gpt-4o-mini"    
   final:

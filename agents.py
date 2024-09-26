@@ -126,7 +126,9 @@ class AgentManager:
             'anthropic': self.init_anthropic_client(),
             'deepseek': self.init_deepseek_client(),
             'mistral': self.init_mistral_client(),
-            'cohere': self.init_cohere_client()
+            'cohere': self.init_cohere_client(),
+            'openrouter': self.init_openrouter_client()
+            # Agrega más clientes de API según sea necesario
         }
 
     def get_general_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
