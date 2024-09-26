@@ -18,7 +18,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 def load_config():
-    with open('config.yaml', 'r') as file:
+    with open('config.yaml', 'r', encoding='utf-8') as file:
         return yaml.safe_load(file)
 
 config = load_config()
@@ -26,7 +26,8 @@ config = load_config()
 def safe_import(module_name):
     try:
         return importlib.import_module(module_name)
-    except ImportError:
+    except ImportError as e:
+        console.print(f"[bold red]Failed to import {module_name}: {str(e)}[/bold red]")
         return None
 
 anthropic = safe_import('anthropic')

@@ -1,68 +1,88 @@
 {
   "groq": [
     {
+      "model": "mixtral-8x7b-32768",
+      "speed": 0.8029501438140869,
+      "status": "success"
+    },
+    {
+      "model": "llama-3.2-3b-preview",
+      "speed": 0.9320228099822998,
+      "status": "success"
+    },
+    {
       "model": "whisper-large-v3",
-      "speed": 0.21401405334472656,
-      "status": "success"
-    },
-    {
-      "model": "distil-whisper-large-v3-en",
-      "speed": 0.22538185119628906,
-      "status": "success"
-    },
-    {
-      "model": "llama3-groq-8b-8192-tool-use-preview",
-      "speed": 0.2604827880859375,
-      "status": "success"
-    },
-    {
-      "model": "gemma2-9b-it",
-      "speed": 0.2683680057525635,
-      "status": "success"
-    },
-    {
-      "model": "llama3-8b-8192",
-      "speed": 0.2687220573425293,
+      "speed": 0.9564471244812012,
       "status": "success"
     },
     {
       "model": "llama-3.1-8b-instant",
-      "speed": 0.2730557918548584,
+      "speed": 1.157163143157959,
       "status": "success"
     },
     {
       "model": "gemma-7b-it",
-      "speed": 0.2877628803253174,
+      "speed": 1.188927412033081,
       "status": "success"
     },
     {
-      "model": "llama3-70b-8192",
-      "speed": 0.3291480541229248,
+      "model": "llama-3.2-1b-preview",
+      "speed": 1.3158140182495117,
       "status": "success"
     },
     {
-      "model": "llava-v1.5-7b-4096-preview",
-      "speed": 0.3303849697113037,
+      "model": "llama3-8b-8192",
+      "speed": 1.506843090057373,
       "status": "success"
     },
     {
-      "model": "mixtral-8x7b-32768",
-      "speed": 0.3410000801086426,
+      "model": "llama3-groq-8b-8192-tool-use-preview",
+      "speed": 1.5796680450439453,
       "status": "success"
     },
     {
-      "model": "llama3-groq-70b-8192-tool-use-preview",
-      "speed": 0.3581540584564209,
+      "model": "distil-whisper-large-v3-en",
+      "speed": 1.6657466888427734,
+      "status": "success"
+    },
+    {
+      "model": "gemma2-9b-it",
+      "speed": 1.8085055351257324,
       "status": "success"
     },
     {
       "model": "llama-guard-3-8b",
-      "speed": 0.5673768520355225,
+      "speed": 1.9269940853118896,
+      "status": "success"
+    },
+    {
+      "model": "llama3-70b-8192",
+      "speed": 2.124164581298828,
+      "status": "success"
+    },
+    {
+      "model": "llama-3.2-11b-text-preview",
+      "speed": 2.282180070877075,
       "status": "success"
     },
     {
       "model": "llama-3.1-70b-versatile",
-      "speed": 2.822006940841675,
+      "speed": 2.432508945465088,
+      "status": "success"
+    },
+    {
+      "model": "llama-3.2-90b-text-preview",
+      "speed": 2.5191993713378906,
+      "status": "success"
+    },
+    {
+      "model": "llava-v1.5-7b-4096-preview",
+      "speed": 2.6449079513549805,
+      "status": "success"
+    },
+    {
+      "model": "llama3-groq-70b-8192-tool-use-preview",
+      "speed": 2.8325881958007812,
       "status": "success"
     }
   ]

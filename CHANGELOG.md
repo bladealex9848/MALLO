@@ -4,6 +4,28 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [2.0.0] - 2024-09-26
+
+### Añadido
+- Integración de la familia de modelos Llama 3.2:
+  - Se han adicionado los modelos Llama 3.2 de 1B, 3B, 11B y 90B, lo que amplía las capacidades del sistema MALLO para manejar consultas complejas y multifacéticas.
+  - Estos modelos están optimizados para multilingüismo y tareas de diálogo, lo que permitirá mejorar la comprensión y generación de respuestas en diferentes idiomas.
+
+### Justificación de la integración
+- La integración de Llama 3.2 permitirá mejorar la capacidad del sistema MALLO para manejar consultas complejas y multifacéticas.
+- La optimización de estos modelos para tareas de diálogo y multilingüismo permitirá mejorar la comprensión y generación de respuestas en diferentes idiomas.
+- La adición de estos modelos ampliará las capacidades del sistema MALLO y permitirá mejorar la calidad de las respuestas generadas.
+
+### Impacto esperado
+- Mejora en la capacidad del sistema MALLO para manejar consultas complejas y multifacéticas.
+- Mejor comprensión y generación de respuestas en diferentes idiomas.
+- Ampliación de las capacidades del sistema MALLO y mejora en la calidad de las respuestas generadas.
+
+### Próximos pasos
+- Realizar pruebas exhaustivas con los modelos Llama 3.2 para evaluar su rendimiento y ajustar los parámetros de configuración según sea necesario.
+- Integrar los modelos Llama 3.2 en la arquitectura del sistema MALLO y realizar pruebas de integración.
+- Recopilar feedback de usuarios para evaluar la mejora en la calidad de las respuestas generadas con los modelos Llama 3.2.
+
 ## [1.9.0] - 2024-09-18
 
 ### Añadido

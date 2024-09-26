@@ -40,10 +40,14 @@ openai:
 
 # Configuración de Groq
 groq:
-  fast_model: "llama-3.1-8b-instant"
-  default_model: "llama-3.1-70b-versatile"
+  fast_model: "llama-3.2-11b-text-preview"
+  default_model: "llama-3.2-90b-text-preview"
   models:
     - name: "llama-3.1-70b-versatile"
+      specialty: "general"
+      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
+      prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
+    - name: "llama-3.2-90b-text-preview"
       specialty: "general"
       capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
       prompt_types: ["general", "legal", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
@@ -69,6 +73,9 @@ groq:
     - name: "llama-3.1-8b-instant"
       specialty: "general"
       capabilities: ["instant_response", "low_latency"]
+    - name: "llama-3.2-11b-text-preview"
+      specialty: "general"
+      capabilities: ["instant_response", "low_latency"]  
     - name: "gemma-7b-it"
       specialty: "general"
       capabilities: ["instruction_following", "compact_size", "italian_language_proficiency"]
@@ -1145,23 +1152,23 @@ utilities:
 evaluation_models:
   initial:
     api: "groq"
-    model: "llama-3.1-70b-versatile"
+    model: "llama-3.2-90b-text-preview"
     backup_api: "openrouter"
     backup_model: "mattshumer/reflection-70b:free"
     backup_api2: "openai"
     backup_model2: "gpt-4o-mini"    
   final:
-    api: "anthropic"
-    model: "claude-3-haiku-20240307"
-    backup_api: "openrouter"
-    backup_model: "mattshumer/reflection-70b:free"
+    api: "groq"
+    model: "llama-3.2-90b-text-preview"
+    backup_api: "anthropic"
+    backup_model: "claude-3-haiku-20240307"
     backup_api2: "deepseek"
     backup_model2: "deepseek-chat"
   meta_analysis:
-    api: "openai"
-    model: "gpt-4o-mini"
-    backup_api: "anthropic"
-    backup_model: "claude-3-haiku-20240307"
+    api: "groq"
+    model: "llama-3.2-90b-text-preview"
+    backup_api: "openai"
+    backup_model: "gpt-4o-mini"
     backup_api2: "deepseek"
     backup_model2: "deepseek-chat"    
 
