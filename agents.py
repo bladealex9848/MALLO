@@ -151,9 +151,9 @@ class AgentManager:
         relevance = 0.0
         
         # Dar mayor relevancia a ciertos tipos de agentes según el prompt_type
-        if prompt_type == 'math' and agent_type in ['openai', 'anthropic']:
+        if prompt_type == 'math' and agent_type in ['deepinfra']:
             relevance += 0.5
-        elif prompt_type == 'coding' and agent_type in ['openai', 'anthropic', 'cohere']:
+        elif prompt_type == 'coding' and agent_type in ['deepinfra', 'deepseek', 'mistral']:
             relevance += 0.5
         
         # Considerar la complejidad del modelo (esto es un ejemplo, ajusta según tus modelos)

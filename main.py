@@ -112,15 +112,15 @@ def process_user_input(user_input, config, agent_manager):
             if specialized_agent:
                 prioritized_agents.append((specialized_agent['type'], specialized_agent['id'], specialized_agent['name']))
 
-            # Añadir agentes generales hasta tener un máximo de 3 agentes en total
+            # Añadir agentes generales hasta tener un máximo de 2 agentes en total
             for agent in general_agents:
-                if len(prioritized_agents) >= 3:
+                if len(prioritized_agents) >= 2:
                     break
                 if agent not in prioritized_agents:  # Evitar duplicados
                     prioritized_agents.append(agent)
 
-            # Asegurarse de que no hay más de 3 agentes
-            prioritized_agents = prioritized_agents[:3]
+            # Asegurarse de que no hay más de 2 agentes
+            prioritized_agents = prioritized_agents[:2]
             
             agent_results = []
             for agent_type, agent_id, agent_name in prioritized_agents:
