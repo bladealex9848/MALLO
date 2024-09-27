@@ -6,7 +6,7 @@ ollama:
     - name: "gemma2:2b"
       specialty: "general"
       capabilities: ["compact_size", "efficient_inference"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
     - name: "llava:latest"
       specialty: "multimodal"
@@ -16,17 +16,17 @@ ollama:
     - name: "phi3.5:latest"
       specialty: "general"
       capabilities: ["instruction_following", "diverse_tasks"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
     - name: "llama3.1:latest"
       specialty: "general"
       capabilities: ["advanced_reasoning", "large_context"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
 
     - name: "qwen2:latest"
       specialty: "general"
       capabilities: ["instruction_following", "chinese_language_proficiency"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
 # Configuration de OpenAI
 openai:
