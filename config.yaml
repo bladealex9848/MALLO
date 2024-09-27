@@ -254,7 +254,7 @@ openrouter:
       specialty: "general"
       capabilities: ["advanced_reasoning", "multi_task", "multilingual_support"]     
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    - name: "nousresearch/hermes-3-llama-3.1-405b:extended"
+    - name: "openchat/openchat-7b:free"
       specialty: "general"
       capabilities: ["extended_context", "in_depth_analysis", "long_form_content_generation"] 
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
