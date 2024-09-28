@@ -3,6 +3,46 @@ ollama:
   base_url: "http://localhost:11434"
   default_model: "phi3.5:latest"
   models:
+    - name: "codegemma:2b"
+      specialty: "general"
+      capabilities: ["compact_size", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:0.5b"
+      specialty: "general"
+      capabilities: ["instruction_following", "compact_size"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:1.5b"
+      specialty: "general"
+      capabilities: ["instruction_following", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:3b"
+      specialty: "general"
+      capabilities: ["instruction_following", "large_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:latest"
+      specialty: "general"
+      capabilities: ["instruction_following", "chinese_language_proficiency"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "llama3.2:latest"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "large_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+
+    - name: "minicpm-v:latest"
+      specialty: "general"
+      capabilities: ["large_model", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "phi3.5:latest"
+      specialty: "general"
+      capabilities: ["instruction_following", "diverse_tasks"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
     - name: "gemma2:2b"
       specialty: "general"
       capabilities: ["compact_size", "efficient_inference"]
@@ -12,21 +52,6 @@ ollama:
       specialty: "multimodal"
       capabilities: ["vision_language", "image_understanding"]
       prompt_types: ["multimodal", "general", "visual_analysis"]
-
-    - name: "phi3.5:latest"
-      specialty: "general"
-      capabilities: ["instruction_following", "diverse_tasks"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "llama3.1:latest"
-      specialty: "general"
-      capabilities: ["advanced_reasoning", "large_context"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-
-    - name: "qwen2:latest"
-      specialty: "general"
-      capabilities: ["instruction_following", "chinese_language_proficiency"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
 # Configuration de OpenAI
 openai:

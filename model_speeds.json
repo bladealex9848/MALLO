@@ -88,20 +88,40 @@
   ],
   "ollama": [
     {
+      "model": "codegemma:2b",
+      "speed": 6.5
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "speed": 5.0
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "speed": 6.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "speed": 7.5
+    },
+    {
+      "model": "qwen2.5:latest",
+      "speed": 9.0
+    },
+    {
+      "model": "llama3.2:latest",
+      "speed": 10.0
+    },
+    {
+      "model": "minicpm-v:latest",
+      "speed": 15.0
+    },
+    {
       "model": "phi3.5:latest",
       "speed": 6.049644947052002
     },
     {
       "model": "gemma2:2b",
       "speed": 6.401538133621216
-    },
-    {
-      "model": "qwen2:latest",
-      "speed": 8.243114233016968
-    },
-    {
-      "model": "llama3.1:latest",
-      "speed": 12.31328296661377
     },
     {
       "model": "llava:latest",
