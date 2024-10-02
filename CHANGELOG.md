@@ -4,6 +4,44 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [2.2.0] - 2024-10-02
+
+### Añadido
+- Implementación de un sistema de progreso visible para el usuario:
+  - Se ha incorporado un indicador de progreso que muestra las diferentes etapas del procesamiento de la consulta en tiempo real.
+- Nueva funcionalidad de resumen de características de MALLO:
+  - Se ha añadido una descripción concisa de las capacidades clave del sistema en la interfaz de usuario.
+
+### Cambiado
+- Restructuración de la interfaz de usuario:
+  - La respuesta final ahora se muestra de forma más limpia, sin información de procesamiento adicional.
+  - Los detalles del proceso y la evaluación ética se han movido a secciones expandibles separadas.
+- Optimización de la función `process_user_input`:
+  - Se ha eliminado la variable no utilizada `details_placeholder`.
+  - Se ha corregido la definición de `start_time` para un cálculo preciso del tiempo de procesamiento.
+
+### Mejorado
+- Refinamiento del proceso de evaluación ética:
+  - La evaluación ética ahora se realiza de manera más integrada en el flujo de procesamiento.
+  - Se ha mejorado la presentación de los resultados de la evaluación ética al usuario.
+- Optimización del rendimiento:
+  - Se han implementado mejoras para reducir el tiempo de procesamiento y el uso de recursos.
+
+### Justificación de los cambios
+- Estos cambios buscan mejorar la experiencia del usuario proporcionando más transparencia en el proceso de generación de respuestas.
+- La restructuración de la interfaz y la optimización del código contribuyen a una interacción más fluida y eficiente con el sistema.
+
+### Impacto esperado
+- Mayor comprensión por parte del usuario del proceso interno de MALLO.
+- Mejora en la percepción de transparencia y confiabilidad del sistema.
+- Incremento en la eficiencia y velocidad de respuesta del sistema.
+
+### Próximos pasos
+- Realizar pruebas de usuario para evaluar la recepción de la nueva interfaz y el sistema de progreso.
+- Continuar refinando el proceso de evaluación ética basándose en el feedback de los usuarios y expertos en ética de IA.
+- Explorar la posibilidad de implementar un sistema de explicabilidad más detallado para las decisiones tomadas por MALLO.
+- Desarrollar guías de usuario que expliquen cómo interpretar la información de progreso y los resultados de la evaluación ética.
+
 ## [2.1.0] - 2024-10-02
 
 ### Añadido
