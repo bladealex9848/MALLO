@@ -10,20 +10,21 @@
 5. [Instalación](#instalación)
 6. [Configuración](#configuración)
 7. [Uso](#uso)
-8. [TIPS y Trucos](#tips-y-trucos)
-9. [Arquitectura del Sistema](#arquitectura-del-sistema)
-10. [Componentes Principales](#componentes-principales)
-11. [Flujo de Trabajo](#flujo-de-trabajo)
-12. [APIs y Servicios Integrados](#apis-y-servicios-integrados)
-13. [Manejo de Errores y Logging](#manejo-de-errores-y-logging)
-14. [Optimización y Caché](#optimización-y-caché)
-15. [Pruebas](#pruebas)
-16. [Contribución](#contribución)
-17. [Registro de Cambios](#registro-de-cambios)
-18. [ExperimentaLABs](#experimentalabs)
-19. [Roadmap](#roadmap)
-20. [Licencia](#licencia)
-21. [Contacto](#contacto)
+8. [Evaluación Ética y de Cumplimiento](#evaluación-ética-y-de-cumplimiento)
+9. [TIPS y Trucos](#tips-y-trucos)
+10. [Arquitectura del Sistema](#arquitectura-del-sistema)
+11. [Componentes Principales](#componentes-principales)
+12. [Flujo de Trabajo](#flujo-de-trabajo)
+13. [APIs y Servicios Integrados](#apis-y-servicios-integrados)
+14. [Manejo de Errores y Logging](#manejo-de-errores-y-logging)
+15. [Optimización y Caché](#optimización-y-caché)
+16. [Pruebas](#pruebas)
+17. [Contribución](#contribución)
+18. [Registro de Cambios](#registro-de-cambios)
+19. [ExperimentaLABs](#experimentalabs)
+20. [Roadmap](#roadmap)
+21. [Licencia](#licencia)
+22. [Contacto](#contacto)
 
 ## Descripción
 
@@ -55,6 +56,11 @@ El sistema está construido con un enfoque modular y flexible, permitiendo la in
 
 - **Interfaz de Usuario Intuitiva**:
   - Implementada con Streamlit para una experiencia de usuario fluida y responsive.
+  - Indicador de progreso en tiempo real para el procesamiento de consultas.
+
+- **Evaluación Ética y de Cumplimiento**:
+  - Sistema integrado de evaluación ética para garantizar respuestas alineadas con principios éticos y legales.
+  - Mejora automática de respuestas basada en criterios éticos.
 
 - **Evaluación y Mejora Continua**:
   - Sistema de evaluación de respuestas para garantizar la calidad y relevancia.
@@ -182,8 +188,31 @@ Luego, abre tu navegador y ve a `http://localhost:8501`.
 La interfaz de usuario te permitirá:
 1. Ingresar consultas en lenguaje natural.
 2. Ver las respuestas generadas por el sistema.
-3. Explorar detalles sobre el procesamiento de cada consulta.
-4. Acceder a información sobre el estado del sistema y rendimiento de los agentes.
+3. Observar el progreso del procesamiento en tiempo real.
+4. Explorar detalles sobre el procesamiento de cada consulta, incluyendo la evaluación ética.
+5. Acceder a información sobre el estado del sistema y rendimiento de los agentes.
+6. Ver la evaluación ética y de cumplimiento de cada respuesta generada.
+7. Ver el contexto de la conversación actual, incluyendo el historial de preguntas y respuestas.
+
+La interfaz ahora incluye:
+- Un chat limpio que muestra solo las preguntas y respuestas.
+- Una sección expandible de "Detalles del proceso" que muestra información sobre el procesamiento interno.
+- Una sección expandible de "Evaluación Ética y de Cumplimiento" que muestra los resultados de la evaluación ética de cada respuesta.
+- Una sección expandible de "Contexto de la conversación" que muestra el contexto de la conversación actual, incluyendo el historial de preguntas y respuestas.
+
+## Evaluación Ética y de Cumplimiento
+
+MALLO ahora incorpora un sistema robusto de evaluación ética y de cumplimiento para todas las respuestas generadas:
+
+- **Evaluación Automática**: Cada respuesta es evaluada automáticamente en términos de sesgo, privacidad, transparencia, alineación con derechos humanos, responsabilidad y explicabilidad.
+
+- **Mejora de Respuestas**: Si se detectan problemas éticos, un asistente especializado (ID: 'asst_F33bnQzBVqQLcjveUTC14GaM') mejora la respuesta para alinearla mejor con los principios éticos y legales.
+
+- **Transparencia**: Los usuarios pueden ver los resultados de la evaluación ética para cada respuesta, proporcionando transparencia sobre el proceso de generación de IA.
+
+- **Cumplimiento Legal**: El sistema está diseñado para cumplir con las últimas recomendaciones y directrices internacionales para la gobernanza de la IA, así como con normativas específicas como la sentencia T-323 de 2024 de la Corte Constitucional colombiana.
+
+Esta característica asegura que MALLO no solo proporcione respuestas precisas, sino también éticas y legalmente responsables.
 
 ## TIPS y Trucos
 
