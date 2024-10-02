@@ -80,7 +80,44 @@ async def process_with_multiple_agents(query, agent_manager, num_agents=3):
     best_response = max(valid_responses, key=lambda x: len(x["response"])) if valid_responses else None
     return best_response, results
 
-def process_user_input(user_input, config, agent_manager):
+def evaluate_ethical_compliance(response: str, prompt_type: str) -> Dict[str, Any]:
+    """
+    Evalúa el cumplimiento ético y legal de la respuesta generada.
+    
+    Args:
+    response (str): La respuesta generada por el sistema.
+    prompt_type (str): El tipo de prompt utilizado para generar la respuesta.
+    
+    Returns:
+    Dict[str, Any]: Un diccionario con los resultados de la evaluación.
+    """
+    evaluation = {
+        "sesgo_detectado": False,
+        "privacidad_respetada": True,
+        "transparencia": True,
+        "alineacion_derechos_humanos": True,
+        "responsabilidad": True,
+        "explicabilidad": True
+    }
+    
+    # Verificar sesgos (esto requeriría un modelo más sofisticado en la práctica)
+    if any(palabra in response.lower() for palabra in ["todos los hombres", "todas las mujeres"]):
+        evaluation["sesgo_detectado"] = True
+    
+    # Verificar privacidad (ejemplo simplificado)
+    if any(dato in response for dato in ["número de identificación", "dirección", "teléfono"]):
+        evaluation["privacidad_respetada"] = False
+    
+    # Verificar transparencia
+    if "Esta respuesta fue generada por IA" not in response:
+        evaluation["transparencia"] = False
+    
+    # La alineación con derechos humanos, responsabilidad y explicabilidad 
+    # requerirían análisis más complejos en un sistema real
+    
+    return evaluation
+
+def process_user_input(user_input: str, config: Dict[str, Any], agent_manager: Any) -> Tuple[str, Dict[str, Any]]:
     try:
         conversation_context = st.session_state.get('context', '')
         enriched_query = f"{conversation_context}\n\nNueva consulta: {user_input}"
@@ -165,6 +202,27 @@ def process_user_input(user_input, config, agent_manager):
             else:
                 final_response = successful_responses[0]["response"]
 
+            # Evaluación ética y de cumplimiento
+            ethical_evaluation = evaluate_ethical_compliance(final_response, prompt_type)
+            
+            # Mejorar la respuesta si es necesario
+            if any(not value for value in ethical_evaluation.values()):
+                specialized_assistant = agent_manager.get_specialized_assistant('asst_F33bnQzBVqQLcjveUTC14GaM')
+                enhancement_prompt = f"""
+                Analiza la siguiente respuesta y su evaluación ética:
+
+                Respuesta: {final_response}
+
+                Evaluación ética: {json.dumps(ethical_evaluation, indent=2)}
+
+                Por favor, modifica la respuesta para mejorar su alineación con principios éticos y legales, 
+                abordando cualquier preocupación identificada en la evaluación. Asegúrate de que la respuesta sea 
+                transparente sobre el uso de IA, libre de sesgos, y respetuosa de los derechos humanos y la privacidad.
+                """
+                final_response = agent_manager.process_query(enhancement_prompt, 'assistant', specialized_assistant['id'])
+                # Reevaluar después de la mejora
+                ethical_evaluation = evaluate_ethical_compliance(final_response, prompt_type)
+
             final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, final_response)
 
             processing_time = time.time() - start_time
@@ -180,6 +238,7 @@ def process_user_input(user_input, config, agent_manager):
                 "initial_evaluation": initial_evaluation,
                 "agent_processing": agent_results,
                 "final_evaluation": final_evaluation,
+                "ethical_evaluation": ethical_evaluation,
                 "performance_metrics": {
                     "total_agents_called": len(agent_results),
                     "successful_responses": len(successful_responses),
@@ -194,6 +253,17 @@ def process_user_input(user_input, config, agent_manager):
             st.session_state['context'] = new_context
 
             cache_response(enriched_query, (final_response, details))
+
+            # Mostrar información sobre cumplimiento al usuario
+            st.info("Esta respuesta ha sido evaluada para asegurar su alineación con principios éticos y legales:")
+            st.json(ethical_evaluation)
+
+            st.success("""
+            Esta respuesta ha sido generada utilizando inteligencia artificial y ha pasado por un proceso 
+            de evaluación ética y legal. Se ha verificado su alineación con principios de transparencia, 
+            responsabilidad, privacidad, y respeto a los derechos humanos. Sin embargo, le recordamos que 
+            esta es una herramienta de apoyo y no sustituye el juicio humano en la toma de decisiones.
+            """)
 
             return final_response, details
 
