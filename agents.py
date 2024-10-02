@@ -131,6 +131,22 @@ class AgentManager:
             # Agrega más clientes de API según sea necesario
         }
 
+    def get_specialized_assistant(self, assistant_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene un asistente especializado por su ID.
+        
+        Args:
+        assistant_id (str): El ID del asistente especializado.
+        
+        Returns:
+        Optional[Dict[str, Any]]: Un diccionario con la información del asistente especializado,
+                                o None si no se encuentra.
+        """
+        for assistant in self.specialized_assistants:
+            if assistant['id'] == assistant_id:
+                return assistant
+        return None
+
     def get_general_agents(self, query: str, complexity: float, prompt_type: str) -> List[Tuple[str, str, str]]:
         general_agents = []
         for api, config in self.config.items():
