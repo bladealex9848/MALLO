@@ -77,28 +77,33 @@ El sistema está construido con un enfoque modular y flexible, permitiendo la in
 ```
 MALLO/
 │
-├── agents.py           # Implementación de la clase AgentManager y lógica de agentes
-├── config.yaml         # Configuración general del sistema
-├── main.py             # Punto de entrada principal y UI de Streamlit
-├── README.md           # Documentación del proyecto (este archivo)
-├── utilities.py        # Funciones de utilidad y helpers
-├── model_speeds.json   # Índice de velocidad de modelos locales y en la nube
-├── CHANGELOG.md        # Registro de cambios y versiones
-├── mallo_enhancer.py   # Lógica experimental para mejorar y evaluar respuestas
+├── agents.py                   # Implementación de la clase AgentManager y lógica de agentes
+├── config.yaml                 # Configuración general del sistema
+├── main.py                     # Punto de entrada principal y UI de Streamlit
+├── README.md                   # Documentación del proyecto (este archivo)
+├── utilities.py                # Funciones de utilidad y helpers
+├── model_speeds.json           # Índice de velocidad de modelos locales y en la nube
+├── CHANGELOG.md                # Registro de cambios y versiones
+├── mallo_enhancer.py           # Lógica experimental para mejorar y evaluar respuestas
 │
 ├── .streamlit/
-│   └── secrets.toml    # Almacenamiento seguro de claves API (no incluido en el repositorio)
+│   └── secrets.toml            # Almacenamiento seguro de claves API (no incluido en el repositorio)
 │
-├── tests/              # Directorio para pruebas unitarias y de integración
+├── tests/                      # Directorio para pruebas unitarias y de integración
 │
-├── logs/               # Directorio para archivos de log
+├── logs/                       # Directorio para archivos de log
 │
-├── assets/             # Directorio para recursos estáticos (imágenes, estilos, etc.)
+├── assets/                     # Directorio para recursos estáticos (imágenes, estilos, etc.)
 |
-├── tools/               # Directorio utilidades externas
+├── tools/                      # Directorio utilidades externas
 │   └── test_model_speeds.py    # Pequeño script para medir la velocidad de los modelos
+│
+├── docs/
+│   ├── informes/               # Informes técnicos, de investigación y otros documentos relacionados con el proyecto
+│   │
+│   └── ejemplos_consultas/     # Ejemplos de consultas y respuestas para demostración y prueba
 |
-└── requirements.txt    # Dependencias del proyecto
+└── requirements.txt            # Dependencias del proyecto
 ```
 
 ## Requisitos Previos
