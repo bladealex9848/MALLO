@@ -4,13 +4,15 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
-## [2.2.0] - 2024-10-02
+## [2.2.0] - 2024-10-03
 
 ### Añadido
 - Implementación de un sistema de progreso visible para el usuario:
   - Se ha incorporado un indicador de progreso que muestra las diferentes etapas del procesamiento de la consulta en tiempo real.
 - Nueva funcionalidad de resumen de características de MALLO:
   - Se ha añadido una descripción concisa de las capacidades clave del sistema en la interfaz de usuario.
+- Evaluación de cumplimiento con la sentencia T-323 de 2024:
+  - Se ha realizado un análisis detallado del cumplimiento de MALLO con las directrices establecidas por la Corte Constitucional.
 
 ### Cambiado
 - Restructuración de la interfaz de usuario:
@@ -19,6 +21,8 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
 - Optimización de la función `process_user_input`:
   - Se ha eliminado la variable no utilizada `details_placeholder`.
   - Se ha corregido la definición de `start_time` para un cálculo preciso del tiempo de procesamiento.
+- Actualización de la estructura de directorios:
+  - Se ha añadido un directorio `docs/` para almacenar informes y ejemplos de consultas.
 
 ### Mejorado
 - Refinamiento del proceso de evaluación ética:
@@ -26,21 +30,27 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
   - Se ha mejorado la presentación de los resultados de la evaluación ética al usuario.
 - Optimización del rendimiento:
   - Se han implementado mejoras para reducir el tiempo de procesamiento y el uso de recursos.
+- Actualización de la documentación:
+  - Se ha creado un informe detallado sobre el cumplimiento de MALLO con la sentencia T-323 de 2024.
+  - Se ha actualizado el README con información sobre la nueva estructura de directorios y las características recientes.
 
 ### Justificación de los cambios
 - Estos cambios buscan mejorar la experiencia del usuario proporcionando más transparencia en el proceso de generación de respuestas.
 - La restructuración de la interfaz y la optimización del código contribuyen a una interacción más fluida y eficiente con el sistema.
+- La evaluación de cumplimiento con la sentencia T-323 de 2024 asegura que MALLO se alinee con las directrices legales y éticas más recientes.
 
 ### Impacto esperado
 - Mayor comprensión por parte del usuario del proceso interno de MALLO.
 - Mejora en la percepción de transparencia y confiabilidad del sistema.
 - Incremento en la eficiencia y velocidad de respuesta del sistema.
+- Mejor alineación con las normativas legales y éticas vigentes.
 
 ### Próximos pasos
 - Realizar pruebas de usuario para evaluar la recepción de la nueva interfaz y el sistema de progreso.
 - Continuar refinando el proceso de evaluación ética basándose en el feedback de los usuarios y expertos en ética de IA.
 - Explorar la posibilidad de implementar un sistema de explicabilidad más detallado para las decisiones tomadas por MALLO.
 - Desarrollar guías de usuario que expliquen cómo interpretar la información de progreso y los resultados de la evaluación ética.
+- Implementar módulos específicos para mejorar la adaptación de MALLO al contexto judicial colombiano.
 
 ## [2.1.0] - 2024-10-02
 
