@@ -219,9 +219,12 @@ def process_user_input(user_input: str, config: Dict[str, Any], agent_manager: A
                 abordando cualquier preocupación identificada en la evaluación. Asegúrate de que la respuesta sea 
                 transparente sobre el uso de IA, libre de sesgos, y respetuosa de los derechos humanos y la privacidad.
                 """
-                final_response = agent_manager.process_query(enhancement_prompt, 'assistant', specialized_assistant['id'])
+                improved_response = agent_manager.process_query(enhancement_prompt, 'assistant', specialized_assistant['id'])
                 # Reevaluar después de la mejora
-                ethical_evaluation = evaluate_ethical_compliance(final_response, prompt_type)
+                improved_ethical_evaluation = evaluate_ethical_compliance(improved_response, prompt_type)
+            else:
+                improved_response = None
+                improved_ethical_evaluation = None
 
             final_evaluation = evaluate_response(agent_manager, config, 'final', user_input, final_response)
 
@@ -239,6 +242,8 @@ def process_user_input(user_input: str, config: Dict[str, Any], agent_manager: A
                 "agent_processing": agent_results,
                 "final_evaluation": final_evaluation,
                 "ethical_evaluation": ethical_evaluation,
+                "improved_response": improved_response,
+                "improved_ethical_evaluation": improved_ethical_evaluation,
                 "performance_metrics": {
                     "total_agents_called": len(agent_results),
                     "successful_responses": len(successful_responses),
@@ -254,16 +259,25 @@ def process_user_input(user_input: str, config: Dict[str, Any], agent_manager: A
 
             cache_response(enriched_query, (final_response, details))
 
-            # Mostrar información sobre cumplimiento al usuario
-            st.info("Esta respuesta ha sido evaluada para asegurar su alineación con principios éticos y legales:")
-            st.json(ethical_evaluation)
+            # Mostrar la respuesta final sin alteraciones
+            st.write(final_response)
 
-            st.success("""
-            Esta respuesta ha sido generada utilizando inteligencia artificial y ha pasado por un proceso 
-            de evaluación ética y legal. Se ha verificado su alineación con principios de transparencia, 
-            responsabilidad, privacidad, y respeto a los derechos humanos. Sin embargo, le recordamos que 
-            esta es una herramienta de apoyo y no sustituye el juicio humano en la toma de decisiones.
-            """)
+            # Mostrar información sobre cumplimiento al usuario en un elemento contraíble
+            with st.expander("Evaluación Ética y de Cumplimiento"):
+                st.info("Esta respuesta ha sido evaluada para asegurar su alineación con principios éticos y legales.")
+                st.json(ethical_evaluation)
+                
+                if improved_response:
+                    st.warning("Se realizó una mejora en la respuesta basada en la evaluación ética:")
+                    st.write(improved_response)
+                    st.json(improved_ethical_evaluation)
+
+                st.success("""
+                Esta respuesta ha sido generada utilizando inteligencia artificial y ha pasado por un proceso 
+                de evaluación ética y legal. Se ha verificado su alineación con principios de transparencia, 
+                responsabilidad, privacidad, y respeto a los derechos humanos. Sin embargo, le recordamos que 
+                esta es una herramienta de apoyo y no sustituye el juicio humano en la toma de decisiones.
+                """)
 
             return final_response, details
 

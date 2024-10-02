@@ -4,6 +4,36 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [2.1.0] - 2024-10-02
+
+### Añadido
+- Implementación de evaluación ética y de cumplimiento:
+  - Se ha incorporado la función `evaluate_ethical_compliance` para analizar las respuestas generadas en términos de sesgo, privacidad, transparencia, alineación con derechos humanos, responsabilidad y explicabilidad.
+  - La función `process_user_input` ahora incluye esta evaluación ética y utiliza un asistente especializado (ID: 'asst_F33bnQzBVqQLcjveUTC14GaM') para mejorar las respuestas si se detectan problemas éticos.
+
+### Cambiado
+- Actualización de la función `process_user_input`:
+  - Ahora muestra al usuario información sobre la evaluación ética de las respuestas generadas.
+  - Incluye una declaración de cumplimiento que informa al usuario sobre el uso de IA y la evaluación ética realizada.
+
+### Mejorado
+- Ampliación de las palabras clave relacionadas con la gobernanza de IA, ética en IA, y regulación de IA para mejorar la contextualización de las consultas.
+
+### Justificación de los cambios
+- Estos cambios responden a las últimas recomendaciones y directrices internacionales para la gobernanza de la IA, así como a lo establecido en la sentencia T-323 de 2024 de la Corte Constitucional colombiana.
+- La implementación de la evaluación ética y de cumplimiento busca garantizar que las respuestas generadas por MALLO estén alineadas con principios éticos y legales.
+
+### Impacto esperado
+- Mayor transparencia en el uso de IA para los usuarios del sistema MALLO.
+- Mejora en la alineación de las respuestas generadas con principios éticos y legales.
+- Cumplimiento más riguroso con las normativas y recomendaciones nacionales e internacionales sobre el uso de IA.
+
+### Próximos pasos
+- Realizar pruebas exhaustivas del nuevo sistema de evaluación ética y recopilar feedback de los usuarios.
+- Refinar y ampliar los criterios de evaluación ética basándose en los resultados obtenidos.
+- Explorar la posibilidad de implementar un sistema más avanzado de detección y mitigación de sesgos en las respuestas generadas.
+- Desarrollar un módulo de capacitación para usuarios sobre la interpretación de la evaluación ética y el uso responsable de las respuestas generadas por IA.
+
 ## [2.0.0] - 2024-09-26
 
 ### Añadido
