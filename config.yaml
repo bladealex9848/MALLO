@@ -1174,11 +1174,6 @@ thresholds:
   api_complexity: 0.7  # Umbral para activar API externa
   synthesis_complexity: 0.6  # Umbral para activar síntesis final
 
-utilities:
-  web_search:
-    enabled: true
-    max_results: 5
-
 # Configuración de evaluación de modelos
 evaluation_models:
   initial:
