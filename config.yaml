@@ -1215,3 +1215,13 @@ agent_selection:
   fallback_type: "Asistente de Inteligencia Artificial"
   threshold: 0.6
   validation_model: "command-r-plus"
+
+# Configuración de proveedores de busqueda web
+utilities:
+  web_search:
+    enabled: true
+    max_results: 3
+    search_methods:
+      - you
+      - tavily
+      - duckduckgo

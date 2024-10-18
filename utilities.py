@@ -4,6 +4,7 @@ from duckduckgo_search import DDGS
 import streamlit as st
 import hashlib
 from datetime import datetime, timedelta
+import random
 import requests
 import logging
 import time
@@ -17,6 +18,7 @@ import cohere
 from collections import Counter
 import yaml
 from together import Together
+from tavily import TavilyClient
 
 from load_secrets import load_secrets, get_secret, secrets
 
@@ -188,11 +190,73 @@ def check_local_models(config: Dict[str, Any]) -> bool:
         logging.error(f"Error checking local models: {str(e)}")
         return False
 
+def perform_web_search(query: str, max_retries: int = 3) -> str:
+    search_methods = ['you', 'tavily', 'duckduckgo']
+
+    for method in search_methods:
+        result = None
+        if method == 'you':
+            result = you_search(query)
+        elif method == 'tavily':
+            result = tavily_search(query)
+        elif method == 'duckduckgo':
+            result = duckduckgo_search(query, max_retries)
+
+        if result:
+            return result
+
+    return "No se pudo completar la búsqueda web después de varios intentos."
+
+def you_search(query: str) -> str:
+    try:
+        headers = {"X-API-Key": get_secret("YOU_API_KEY")}
+        params = {"query": query}
+        response = requests.get(
+            "https://api.ydc-index.io/search",
+            params=params,
+            headers=headers,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if 'snippets' in data:
+            return "\n".join([snippet['content'] for snippet in data['snippets'][:3]])
+        return None
+    except Exception as e:
+        logging.error(f"Error in YOU search: {str(e)}")
+        return None
+
+def tavily_search(query: str) -> str:
+    try:
+        client = TavilyClient(api_key=get_secret("TAVILY_API_KEY"))
+        response = client.search(query)
+        if response and 'results' in response:
+            return "\n".join([result['content'] for result in response['results'][:3]])
+        return None
+    except Exception as e:
+        logging.error(f"Error in Tavily search: {str(e)}")
+        return None
+
+def duckduckgo_search(query: str, max_retries: int = 3) -> str:
+    for attempt in range(max_retries):
+        try:
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=3))
+            if results:
+                return "\n".join([result['body'] for result in results])
+            return None
+        except Exception as e:
+            if "Ratelimit" in str(e) and attempt < max_retries - 1:
+                wait_time = (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(wait_time)
+            else:
+                logging.error(f"Error in DuckDuckGo search: {str(e)}")
+                return None
+    return None
+
 def check_web_search() -> bool:
     try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text("test", max_results=1))
-            return len(results) > 0
+        result = perform_web_search("test query")
+        return result is not None
     except Exception as e:
         logging.error(f"Error checking web search: {str(e)}")
         return False
@@ -489,18 +553,6 @@ def select_best_agent(query: str, agents: List[Dict[str, Any]]) -> str:
 def calculate_suitability(query: str, agent: Dict[str, Any]) -> float:
     keywords = agent.get('keywords', [])
     return sum(keyword.lower() in query.lower() for keyword in keywords) / len(keywords) if keywords else 0.5
-
-def perform_web_search(query: str) -> str:
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=3))
-        if results:
-            return "\n".join([result['body'] for result in results])
-        else:
-            return "No se encontraron resultados en la búsqueda web."
-    except Exception as e:
-        logging.error(f"Error in web search: {str(e)}")
-        return "Error al realizar la búsqueda web."
 
 cache = {}
 

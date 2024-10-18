@@ -4,6 +4,53 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [2.3.0] - 2024-10-17
+
+### Añadido
+- Implementación de un sistema de búsqueda web mejorado y robusto:
+  - Se ha integrado la API de YOU como método principal de búsqueda.
+  - Se han añadido Tavily y DuckDuckGo como métodos de recuperación alternativos.
+- Nueva función `perform_web_search` que utiliza múltiples métodos de búsqueda con un sistema de fallback.
+- Integración de la biblioteca Tavily para búsquedas web avanzadas.
+- Nuevo sistema de manejo de errores y reintentos para las búsquedas web.
+
+### Cambiado
+- Actualización de la configuración en `config.yaml` para soportar múltiples métodos de búsqueda web.
+- Modificación de la función `check_web_search` para probar todos los métodos de búsqueda implementados.
+- Refactorización del código de búsqueda web en `utilities.py` para mayor modularidad y eficiencia.
+
+### Mejorado
+- Optimización del rendimiento de las búsquedas web mediante la implementación de múltiples APIs.
+- Mejora en la robustez del sistema frente a fallos en las APIs de búsqueda.
+- Refinamiento del manejo de secretos y claves API para mantener la consistencia en toda la aplicación.
+
+### Corregido
+- Solución al problema de límite de tasa (rate limit) con DuckDuckGo mediante la implementación de retrasos exponenciales y múltiples métodos de búsqueda.
+
+### Seguridad
+- Mejora en el manejo de claves API sensibles utilizando el sistema de secretos existente.
+
+### Documentación
+- Actualización de la documentación interna sobre el uso y configuración de los nuevos métodos de búsqueda web.
+- Adición de comentarios explicativos en el código de `utilities.py` para facilitar futuras modificaciones.
+
+### Justificación de los cambios
+- Estos cambios buscan mejorar la fiabilidad y eficacia del sistema de búsqueda web de MALLO.
+- La implementación de múltiples métodos de búsqueda aumenta la robustez del sistema y reduce la dependencia de un único proveedor.
+- Las mejoras en el manejo de errores y la configuración flexible permiten una adaptación más rápida a cambios en las APIs externas.
+
+### Impacto esperado
+- Mayor fiabilidad en la obtención de información actualizada para las consultas de los usuarios.
+- Reducción de interrupciones del servicio debido a problemas con APIs de búsqueda individuales.
+- Mejora en la calidad y relevancia de las respuestas proporcionadas por MALLO.
+
+### Próximos pasos
+- Realizar pruebas exhaustivas del nuevo sistema de búsqueda web en diferentes escenarios y cargas de trabajo.
+- Monitorear el rendimiento de cada método de búsqueda para optimizar su uso y orden de prioridad.
+- Explorar la posibilidad de añadir más fuentes de búsqueda para aumentar la diversidad de información.
+- Desarrollar un sistema de caché para resultados de búsqueda frecuentes, reduciendo la carga en las APIs externas.
+- Implementar un sistema de retroalimentación para que los usuarios puedan reportar la calidad de las búsquedas web.
+
 ## [2.2.0] - 2024-10-03
 
 ### Añadido
