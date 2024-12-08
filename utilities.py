@@ -300,7 +300,7 @@ def check_mistral_api() -> bool:
 def check_cohere_api() -> bool:
     try:
         client = cohere.Client(api_key=secrets["COHERE_API_KEY"])
-        client.chat(model="command-r-plus", message="Test")
+        client.chat(model="command-r-plus-08-2024", message="Test")
         return True
     except Exception as e:
         logging.error(f"Error checking Cohere API: {str(e)}")
@@ -316,7 +316,7 @@ def check_openrouter_api() -> bool:
                 "X-Title": "MALLO",
             },
             data=json.dumps({
-                "model": "meta-llama/llama-3.2-11b-vision-instruct:free",
+                "model": "google/learnlm-1.5-pro-experimental:free",
                 "messages": [{"role": "user", "content": "Test"}]
             })
         )
