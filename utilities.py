@@ -167,7 +167,7 @@ print(response.choices[0].message.content)
 def check_together_api() -> bool:
     try:
         client = Together(api_key=secrets["TOGETHER_API_KEY"])
-        client.chat.completions.create(model="meta-llama/Llama-Vision-Free", messages=[{"role": "user", "content": "Test"}])
+        client.chat.completions.create(model="Qwen/Qwen2.5-72B-Instruct-Turbo", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
         logging.error(f"Error checking Together API: {str(e)}")
@@ -264,7 +264,7 @@ def check_web_search() -> bool:
 def check_deepinfra_api() -> bool:
     try:
         client = OpenAI(api_key=secrets["DEEPINFRA_API_KEY"], base_url="https://api.deepinfra.com/v1/openai")
-        client.chat.completions.create(model="meta-llama/Meta-Llama-3-8B-Instruct", messages=[{"role": "user", "content": "Test"}])
+        client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
         logging.error(f"Error checking DeepInfra API: {str(e)}")
@@ -300,7 +300,7 @@ def check_mistral_api() -> bool:
 def check_cohere_api() -> bool:
     try:
         client = cohere.Client(api_key=secrets["COHERE_API_KEY"])
-        client.chat(model="command-r-plus-08-2024", message="Test")
+        client.chat(model="command-r7b-12-2024", message="Test")
         return True
     except Exception as e:
         logging.error(f"Error checking Cohere API: {str(e)}")
@@ -316,7 +316,7 @@ def check_openrouter_api() -> bool:
                 "X-Title": "MALLO",
             },
             data=json.dumps({
-                "model": "google/learnlm-1.5-pro-experimental:free",
+                "model": "qwen/qwen-2-7b-instruct:free",
                 "messages": [{"role": "user", "content": "Test"}]
             })
         )

@@ -18,9 +18,54 @@ import polars as pl
 import random
 import logging
 import traceback
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from load_secrets import load_secrets, get_secret, secrets
+
+# CSS personalizado para interfaz moderna - Añadir después de set_streamlit_page_config()
+st.markdown("""
+<style>
+    .main {
+        background-color: transparent !important;
+    }
+    .stApp {
+        background-color: transparent !important;
+    }
+    .stMarkdown h1 {
+        color: inherit;
+    }
+    .stChatMessage {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .export-button {
+        background-color: rgba(240, 242, 246, 0.1);
+        border: none;
+        border-radius: 5px;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        cursor: pointer;
+    }
+    .ethical-evaluation {
+        background-color: rgba(248, 249, 250, 0.05);
+        border-left: 4px solid #00cc66;
+        padding: 1rem;
+    }
+    .reasoning-chain {
+        background-color: rgba(248, 249, 250, 0.05);
+        border-left: 4px solid #0066cc;
+        padding: 1rem;
+    }
+    div[data-testid="stExpander"] {
+        border: 1px solid rgba(240, 242, 246, 0.1);
+        border-radius: 10px;
+        margin-top: 0.5rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Carga todos los secretos al inicio de la aplicación
 load_secrets()
@@ -351,116 +396,176 @@ def summarize_conversation(previous_context, user_input, response, agent_manager
         return summary
     
     return updated_context
-    
-def main():
-    try:
-        config = load_config()
-        system_status = initialize_system(config)
-        agent_manager = AgentManager(config)
 
-        st.title("MALLO: MultiAgent LLM Orchestrator")
+def initialize_session_state():
+    """
+    Inicializa el estado de la sesión con valores predeterminados.
+    """
+    if 'messages' not in st.session_state:
+        st.session_state['messages'] = []
+    if 'context' not in st.session_state:
+        st.session_state['context'] = ""
+    if 'show_settings' not in st.session_state:
+        st.session_state['show_settings'] = False
 
-        st.write("""
+def render_sidebar_content(system_status: Dict[str, bool], speed_test_results: Optional[Dict]):
+    """
+    Renderiza el contenido de la barra lateral con diseño mejorado.
+    """
+    with st.sidebar:
+        # Cabecera
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.image("assets/logo.jpg", width=50)
+        with col2:
+            st.markdown("### MALLO")
+            st.caption("MultiAgent LLM Orchestrator")
+
+        # Métricas principales
+        st.markdown("---")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Agentes", "10+")
+        with col2:
+            st.metric("Modelos", "20+")
+
+        # Enlaces principales
+        st.markdown("""
         [![ver código fuente](https://img.shields.io/badge/Repositorio%20GitHub-gris?logo=github)](https://github.com/bladealex9848/MALLO)
         ![Visitantes](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fmallollm.streamlit.app&label=Visitantes&labelColor=%235d5d5d&countColor=%231e7ebf&style=flat)
         """)
 
-        st.write("""
-        MALLO es un sistema avanzado de orquestación de múltiples agentes de IA, diseñado para proporcionar respuestas precisas y adaptativas. Características clave:
-
-        - **Diversidad de Modelos**: Integra modelos locales y APIs de última generación (OpenAI, Anthropic, Groq, etc.).
-        - **Asistentes Especializados**: Expertos en diversos campos como derecho, tecnología y ciencias.
-        - **Análisis Contextual**: Evalúa cada consulta para seleccionar la mejor estrategia de respuesta.
-        - **Prompts Adaptados**: Mejora la precisión con prompts específicos por tipo de consulta.
-        - **Selección Inteligente**: Prioriza agentes según especialidades y capacidades.
-        - **Búsqueda Web**: Enriquece respuestas con información actualizada.
-        - **Meta-análisis**: Sintetiza respuestas de múltiples fuentes para mayor precisión.
-        - **Evaluación Ética**: Asegura el cumplimiento de principios éticos y legales.
-        - **Optimización**: Utiliza caché y estrategias de eficiencia en el uso de recursos.
-
-        MALLO orquesta una sinergia de conocimientos para ofrecer la mejor solución a cada consulta, adaptándose continuamente para mejorar su rendimiento.
-        """)
-
-        st.sidebar.title("Estado del Sistema")
-        for key, value in system_status.items():
-            st.sidebar.text(f"{key}: {'✅' if value else '❌'}")
+        # Estado del Sistema
+        with st.expander("🔧 Sistema", expanded=False):
+            st.caption("Estado de los componentes")
+            for key, value in system_status.items():
+                if value:
+                    st.success(key, icon="✅")
+                else:
+                    st.error(key, icon="❌")
             
+            if speed_test_results:
+                st.markdown("##### Rendimiento")
+                display_speed_test_results(speed_test_results)
+
+        # Capacidades
+        with st.expander("💡 Capacidades", expanded=False):
+            features = {
+                "🤖 Múltiples Modelos": "Integración con principales proveedores de IA",
+                "🔍 Análisis Contextual": "Comprensión profunda de consultas",
+                "🌐 Búsqueda Web": "Información actualizada en tiempo real",
+                "⚖️ Evaluación Ética": "Respuestas alineadas con principios éticos",
+                "🔄 Meta-análisis": "Síntesis de múltiples fuentes",
+                "🎯 Prompts Adaptados": "Especialización por tipo de consulta"
+            }
+            
+            for title, description in features.items():
+                st.markdown(f"**{title}**")
+                st.caption(description)
+
+        # Acerca de
+        with st.expander("ℹ️ Acerca de", expanded=False):
+            st.markdown("""
+            MALLO es un orquestador avanzado de IAs que selecciona y coordina 
+            múltiples modelos de lenguaje para proporcionar respuestas óptimas 
+            basadas en el contexto y complejidad de cada consulta.
+            """)
+
+        # Desarrollador
+        st.markdown("---")
+        st.markdown("### 👨‍💻 Desarrollador")
+        
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.image("assets/profile.jpg", width=60)  # Asegúrate de tener esta imagen de perfil en la carpeta assets
+        with col2:
+            st.markdown("#### Alexander Oviedo Fadul")
+            st.caption("Developer & Legal Tech")
+
+        # Enlaces sociales
+        social_links = {
+            "🌐 Website": "https://alexanderoviedofadul.dev",
+            "💼 LinkedIn": "https://linkedin.com/in/alexander-oviedo-fadul",
+            "📱 WhatsApp": "https://wa.me/573015930519"
+        }
+        
+        for platform, link in social_links.items():
+            st.markdown(f"[{platform}]({link})")
+        
+def render_response_details(details: Dict):
+    """
+    Renderiza los detalles de la respuesta en expansores organizados.
+    """
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        with st.expander("💭 Proceso de Razonamiento", expanded=False):
+            st.markdown(details["initial_evaluation"])
+            st.download_button(
+                "📥 Exportar Razonamiento",
+                details["initial_evaluation"],
+                "razonamiento.md",
+                mime="text/markdown"
+            )
+
+    with col2:
+        with st.expander("⚖️ Evaluación Ética", expanded=False):
+            st.json(details["ethical_evaluation"])
+            if details.get("improved_response"):
+                st.info("Respuesta mejorada éticamente:")
+                st.write(details["improved_response"])
+    
+def main():
+    try:
+        # Inicialización
+        initialize_session_state()
+        config = load_config()
+        system_status = initialize_system(config)
+        agent_manager = AgentManager(config)
         speed_test_results = load_speed_test_results()
-        if speed_test_results:
-            display_speed_test_results(speed_test_results)
-        else:
-            st.sidebar.warning("No se encontraron resultados de pruebas de velocidad.")
 
-        if 'messages' not in st.session_state:
-            st.session_state['messages'] = []
-        if 'context' not in st.session_state:
-            st.session_state['context'] = ""
+        # Renderizar barra lateral
+        render_sidebar_content(system_status, speed_test_results)
 
+        # Interfaz principal minimalista
+        st.title("MALLO: MultiAgent LLM Orchestrator")
+
+        # Chat interface
         for message in st.session_state['messages']:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
+                if message["role"] == "assistant":
+                    with st.expander("💡 Opciones", expanded=False):
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                "📥 Exportar Respuesta",
+                                message["content"],
+                                "respuesta.md",
+                                mime="text/markdown"
+                            )
 
         user_input = st.chat_input("¿En qué puedo ayudarte hoy?")
 
         if user_input:
             response, details = process_user_input(user_input, config, agent_manager)
+            
             if response:
                 st.session_state['messages'].append({"role": "user", "content": user_input})
                 st.session_state['messages'].append({"role": "assistant", "content": response})
 
-                # Mostrar solo la pregunta y respuesta en el chat
-                with st.chat_message("user"):
-                    st.markdown(user_input)
                 with st.chat_message("assistant"):
                     st.markdown(response)
+                    render_response_details(details)
 
-                # Mostrar detalles del proceso en un expander
-                with st.expander("Detalles del proceso"):
-                    st.json(details)
-
-                # Mostrar evaluación ética y de cumplimiento en otro expander
-                with st.expander("Evaluación Ética y de Cumplimiento"):
-                    st.info("Esta respuesta ha sido evaluada para asegurar su alineación con principios éticos y legales.")
-                    st.json(details["ethical_evaluation"])
-                    
-                    if details["improved_response"]:
-                        st.warning("Se realizó una mejora en la respuesta basada en la evaluación ética:")
-                        st.write(details["improved_response"])
-                        st.json(details["improved_ethical_evaluation"])
-
-                    st.success("""
-                    Esta respuesta ha sido generada utilizando inteligencia artificial y ha pasado por un proceso 
-                    de evaluación ética y legal. Se ha verificado su alineación con principios de transparencia, 
-                    responsabilidad, privacidad, y respeto a los derechos humanos. Sin embargo, le recordamos que 
-                    esta es una herramienta de apoyo y no sustituye el juicio humano en la toma de decisiones.
-                    """)
-
-                # Mostrar el contexto actual (opcional, para depuración)
-                with st.expander("Contexto de la conversación"):
-                    st.text(st.session_state['context'])
-
-        st.sidebar.title("Acerca de MALLO")
-        st.sidebar.info("""
-        MALLO utiliza una variedad de agentes, búsqueda web y modelos para procesar consultas.
-        La selección del agente se basa en la naturaleza de la consulta y la disponibilidad de recursos.
-        """)
-
-        st.sidebar.markdown('---')
-        st.sidebar.subheader('Creado por:')
-        st.sidebar.markdown('Alexander Oviedo Fadul')
-        st.sidebar.markdown(
-            "[GitHub](https://github.com/bladealex9848) | "
-            "[Website](https://alexanderoviedofadul.dev/) | "
-            "[LinkedIn](https://www.linkedin.com/in/alexander-oviedo-fadul/) | "
-            "[Instagram](https://www.instagram.com/alexander.oviedo.fadul) | "
-            "[Twitter](https://twitter.com/alexanderofadul) | "
-            "[Facebook](https://www.facebook.com/alexanderof/) | "
-            "[WhatsApp](https://api.whatsapp.com/send?phone=573015930519&text=Hola%20!Quiero%20conversar%20contigo!%20)"
-        )
+    except Exception as e:
+        logging.error(f"Error en la aplicación principal: {str(e)}")
+        logging.error(traceback.format_exc())
+        st.error("Ha ocurrido un error. Por favor, recarga la página o contacta al soporte.")       
 
     except Exception as e:
         log_error(f"Se ha producido un error inesperado: {str(e)}")
-        st.error("Se ha producido un error inesperado. Por favor, recarga la página o contacta al soporte técnico.")
+        st.error("Se ha producido un error inesperado. Por favor, recarga la página o contacta al soporte técnico.")    
 
 if __name__ == "__main__":
     main()

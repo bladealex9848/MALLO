@@ -1,275 +1,45 @@
-# Configuración de modelos locales (Ollama)
-ollama:
-  base_url: "http://localhost:11434"
-  default_model: "phi3.5:latest"
-  models:
-    - name: "codegemma:2b"
-      specialty: "general"
-      capabilities: ["compact_size", "efficient_inference"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "qwen2.5:0.5b"
-      specialty: "general"
-      capabilities: ["instruction_following", "compact_size"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "qwen2.5:1.5b"
-      specialty: "general"
-      capabilities: ["instruction_following", "efficient_inference"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "qwen2.5:3b"
-      specialty: "general"
-      capabilities: ["instruction_following", "large_context"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "qwen2.5:latest"
-      specialty: "general"
-      capabilities: ["instruction_following", "chinese_language_proficiency"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "llama3.2:latest"
-      specialty: "general"
-      capabilities: ["advanced_reasoning", "large_context"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-
-    - name: "minicpm-v:latest"
-      specialty: "general"
-      capabilities: ["large_model", "efficient_inference"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "phi3.5:latest"
-      specialty: "general"
-      capabilities: ["instruction_following", "diverse_tasks"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "gemma2:2b"
-      specialty: "general"
-      capabilities: ["compact_size", "efficient_inference"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "llava:latest"
-      specialty: "multimodal"
-      capabilities: ["vision_language", "image_understanding"]
-      prompt_types: ["multimodal", "general", "visual_analysis"]
-
-# Configuration de OpenAI
-openai:
-  default_model: "gpt-4o-mini"
-  models:  
-    - name: "gpt-4o-mini"
-      specialty: "general"
-      capabilities: ["fast_inference", "broad_knowledge", "multimodal_understanding"] # Assuming gpt-4o-mini supports images and potentially other modalities
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "multimodal"]
-  master_model: "gpt-4o-mini"
-
-# Configuración de Groq
-groq:
-  fast_model: "llama-3.3-70b-versatile"
-  default_model: "llama-3.3-70b-versatile"
-  models:
-    - name: "llama-3.3-70b-versatile"
-      specialty: "general"
-      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
-      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "llama-3.1-70b-versatile"
-      specialty: "general"
-      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
-      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
-    - name: "llama-3.2-90b-text-preview"
-      specialty: "general"
-      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
-      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "whisper-large-v3"
-      specialty: "audio_transcription"
-      capabilities: ["speech_to_text", "multi_language"]
-      prompt_types: ["audio_transcription"]
-    - name: "distil-whisper-large-v3-en"
-      specialty: "audio_transcription"
-      capabilities: ["speech_to_text", "english_optimized"]
-      prompt_types: ["audio_transcription"]
-    - name: "llama3-groq-8b-8192-tool-use-preview"
-      specialty: "general"
-      capabilities: ["tool_use", "fast_response"]
-      prompt_types: ["general", "tool_use"]
-    - name: "gemma2-9b-it"
-      specialty: "general"
-      capabilities: ["instruction_following", "medium_size", "italian_language_proficiency"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "llama3-8b-8192"
-      specialty: "general"
-      capabilities: ["fast_response", "medium_context"]
-    - name: "llama-3.1-8b-instant"
-      specialty: "general"
-      capabilities: ["instant_response", "low_latency"]
-    - name: "llama-3.2-11b-text-preview"
-      specialty: "general"
-      capabilities: ["instant_response", "low_latency"]  
-    - name: "gemma-7b-it"
-      specialty: "general"
-      capabilities: ["instruction_following", "compact_size", "italian_language_proficiency"]
-    - name: "llama3-70b-8192"
-      specialty: "general"
-      capabilities: ["large_context", "advanced_reasoning"]
-    - name: "llava-v1.5-7b-4096-preview"
-      specialty: "multimodal"
-      capabilities: ["vision_language", "medium_size"]
-      prompt_types: ["multimodal"]
-    - name: "mixtral-8x7b-32768"
-      specialty: "general"
-      capabilities: ["large_context", "diverse_knowledge"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "llama3-groq-70b-8192-tool-use-preview"
-      specialty: "tool_use"
-      capabilities: ["advanced_reasoning", "large_context"]
-      prompt_types: ["tool_use", "general"]
-    - name: "llama-guard-3-8b"
-      specialty: "content_moderation"
-      capabilities: ["safety_checks", "fast_response"] 
-      prompt_types: ["content_moderation"]
-  max_tokens: 8000
-  temperature: 0.7
-
-# Configuración de DeepInfra
-deepinfra:
-  fast_models: "mistralai/Mistral-Nemo-Instruct-2407"
-  default_model: "Qwen/Qwen2.5-72B-Instruct"
-  models:
-    - name: "Qwen/Qwen2.5-72B-Instruct"
-      specialty: "math"
-      capabilities: ["instruction_following", "efficient_inference"]
-      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
-    - name: "Qwen/Qwen2.5-Coder-7B"
-      specialty: "coding"
-      capabilities: ["code_generation", "technical_analysis"]
-      prompt_types: ["coding"]
-    - name: "mistralai/Mistral-Nemo-Instruct-2407"
-      specialty: "general"
-      capabilities: ["instruction_following", "fast_response"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "meta-llama/Llama-3.2-90B-Vision-Instruct"
-      specialty: "general"
-      capabilities: ["advanced_reasoning", "large_scale"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "meta-llama/Llama-3.2-11B-Vision-Instruct"
-      specialty: "general"
-      capabilities: ["instruction_following", "large_scale"] 
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "microsoft/WizardLM-2-8x22B"
-      specialty: "general"
-      capabilities: ["large_scale", "diverse_tasks"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "mistralai/Mixtral-8x7B-Instruct-v0.1"
-      specialty: "general"
-      capabilities: ["instruction_following", "multi_task"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "meta-llama/Meta-Llama-3.1-8B-Instruct"
-      specialty: "general"
-      capabilities: ["instruction_optimized", "compact_size"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
-    - name: "Gryphe/MythoMax-L2-13b"
-      specialty: "creative"
-      capabilities: ["storytelling", "imaginative_tasks"]
-      prompt_types: ["creative", "cultural"]    
-    - name: "lizpreciatior/lzlv_70b_fp16_hf"
-      specialty: "general"
-      capabilities: ["versatile_tasks", "large_scale"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
-
-# Configuración de Together
-together:
-  fast_models: "meta-llama/Llama-Vision-Free"
-  default_model: "meta-llama/Llama-Vision-Free"
-  models:
-    - name: "meta-llama/Llama-Vision-Free"
-      specialty: "general"
-      capabilities: ["fast_inference", "broad_knowledge", "multimodal_understanding"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "multimodal"]
-    - name: "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo"
-      specialty: "general"
-      capabilities: ["instruction_following", "large_scale", "chinese_language_proficiency"] 
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "meta-llama/Llama-3.2-3B-Instruct-Turbo"
-      specialty: "general"
-      capabilities: ["instruction_tuned", "medium_scale", "italian_language_proficiency"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "Gryphe/MythoMax-L2-13b-Lite"
-      specialty: "general"
-      capabilities: ["fast_inference", "instruction_optimized"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "mistralai/Mistral-7B-Instruct-v0.3"
-      specialty: "general"
-      capabilities: ["conversational", "large_scale"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-  max_tokens: 512
-  temperature: 0.7
-
-# Configuración de Anthropic
-anthropic:
-  fast_models: "claude-3-haiku-20240307"
-  default_model: "claude-3-haiku-20240307"
-  models:    
-    - name: "claude-3-haiku-20240307"
-      specialty: "general"
-      capabilities: ["fast_response", "concise_output"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-# Configuración de DeepSeek
-deepseek:
-  fast_models: "deepseek-chat"
-  default_model: "deepseek-chat"
-  models:
-    - name: "deepseek-chat"
-      specialty: "general"
-      capabilities: ["conversational", "broad_knowledge"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "deepseek-coder"
-      specialty: "coding"
-      capabilities: ["code_generation", "technical_analysis"]
-      prompt_types: ["coding"]
-
 # Configuración de OpenRouter
 openrouter:
-  fast_models: "google/learnlm-1.5-pro-experimental:free"
-  default_model: "google/learnlm-1.5-pro-experimental:free"
+  fast_models: "google/gemini-2.0-flash-thinking-exp:free"
+  default_model: "deepseek/deepseek-r1:free"
   models:
+    - name: "deepseek/deepseek-r1:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+    
+    - name: "google/gemini-2.0-flash-thinking-exp:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+    
+    - name: "google/gemini-2.0-flash-thinking-exp-1219:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+    
+    - name: "google/gemini-2.0-flash-exp:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+    
     - name: "google/gemini-exp-1206:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "google/gemini-exp-1121:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "google/learnlm-1.5-pro-experimental:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "google/gemini-exp-1114:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "meta-llama/llama-3.2-90b-vision-instruct:free"
       specialty: "analytical"
       capabilities: [
         "vision_understanding",
@@ -288,7 +58,7 @@ openrouter:
       ]
       prompt_types: ["analytical", "philosophical", "ethical", "visual"]
     
-    - name: "google/gemini-flash-1.5-exp"
+    - name: "google/learnlm-1.5-pro-experimental:free"
       specialty: "general"
       capabilities: [
         "fast_inference",
@@ -297,7 +67,7 @@ openrouter:
       ]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
     
-    - name: "google/gemini-pro-1.5-exp"
+    - name: "google/gemini-exp-1114:free"
       specialty: "general"
       capabilities: [
         "advanced_reasoning",
@@ -337,6 +107,179 @@ openrouter:
 
 temperature: 0.7
 
+# Configuración de Groq
+groq:
+  fast_model: "deepseek-r1-distill-llama-70b"
+  default_model: "deepseek-r1-distill-llama-70b"
+  models:
+    - name: "llama-3.3-70b-versatile"
+      specialty: "general"
+      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
+      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "llama-3.2-90b-vision-preview"
+      specialty: "general"
+      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
+      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
+    - name: "deepseek-r1-distill-llama-70b"
+      specialty: "general"
+      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
+      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "whisper-large-v3"
+      specialty: "audio_transcription"
+      capabilities: ["speech_to_text", "multi_language"]
+      prompt_types: ["audio_transcription"]
+    - name: "distil-whisper-large-v3-en"
+      specialty: "audio_transcription"
+      capabilities: ["speech_to_text", "english_optimized"]
+      prompt_types: ["audio_transcription"]
+    - name: "whisper-large-v3-turbo"
+      specialty: "general"
+      capabilities: ["tool_use", "fast_response"]
+      prompt_types: ["general", "tool_use"]
+    - name: "gemma2-9b-it"
+      specialty: "general"
+      capabilities: ["instruction_following", "medium_size", "italian_language_proficiency"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "llama3-8b-8192"
+      specialty: "general"
+      capabilities: ["fast_response", "medium_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "llama-3.1-8b-instant"
+      specialty: "general"
+      capabilities: ["instant_response", "low_latency"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "llama-3.2-11b-vision-preview"
+      specialty: "multimodal"
+      capabilities: ["vision_language", "medium_size"]
+      prompt_types: ["multimodal"]  
+    - name: "gemma-7b-it"
+      specialty: "general"
+      capabilities: ["instruction_following", "compact_size", "italian_language_proficiency"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "llama3-70b-8192"
+      specialty: "general"
+      capabilities: ["large_context", "advanced_reasoning"]  
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]  
+    - name: "mixtral-8x7b-32768"
+      specialty: "general"
+      capabilities: ["large_context", "diverse_knowledge"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
+  max_tokens: 8000
+  temperature: 0.7
+
+# Configuración de DeepInfra
+deepinfra:
+  fast_models: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B"
+  default_model: "Qwen/QwQ-32B-Preview"
+  models:
+    - name: "Qwen/Qwen2.5-72B-Instruct"
+      specialty: "math"
+      capabilities: ["instruction_following", "efficient_inference"]
+      prompt_types: ["general", "math", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
+    - name: "Qwen/Qwen2.5-Coder-32B-Instruct"
+      specialty: "coding"
+      capabilities: ["code_generation", "technical_analysis"]
+      prompt_types: ["coding"]
+    - name: "meta-llama/Llama-3.3-70B-Instruct"
+      specialty: "general"
+      capabilities: ["instruction_following", "fast_response"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "large_scale"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B"
+      specialty: "general"
+      capabilities: ["instruction_following", "large_scale"] 
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "microsoft/phi-4"
+      specialty: "general"
+      capabilities: ["large_scale", "diverse_tasks"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "microsoft/WizardLM-2-8x22B"
+      specialty: "general"
+      capabilities: ["instruction_following", "multi_task"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "deepseek-ai/DeepSeek-V3"
+      specialty: "general"
+      capabilities: ["instruction_optimized", "compact_size"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
+    - name: "Qwen/QwQ-32B-Preview"
+      specialty: "creative"
+      capabilities: ["storytelling", "imaginative_tasks"]
+      prompt_types: ["creative", "cultural"]    
+    - name: "deepseek-ai/DeepSeek-R1"
+      specialty: "general"
+      capabilities: ["versatile_tasks", "large_scale"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
+
+# Configuración de Together
+together:
+  fast_models: "Qwen/QwQ-32B-Preview"
+  default_model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free"
+  models:
+    - name: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
+      specialty: "general"
+      capabilities: ["fast_inference", "broad_knowledge", "multimodal_understanding"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "multimodal"]
+    - name: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free"
+      specialty: "general"
+      capabilities: ["instruction_following", "large_scale", "chinese_language_proficiency"] 
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "Qwen/Qwen2.5-72B-Instruct-Turbo"
+      specialty: "general"
+      capabilities: ["instruction_tuned", "medium_scale", "italian_language_proficiency"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "Qwen/Qwen2.5-Coder-32B-Instruct"
+      specialty: "coding"
+      capabilities: ["code_generation", "technical_analysis"]
+      prompt_types: ["coding"]
+    - name: "Qwen/QwQ-32B-Preview"
+      specialty: "general"
+      capabilities: ["conversational", "large_scale"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+  max_tokens: 512
+  temperature: 0.7
+
+# Configuración de Anthropic
+anthropic:
+  fast_models: "claude-3-haiku-20240307"
+  default_model: "claude-3-haiku-20240307"
+  models:    
+    - name: "claude-3-haiku-20240307"
+      specialty: "general"
+      capabilities: ["fast_response", "concise_output"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+# Configuration de OpenAI
+openai:
+  default_model: "gpt-4o-mini"
+  models:  
+    - name: "gpt-4o-mini"
+      specialty: "general"
+      capabilities: ["fast_inference", "broad_knowledge", "multimodal_understanding"] # Assuming gpt-4o-mini supports images and potentially other modalities
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "multimodal"]
+  master_model: "gpt-4o-mini"
+
+# Configuración de DeepSeek
+deepseek:
+  fast_models: "deepseek-chat"
+  default_model: "deepseek-chat"
+  models:
+    - name: "deepseek-chat"
+      specialty: "general"
+      capabilities: ["conversational", "broad_knowledge"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "deepseek-coder"
+      specialty: "coding"
+      capabilities: ["code_generation", "technical_analysis"]
+      prompt_types: ["coding"]
+    - name: "deepseek-reasoner"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "large_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]   
+
+
   # Configuración de Mistral
 mistral:
   fast_models: "open-mistral-nemo"
@@ -353,13 +296,87 @@ mistral:
 
 # Configuración de Cohere
 cohere:
-  fast_models: "command-r-plus-08-2024"
+  fast_models: "command-r7b-12-2024"
   default_model: "command-r-plus-08-2024"
   models:
     - name: "command-r-plus-08-2024"
       specialty: "general"
       capabilities: ["instruction_following", "diverse_tasks"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "command-r7b-12-2024"
+      specialty: "general"
+      capabilities: ["instruction_following", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+# Configuración de modelos locales (Ollama)
+ollama:
+  base_url: "http://localhost:11434"
+  default_model: "phi3.5:latest"
+  models:
+    - name: "codegemma:2b"
+      specialty: "general"
+      capabilities: ["compact_size", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:0.5b"
+      specialty: "general"
+      capabilities: ["instruction_following", "compact_size"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:1.5b"
+      specialty: "general"
+      capabilities: ["instruction_following", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:3b"
+      specialty: "general"
+      capabilities: ["instruction_following", "large_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5:latest"
+      specialty: "general"
+      capabilities: ["instruction_following", "chinese_language_proficiency"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "qwen2.5-coder:latest"
+      specialty: "coding"
+      capabilities: ["code_generation", "technical_analysis"]
+      prompt_types: ["coding"]
+
+    - name: "llama3.2:latest"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "large_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+
+    - name: "minicpm-v:latest"
+      specialty: "general"
+      capabilities: ["large_model", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "phi3.5:latest"
+      specialty: "general"
+      capabilities: ["instruction_following", "diverse_tasks"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "phi4:latest"
+      specialty: "general"
+      capabilities: ["instruction_following", "diverse_tasks"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "gemma2:2b"
+      specialty: "general"
+      capabilities: ["compact_size", "efficient_inference"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "llava:latest"
+      specialty: "multimodal"
+      capabilities: ["vision_language", "image_understanding"]
+      prompt_types: ["multimodal", "general", "visual_analysis"]    
+
+    - name: "deepseek-r1:latest"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "large_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
 
 # Configuración de prompts de análisis crítico
 critical_analysis:
@@ -1210,25 +1227,25 @@ thresholds:
 evaluation_models:
   initial:
     api: "groq"
-    model: "llama-3.2-90b-text-preview"
+    model: "deepseek-r1-distill-llama-70b"
     backup_api: "openrouter"
-    backup_model: "google/gemini-pro-1.5-exp"
+    backup_model: "deepseek/deepseek-r1:free"
     backup_api2: "openai"
     backup_model2: "gpt-4o-mini"    
   final:
     api: "deepinfra"
-    model: "Qwen/Qwen2.5-72B-Instruct"
-    backup_api: "anthropic"
-    backup_model: "claude-3-haiku-20240307"
+    model: "Qwen/QwQ-32B-Preview"
+    backup_api: "groq"
+    backup_model: "deepseek-r1-distill-llama-70b"
     backup_api2: "deepseek"
-    backup_model2: "deepseek-chat"
+    backup_model2: "deepseek-reasoner"
   meta_analysis:
     api: "deepinfra"
     model: "Qwen/Qwen2.5-72B-Instruct"
     backup_api: "openai"
     backup_model: "gpt-4o-mini"
     backup_api2: "deepseek"
-    backup_model2: "deepseek-chat"    
+    backup_model2: "deepseek-reasoner"    
 
 # Configuración de selección de prompts para los agentes
 prompt_selection:
