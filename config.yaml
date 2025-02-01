@@ -124,6 +124,18 @@ groq:
       specialty: "general"
       capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
       prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    - name: "whisper-large-v3"
+      specialty: "audio_transcription"
+      capabilities: ["speech_to_text", "multi_language"]
+      prompt_types: ["audio_transcription"]
+    - name: "distil-whisper-large-v3-en"
+      specialty: "audio_transcription"
+      capabilities: ["speech_to_text", "english_optimized"]
+      prompt_types: ["audio_transcription"]
+    - name: "whisper-large-v3-turbo"
+      specialty: "general"
+      capabilities: ["tool_use", "fast_response"]
+      prompt_types: ["general", "tool_use"]
     - name: "gemma2-9b-it"
       specialty: "general"
       capabilities: ["instruction_following", "medium_size", "italian_language_proficiency"]
