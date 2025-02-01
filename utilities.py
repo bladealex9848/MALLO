@@ -265,10 +265,10 @@ def check_web_search() -> bool:
 def check_deepinfra_api() -> bool:
     try:
         client = OpenAI(api_key=secrets["DEEPINFRA_API_KEY"], base_url="https://api.deepinfra.com/v1/openai")
-        client.chat.completions.create(model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", messages=[{"role": "user", "content": "Test"}])
+        client.chat.completions.create(model="Qwen/Qwen2.5-72B-Instruct", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
-        logging.error(f"Error checking DeepInfra API: {str(e)}")
+        logging.error(f"Error checking DeepInfra API: {str(e)}")1
         return False
 
 def check_anthropic_api() -> bool:
