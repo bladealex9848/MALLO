@@ -268,7 +268,7 @@ def check_deepinfra_api() -> bool:
         client.chat.completions.create(model="Qwen/Qwen2.5-72B-Instruct", messages=[{"role": "user", "content": "Test"}])
         return True
     except Exception as e:
-        logging.error(f"Error checking DeepInfra API: {str(e)}")1
+        logging.error(f"Error checking DeepInfra API: {str(e)}")
         return False
 
 def check_anthropic_api() -> bool:
