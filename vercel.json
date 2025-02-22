@@ -2,10 +2,11 @@
     "version": 2,
     "builds": [
       {
-        "src": "main.py",
+        "src": "main.py",  
         "use": "@vercel/python",
         "config": {
-          "runtime": "python3.10"
+          "maxLambdaSize": "15mb", 
+          "runtime": "python3.9" 
         }
       }
     ],
@@ -14,5 +15,11 @@
         "src": "/(.*)",
         "dest": "main.py"
       }
-    ]
+    ],
+    "build": {
+      "env": {
+        "PIP_UPGRADE": "1",
+        "SETUPTOOLS_VERSION": "69.5.1" 
+      }
+    }
   }
