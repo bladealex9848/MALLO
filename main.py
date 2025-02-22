@@ -163,6 +163,32 @@ def initialize_session_state():
         if key not in st.session_state:
             st.session_state[key] = value
 
+def render_response_details(details: Dict):
+    """Renderiza los detalles de la respuesta de manera organizada."""
+    if not details:
+        return
+
+    # Información general
+    st.markdown("#### 📊 Métricas de Rendimiento")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Tiempo", f"{float(details['processing_time'].split()[0]):.2f}s")
+    with col2:
+        st.metric("Agentes", str(details['performance_metrics']['total_agents_called']))
+    with col3:
+        st.metric("Complejidad", f"{details['complexity']:.2f}")
+
+    # Razonamiento
+    st.markdown("#### 💭 Proceso de Razonamiento")
+    st.markdown(details["initial_evaluation"])
+    
+    # Evaluación ética
+    st.markdown("#### ⚖️ Evaluación Ética")
+    st.json(details["ethical_evaluation"])
+    if details.get("improved_response"):
+        st.info("Respuesta mejorada éticamente:")
+        st.write(details["improved_response"])
+
 def export_conversation_to_md(messages, details):
     """Exporta la conversación completa a Markdown."""
     md_content = "# Conversación con MALLO\n\n"
@@ -189,6 +215,7 @@ def export_conversation_to_md(messages, details):
                 md_content += f"#### 🌐 Contexto de la Conversación\n\n{st.session_state.get('context', 'No disponible')}\n\n"
                 md_content += "---\n\n"
 
+    # Escribir el contenido al archivo temporal
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     filename = f"mallo_conversation_{timestamp}.md"
     temp_dir = "temp"
@@ -198,28 +225,11 @@ def export_conversation_to_md(messages, details):
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(md_content)
     
-    return filepath, filename
-
-def render_response_details(details: Dict):
-    """Renderiza los detalles de la respuesta en expansores organizados."""
-    col1, col2 = st.columns(2)
+    # Leer el contenido para devolverlo
+    with open(filepath, "r", encoding="utf-8") as f:
+        content = f.read()
     
-    with col1:
-        with st.expander("💭 Proceso de Razonamiento", expanded=False):
-            st.markdown(details["initial_evaluation"])
-            st.download_button(
-                "📥 Exportar Razonamiento",
-                details["initial_evaluation"],
-                "razonamiento.md",
-                mime="text/markdown"
-            )
-    
-    with col2:
-        with st.expander("⚖️ Evaluación Ética", expanded=False):
-            st.json(details["ethical_evaluation"])
-            if details.get("improved_response"):
-                st.info("Respuesta mejorada éticamente:")
-                st.write(details["improved_response"])
+    return content, filename
 
 def render_sidebar_content(system_status: Dict[str, bool], speed_test_results: Optional[Dict]):
     """Renderiza el contenido de la barra lateral con diseño mejorado."""
