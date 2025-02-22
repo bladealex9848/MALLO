@@ -1233,17 +1233,17 @@ evaluation_models:
     backup_api2: "openai"
     backup_model2: "gpt-4o-mini"    
   final:
-    api: "deepinfra"
-    model: "Qwen/QwQ-32B-Preview"
+    api: "openai"
+    model: "gpt-4o-mini"
     backup_api: "groq"
     backup_model: "deepseek-r1-distill-llama-70b"
     backup_api2: "deepseek"
     backup_model2: "deepseek-reasoner"
   meta_analysis:
-    api: "deepinfra"
-    model: "Qwen/Qwen2.5-72B-Instruct"
-    backup_api: "openai"
-    backup_model: "gpt-4o-mini"
+    api: "openai"
+    model: "gpt-4o-mini"
+    backup_api: "deepinfra"
+    backup_model: "Qwen/Qwen2.5-72B-Instruct"
     backup_api2: "deepseek"
     backup_model2: "deepseek-reasoner"    
 
