@@ -168,26 +168,40 @@ def render_response_details(details: Dict):
     if not details:
         return
 
-    # Información general
-    st.markdown("#### 📊 Métricas de Rendimiento")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Tiempo", f"{float(details['processing_time'].split()[0]):.2f}s")
-    with col2:
-        st.metric("Agentes", str(details['performance_metrics']['total_agents_called']))
-    with col3:
-        st.metric("Complejidad", f"{details['complexity']:.2f}")
-
-    # Razonamiento
-    st.markdown("#### 💭 Proceso de Razonamiento")
-    st.markdown(details["initial_evaluation"])
+    tabs = st.tabs(["📊 Métricas", "💭 Razonamiento", "⚖️ Evaluación Ética", "🔄 Meta-análisis"])
     
-    # Evaluación ética
-    st.markdown("#### ⚖️ Evaluación Ética")
-    st.json(details["ethical_evaluation"])
-    if details.get("improved_response"):
-        st.info("Respuesta mejorada éticamente:")
-        st.write(details["improved_response"])
+    with tabs[0]:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Tiempo", f"{float(details['processing_time'].split()[0]):.2f}s")
+        with col2:
+            st.metric("Agentes", str(details['performance_metrics']['total_agents_called']))
+        with col3:
+            st.metric("Complejidad", f"{details['complexity']:.2f}")
+
+    with tabs[1]:
+        st.markdown("### Proceso de Razonamiento")
+        st.markdown(details["initial_evaluation"])
+    
+    with tabs[2]:
+        st.markdown("### Evaluación Ética")
+        st.json(details["ethical_evaluation"])
+        if details.get("improved_response"):
+            st.info("Respuesta mejorada éticamente:")
+            st.write(details["improved_response"])
+    
+    with tabs[3]:
+        if details.get("meta_analysis"):
+            st.markdown("### Meta-análisis")
+            st.markdown(details["meta_analysis"])
+        else:
+            st.info("No se realizó meta-análisis para esta respuesta.")
+
+def display_conversation_context():
+    """Muestra el contexto de la conversación en una sección separada."""
+    st.markdown("### 🔄 Contexto de la Conversación")
+    context = st.session_state.get("context", "No hay contexto disponible")
+    st.text_area("Contexto actual", value=context, height=150, disabled=True)
 
 def export_conversation_to_md(messages, details):
     """Exporta la conversación completa a Markdown."""
@@ -710,34 +724,59 @@ def main():
         # Interfaz principal
         st.title("MALLO: MultiAgent LLM Orchestrator")
 
-        # Interfaz de chat
-        for message in st.session_state["messages"]:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-                if message["role"] == "assistant":
-                    with st.expander("💡 Opciones", expanded=False):
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if st.download_button(
-                                "📥 Exportar Conversación Completa",
-                                *export_conversation_to_md(
-                                    st.session_state["messages"],
-                                    st.session_state.get("last_details", {})
-                                ),
-                                mime="text/markdown"
-                            ):
-                                st.success("Conversación exportada exitosamente")
-                        with col2:
-                            if st.download_button(
+        # Contenedor principal para el chat
+        chat_container = st.container()
+        
+        # Contenedor separado para los detalles y el contexto
+        details_container = st.container()
+
+        with chat_container:
+            # Interfaz de chat
+            for message in st.session_state["messages"]:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+
+        with details_container:
+            if st.session_state["messages"]:
+                # Tabs para organizar la información adicional
+                info_tabs = st.tabs(["💡 Detalles", "📤 Exportar", "📝 Contexto"])
+                
+                with info_tabs[0]:
+                    if st.session_state.get("last_details"):
+                        render_response_details(st.session_state["last_details"])
+                
+                with info_tabs[1]:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.download_button(
+                            "📥 Exportar Conversación Completa",
+                            *export_conversation_to_md(
+                                st.session_state["messages"],
+                                st.session_state.get("last_details", {})
+                            ),
+                            mime="text/markdown"
+                        ):
+                            st.success("✅ Conversación exportada exitosamente")
+                    
+                    with col2:
+                        if st.session_state["messages"]:
+                            last_response = next(
+                                (msg["content"] for msg in reversed(st.session_state["messages"])
+                                if msg["role"] == "assistant"),
+                                None
+                            )
+                            if last_response and st.download_button(
                                 "📥 Exportar Última Respuesta",
-                                message["content"],
+                                last_response,
                                 f"respuesta_{time.strftime('%Y%m%d-%H%M%S')}.md",
                                 mime="text/markdown"
                             ):
-                                st.success("Respuesta exportada exitosamente")
-                        render_response_details(st.session_state["last_details"])
+                                st.success("✅ Respuesta exportada exitosamente")
+                
+                with info_tabs[2]:
+                    display_conversation_context()
 
-        # Input del usuario y manejo de respuestas
+        # Input del usuario
         user_input = st.chat_input("¿En qué puedo ayudarte hoy?")
 
         if user_input:
@@ -746,7 +785,7 @@ def main():
                 with st.spinner("Procesando tu consulta..."):
                     response, details = process_user_input(user_input, config, agent_manager)
                     st.session_state["last_details"] = details
-                    st.session_state["error_count"] = 0  # Resetear contador de errores
+                    st.session_state["error_count"] = 0
 
                     if response:
                         # Actualizar el historial de la conversación
@@ -762,115 +801,70 @@ def main():
                         })
                         st.session_state["last_successful_response"] = response
 
-                        # Mostrar la respuesta con sus detalles
-                        with st.chat_message("assistant"):
-                            st.markdown(response)
-                            
-                            # Expandir para mostrar detalles y opciones
-                            with st.expander("🔍 Detalles y Opciones", expanded=False):
-                                # Métricas de rendimiento
-                                col1, col2, col3 = st.columns(3)
-                                with col1:
-                                    st.metric("Tiempo de Proceso", 
-                                            f"{float(details['processing_time'].split()[0]):.2f}s")
-                                with col2:
-                                    st.metric("Agentes Usados", 
-                                            str(details['performance_metrics']['total_agents_called']))
-                                with col3:
-                                    st.metric("Complejidad", 
-                                            f"{details['complexity']:.2f}")
-
-                                # Botones de exportación
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    if st.download_button(
-                                        "📥 Exportar Conversación Completa",
-                                        *export_conversation_to_md(
-                                            st.session_state["messages"],
-                                            st.session_state.get("last_details", {})
-                                        ),
-                                        mime="text/markdown"
-                                    ):
-                                        st.success("✅ Conversación exportada exitosamente")
-                                
-                                with col2:
-                                    if st.download_button(
-                                        "📥 Exportar Última Respuesta",
-                                        response,
-                                        f"respuesta_{time.strftime('%Y%m%d-%H%M%S')}.md",
-                                        mime="text/markdown"
-                                    ):
-                                        st.success("✅ Respuesta exportada exitosamente")
-
-                                # Mostrar detalles adicionales
-                                st.markdown("#### 📊 Detalles del Procesamiento")
-                                render_response_details(details)
-
-                                # Información sobre el contexto
-                                st.markdown("#### 🔄 Contexto de la Conversación")
-                                with st.expander("Ver contexto actual", expanded=False):
-                                    st.text(st.session_state.get("context", "No hay contexto disponible"))
+                        # Recargar la página para mostrar la nueva respuesta
+                        st.rerun()
 
             except Exception as e:
-                st.session_state["error_count"] += 1
-                logger.error(f"Error procesando entrada del usuario: {str(e)}")
-                logger.error(traceback.format_exc())
-                
-                # Mensaje de error adaptativo
-                error_message = (
-                    "Ha ocurrido un error al procesar tu consulta. "
-                    "Por favor, intenta de nuevo o reformula tu pregunta."
-                )
-                
-                # Mensajes adicionales basados en el contador de errores
-                if st.session_state["error_count"] > 3:
-                    error_message += (
-                        "\n\n⚠️ Parece que estamos teniendo problemas técnicos persistentes. "
-                        "Te sugerimos:\n"
-                        "1. Intentar más tarde\n"
-                        "2. Verificar tu conexión a internet\n"
-                        "3. Contactar al soporte técnico\n"
-                        "\nPuedes continuar la conversación con el último contexto exitoso."
-                    )
-                    
-                    # Intentar recuperar el último estado exitoso
-                    if st.session_state.get("last_successful_response"):
-                        st.info(
-                            "👉 Mientras tanto, puedes revisar la última respuesta exitosa "
-                            "o exportar la conversación hasta este punto."
-                        )
-                
-                st.error(error_message)
-                
-                # Log del error para análisis
-                logger.error(f"Error Count: {st.session_state['error_count']}")
-                logger.error(f"Last Successful Response Available: {bool(st.session_state.get('last_successful_response'))}")
+                handle_error(e)
 
     except Exception as e:
-        logger.error(f"Error crítico en la aplicación: {str(e)}")
-        logger.error(traceback.format_exc())
-        
-        # Mensaje de error amigable pero informativo
-        st.error(
-            "🚨 Error crítico en la aplicación\n\n"
-            "Ha ocurrido un error inesperado. Por favor:\n"
-            "1. Recarga la página\n"
-            "2. Verifica tu conexión\n"
-            "3. Si el problema persiste, contacta al soporte técnico\n\n"
-            "Tus datos de conversación están seguros y se intentarán recuperar en la próxima sesión."
+        handle_critical_error(e)
+
+def handle_error(e: Exception):
+    """Maneja errores durante el procesamiento de la consulta."""
+    st.session_state["error_count"] += 1
+    logger.error(f"Error procesando entrada del usuario: {str(e)}")
+    logger.error(traceback.format_exc())
+    
+    error_message = (
+        "Ha ocurrido un error al procesar tu consulta. "
+        "Por favor, intenta de nuevo o reformula tu pregunta."
+    )
+    
+    if st.session_state["error_count"] > 3:
+        error_message += (
+            "\n\n⚠️ Parece que estamos teniendo problemas técnicos persistentes. "
+            "Te sugerimos:\n"
+            "1. Intentar más tarde\n"
+            "2. Verificar tu conexión a internet\n"
+            "3. Contactar al soporte técnico"
         )
         
-        # Intentar guardar el estado actual para recuperación
-        try:
-            with open('error_recovery.json', 'w') as f:
-                json.dump({
-                    "messages": st.session_state.get("messages", []),
-                    "context": st.session_state.get("context", ""),
-                    "last_details": st.session_state.get("last_details", {}),
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                }, f)
-        except Exception as save_error:
-            logger.error(f"Error al guardar estado para recuperación: {str(save_error)}")
+        if st.session_state.get("last_successful_response"):
+            st.info(
+                "👉 Mientras tanto, puedes revisar la última respuesta exitosa "
+                "o exportar la conversación hasta este punto."
+            )
+    
+    st.error(error_message)
+    
+    logger.error(f"Error Count: {st.session_state['error_count']}")
+    logger.error(f"Last Successful Response Available: {bool(st.session_state.get('last_successful_response'))}")
+
+def handle_critical_error(e: Exception):
+    """Maneja errores críticos de la aplicación."""
+    logger.error(f"Error crítico en la aplicación: {str(e)}")
+    logger.error(traceback.format_exc())
+    
+    st.error(
+        "🚨 Error crítico en la aplicación\n\n"
+        "Ha ocurrido un error inesperado. Por favor:\n"
+        "1. Recarga la página\n"
+        "2. Verifica tu conexión\n"
+        "3. Si el problema persiste, contacta al soporte técnico\n\n"
+        "Tus datos de conversación están seguros y se intentarán recuperar en la próxima sesión."
+    )
+    
+    try:
+        with open('error_recovery.json', 'w') as f:
+            json.dump({
+                "messages": st.session_state.get("messages", []),
+                "context": st.session_state.get("context", ""),
+                "last_details": st.session_state.get("last_details", {}),
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            }, f)
+    except Exception as save_error:
+        logger.error(f"Error al guardar estado para recuperación: {str(save_error)}")
 
 if __name__ == "__main__":
     main()
