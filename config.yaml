@@ -1135,7 +1135,25 @@ specialized_assistants:
   - id: "asst_hFL7ZJI9yJm71GM6JOZSwLkr"
     name: "Asesor en Traslados de Servidores Judiciales en Colombia"
     keywords: ["sistema judicial", "traslados", "servidores judiciales", "Colombia", "legislación", "normativa", "derechos", "procedimientos", "recursos legales", "Ley 270 de 1996", "Ley 771 de 2002", "Acuerdo PCSJA17-10754", "Acuerdo PCSJA22-11956", "Código de Procedimiento Administrativo", "salud", "seguridad", "traslado recíproco", "requisitos", "plazos", "solicitudes", "denegación", "modificaciones"]
-
+  - id: "asst_aNHQtvJC55LqcG7MDMCe7v6N"
+    name: "Evaluación Judicial de Funcionarios y Empleados"
+    keywords: [
+      "Rama Judicial", "evaluación de servicios", "funcionarios de carrera",
+      "empleados judiciales", "calificación integral", "Consejo Superior de la Judicatura",
+      "Acuerdo PSAA16-10618", "Acuerdo PCSJA19-11393", "eficiencia", "calidad",
+      "rendimiento", "organización del trabajo", "publicaciones", "mejoramiento continuo",
+      "recursos", "notificación"]
+  - id: "asst_xpjUBpPwPk4dqW9Oy3kwk8jZ"
+    name: "Asesor de Trading y Análisis Técnico Institucional"
+    keywords: ["trading institucional", "análisis técnico", "mercados de opciones", "derivados", "estrategias", "gestión de riesgo", "volatilidad", "market profile", "price action", "correlaciones intermarket", "Greeks", "backtesting", "análisis cuantitativo", "optimización de ejecución", "Índices", "acciones", "ETFs", "materias primas", "VIX derivatives", "gestión de cartera"]
+  - id: "asst_KJJHC62qZfi6yIb54YoTaPHK"
+    name: "Sistema Unificado para la Provisión de Vacantes Temporales - BOCHICA"
+    keywords: [
+      "Rama Judicial", "vacantes temporales", "gestión", "sistema unificado",
+      "transparencia", "automatización", "postulaciones", "verificación de requisitos",
+      "Consejo Superior de la Judicatura", "Acuerdo PCSJA24-12238",
+      "eficiencia administrativa", "tecnología", "cloud", "usuarios", "nominadores",
+      "postulantes", "administradores", "evaluación", "selección"]
 
 # Configuración general
 general:

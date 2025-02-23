@@ -28,49 +28,106 @@
 
 ## Descripción
 
-MALLO (MultiAgent LLM Orchestrator) es un sistema avanzado de orquestación de múltiples agentes de Modelos de Lenguaje de Gran Escala (LLMs). Diseñado para manejar consultas complejas, MALLO utiliza una variedad de agentes, desde modelos locales hasta asistentes especializados y APIs de terceros, para proporcionar respuestas precisas y contextuales.
+MALLO (MultiAgent LLM Orchestrator) es una plataforma avanzada de orquestación de modelos de lenguaje que implementa una arquitectura distribuida basada en agentes. Diseñada específicamente para el procesamiento de consultas complejas, MALLO utiliza un sistema de selección dinámica de agentes que combina:
 
-El sistema está construido con un enfoque modular y flexible, permitiendo la integración de diversos modelos de lenguaje y servicios. MALLO evalúa la complejidad de cada consulta y selecciona dinámicamente el agente o combinación de agentes más apropiados para procesarla, optimizando así la calidad y relevancia de las respuestas.
+- Modelos de lenguaje locales para procesamiento de baja latencia
+- APIs de modelos en la nube para tareas complejas
+- Asistentes especializados para dominios específicos
+- Sistemas de búsqueda y enriquecimiento de contexto
+
+La arquitectura del sistema se basa en principios de diseño modular y extensible, permitiendo la integración seamless de nuevos modelos y servicios. El núcleo del sistema implementa algoritmos avanzados de evaluación de complejidad y selección de agentes, optimizando la relación entre precisión, latencia y consumo de recursos.
 
 ## Características Principales
 
-- **Integración Multifacética de LLMs**: 
-  - Modelos locales de Ollama para procesamiento rápido y offline.
-  - APIs de OpenAI para tareas que requieren capacidades avanzadas.
-  - Integración con otros proveedores de LLM como Groq, Together, DeepInfra, Anthropic, DeepSeek, Mistral y Cohere.
+### 1. Arquitectura Multi-Agente Avanzada
+- **Procesamiento Distribuido**:
+  - Pipeline de procesamiento paralelo para múltiples agentes
+  - Sistema de votación y consenso para respuestas múltiples
+  - Mecanismos de fallback y recuperación automática
 
-- **Asistentes Especializados**: 
-  - Conjunto de asistentes entrenados para dominios específicos como derecho, ética, tecnología, entre otros.
+- **Integración de Modelos**:
+  - Modelos locales vía Ollama para baja latencia (offline-capable)
+  - APIs cloud premium (OpenAI, Anthropic, Groq)
+  - Proveedores especializados (Together, DeepInfra, DeepSeek)
+  - Modelos open-source optimizados (Mistral, Cohere)
 
-- **Búsqueda Web Integrada**: 
-  - Utilización de DuckDuckGo para enriquecer las respuestas con información actualizada de la web.
+### 2. Sistema de Procesamiento Inteligente
+- **Análisis de Complejidad**:
+  - Evaluación heurística de consultas
+  - Detección automática de dominio y contexto
+  - Selección dinámica de agentes basada en métricas
 
-- **Procesamiento Avanzado de Texto**: 
-  - Análisis de complejidad de consultas.
-  - Resumen automático de textos largos.
-  - Extracción de palabras clave y entidades nombradas.
+- **Optimización de Recursos**:
+  - Sistema de caché multinivel con validación
+  - Balanceo dinámico de carga entre agentes
+  - Gestión inteligente de cuotas y límites de API
 
-- **Manejo Inteligente de Recursos**:
-  - Selección dinámica de agentes basada en la complejidad de la consulta y disponibilidad de recursos.
-  - Sistema de caché para optimizar el rendimiento y reducir la carga en las APIs.
+### 3. Capacidades Avanzadas de Búsqueda y Contextualización
+- **Motor de Búsqueda Multi-Fuente**:
+  - Integración primaria con API de YOU
+  - Fallback a Tavily para búsquedas especializadas
+  - Sistema de respaldo con DuckDuckGo
+  - Agregación y deduplicación de resultados
 
-- **Interfaz de Usuario Intuitiva**:
-  - Implementada con Streamlit para una experiencia de usuario fluida y responsive.
-  - Indicador de progreso en tiempo real para el procesamiento de consultas.
+- **Procesamiento de Contexto**:
+  - Análisis semántico de consultas
+  - Extracción de entidades y relaciones
+  - Generación de embeddings para búsqueda contextual
 
-- **Evaluación Ética y de Cumplimiento**:
-  - Sistema integrado de evaluación ética para garantizar respuestas alineadas con principios éticos y legales.
-  - Mejora automática de respuestas basada en criterios éticos.
+### 4. Framework de Evaluación y Mejora
+- **Sistema de Evaluación Ética**:
+  - Detección automática de sesgos
+  - Validación de privacidad y seguridad
+  - Alineación con principios éticos configurables
 
-- **Evaluación y Mejora Continua**:
-  - Sistema de evaluación de respuestas para garantizar la calidad y relevancia.
-  - Capacidad de aprendizaje y mejora basada en el feedback del usuario.
+- **Mecanismos de Feedback**:
+  - Evaluación continua de calidad de respuestas
+  - Sistema de aprendizaje basado en retroalimentación
+  - Métricas de rendimiento en tiempo real
 
-- **Logging y Monitoreo**:
-  - Sistema robusto de logging para seguimiento de errores y rendimiento.
+### 5. Interfaz y Monitoreo
+- **UI Moderna y Responsive**:
+  - Framework Streamlit con diseño optimizado
+  - Componentes dinámicos de visualización
+  - Sistema de progreso en tiempo real
 
-- **Configuración Flexible**:
-  - Archivo de configuración YAML para fácil ajuste y personalización del sistema.
+- **Logging y Observabilidad**:
+  - Logging estructurado con niveles configurables
+  - Métricas Prometheus para monitoreo
+  - Sistema de alertas para eventos críticos
+
+### 6. Configuración y Extensibilidad
+- **Sistema de Configuración Robusto**:
+  - Configuración centralizada via YAML
+  - Soporte para múltiples entornos
+  - Hot-reload de configuraciones
+
+- **Arquitectura Extensible**:
+  - APIs bien documentadas para nuevos agentes
+  - Sistema de plugins para funcionalidades adicionales
+  - Hooks para personalización de comportamiento
+
+### 7. Seguridad y Cumplimiento
+- **Protección de Datos**:
+  - Encriptación en tránsito y en reposo
+  - Sanitización de entradas y salidas
+  - Gestión segura de credenciales
+
+- **Auditoría y Compliance**:
+  - Registro detallado de operaciones
+  - Trazabilidad de decisiones del sistema
+  - Reportes de cumplimiento normativo
+
+### 8. Optimización de Rendimiento
+- **Sistema de Caché Avanzado**:
+  - Caché multinivel (memoria, disco, distribuido)
+  - Políticas de invalidación inteligentes
+  - Compresión y optimización de almacenamiento
+
+- **Gestión de Recursos**:
+  - Límites de consumo configurables
+  - Balanceo de carga automático
+  - Recuperación graceful ante fallos
 
 ## Estructura del Proyecto
 
@@ -205,19 +262,62 @@ La interfaz ahora incluye:
 - Una sección expandible de "Evaluación Ética y de Cumplimiento" que muestra los resultados de la evaluación ética de cada respuesta.
 - Una sección expandible de "Contexto de la conversación" que muestra el contexto de la conversación actual, incluyendo el historial de preguntas y respuestas.
 
-## Evaluación Ética y de Cumplimiento
+## Evaluación Ética y de Cumplimiento en MALLO
 
-MALLO ahora incorpora un sistema robusto de evaluación ética y de cumplimiento para todas las respuestas generadas:
+MALLO implementa un sistema integral de evaluación ética y cumplimiento normativo fundamentado en el Acuerdo PCSJA24-12243 del 16 de diciembre de 2024 y los principios del documento CONPES 4144 del 14 de febrero de 2025, que establecen:
 
-- **Evaluación Automática**: Cada respuesta es evaluada automáticamente en términos de sesgo, privacidad, transparencia, alineación con derechos humanos, responsabilidad y explicabilidad.
+### Sistema de Evaluación Automática
 
-- **Mejora de Respuestas**: Si se detectan problemas éticos, un asistente especializado (ID: 'asst_F33bnQzBVqQLcjveUTC14GaM') mejora la respuesta para alinearla mejor con los principios éticos y legales.
+La evaluación se realiza sobre los siguientes criterios fundamentales:
 
-- **Transparencia**: Los usuarios pueden ver los resultados de la evaluación ética para cada respuesta, proporcionando transparencia sobre el proceso de generación de IA.
+1.  **Primacía de Derechos Fundamentales**
+    * Respeto y protección de derechos fundamentales.
+    * Promoción de garantías constitucionales.
+    * Alineación con mandatos superiores.
+2.  **Regulación Ética**
+    * Cumplimiento de mandatos constitucionales y legales.
+    * Adherencia al Código Iberoamericano de Ética.
+    * Uso razonable de sistemas de IA.
+3.  **Transparencia y Responsabilidad**
+    * Identificación clara del uso de IA.
+    * Explicación detallada de fuentes y metodologías.
+    * Documentación de procesos y decisiones.
+4.  **Seguridad y Privacidad**
+    * Protección de datos personales.
+    * Prevención de sesgos y discriminación.
+    * Mantenimiento de la confidencialidad de la información.
+### Proceso de Mejora y Verificación
 
-- **Cumplimiento Legal**: El sistema está diseñado para cumplir con las últimas recomendaciones y directrices internacionales para la gobernanza de la IA, así como con normativas específicas como la sentencia T-323 de 2024 de la Corte Constitucional colombiana.
+1.  **Control y Verificación Humana**
+    * Revisión detallada de resultados.
+    * Validación de fuentes y referencias.
+    * Supervisión de impactos y consecuencias.
+2.  **Proceso de Mejora**
+    * Intervención del asistente especializado de transformación digital (ID: 'asst\_F33bnQzBVqQLcjveUTC14GaM').
+    * Refinamiento de respuestas según criterios éticos.
+    * Validación de cumplimiento normativo.
+### Cumplimiento Normativo
 
-Esta característica asegura que MALLO no solo proporcione respuestas precisas, sino también éticas y legalmente responsables.
+1.  **Marco Legal Aplicable**
+    * Sentencia T-323 de 2024 de la Corte Constitucional.
+    * Directrices internacionales de gobernanza de IA.
+    * Normativas específicas del sector judicial.
+    * Lineamientos del documento CONPES 4144 de 2025.
+2.  **Salvaguardas Específicas**
+    * Protección de datos personales y privacidad.
+    * Prevención de sesgos y discriminación.
+    * Garantía de acceso a la justicia.
+### Documentación y Transparencia
+
+1.  **Registro de Evaluaciones**
+    * Documentación detallada del proceso evaluativo.
+    * Identificación de herramientas y modelos utilizados.
+    * Registro de modificaciones y mejoras realizadas.
+2.  **Acceso a la Información**
+    * Disponibilidad de resultados de evaluación.
+    * Explicación de criterios aplicados.
+    * Trazabilidad de decisiones y procesos.
+Esta implementación asegura que MALLO opere bajo los más altos estándares éticos y legales, proporcionando un servicio que no solo es técnicamente competente, sino también responsable y transparente en su funcionamiento.
 
 ## TIPS y Trucos
 

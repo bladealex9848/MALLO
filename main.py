@@ -148,7 +148,7 @@ def display_speed_test_results(results):
     with st.sidebar.expander("📊 Resultados de Velocidad", expanded=False):
         st.dataframe(df, use_container_width=True, hide_index=True)
 
-def initialize_session_state():
+def _initialize_session_state():
     """Inicializa el estado de la sesión con valores predeterminados."""
     default_states = {
         "messages": [],
@@ -709,14 +709,61 @@ def process_user_input(user_input: str, config: Dict[str, Any], agent_manager: A
             {"error": str(e)}
         )
 
-def main():
+@st.cache_resource
+def initialize_core_components() -> Dict[str, Any]:
+    """
+    Inicializa y cachea los componentes principales del sistema.
+    """
     try:
-        # Inicialización
-        initialize_session_state()
+        start_time = time.time()
+        logger.info("Iniciando inicialización de componentes principales...")
+
+        # Cargar configuración y componentes
         config = load_config()
         system_status = initialize_system(config)
         agent_manager = AgentManager(config)
         speed_test_results = load_speed_test_results()
+
+        initialization_time = time.time() - start_time
+        logger.info(f"Componentes principales inicializados en {initialization_time:.2f} segundos")
+
+        return {
+            'config': config,
+            'system_status': system_status,
+            'agent_manager': agent_manager,
+            'speed_test_results': speed_test_results
+        }
+    except Exception as e:
+        error_msg = f"Error en la inicialización de componentes: {str(e)}"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg)
+
+def initialize_session_state():
+    """Inicializa el estado de la sesión con valores predeterminados."""
+    default_states = {
+        "messages": [],
+        "context": "",
+        "show_settings": False,
+        "last_details": {},
+        "error_count": 0,
+        "last_successful_response": None
+    }
+    
+    for key, value in default_states.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+def main():
+    try:
+        # Inicialización optimizada con caché
+        initialize_session_state()
+        core_components = initialize_core_components()
+        
+        # Extraer componentes
+        config = core_components['config']
+        system_status = core_components['system_status']
+        agent_manager = core_components['agent_manager']
+        speed_test_results = core_components['speed_test_results']
 
         # Renderizar barra lateral
         render_sidebar_content(system_status, speed_test_results)
