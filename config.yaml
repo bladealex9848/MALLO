@@ -109,49 +109,101 @@ temperature: 0.7
 
 # Configuración de Groq
 groq:
-  fast_model: "deepseek-r1-distill-llama-70b"
-  default_model: "deepseek-r1-distill-llama-70b"
+  fast_model: "deepseek-r1-distill-qwen-32b"
+  default_model: "deepseek-r1-distill-qwen-32b"
   models:
+    # Modelos de Producción
     - name: "llama-3.3-70b-versatile"
       specialty: "general"
       capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
       prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "llama-3.2-90b-vision-preview"
-      specialty: "general"
-      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
-      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
-    - name: "deepseek-r1-distill-llama-70b"
-      specialty: "general"
-      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
-      prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"] 
-    - name: "gemma2-9b-it"
-      specialty: "general"
-      capabilities: ["instruction_following", "medium_size", "italian_language_proficiency"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "llama3-8b-8192"
-      specialty: "general"
-      capabilities: ["fast_response", "medium_context"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    
     - name: "llama-3.1-8b-instant"
       specialty: "general"
       capabilities: ["instant_response", "low_latency"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    - name: "llama-3.2-11b-vision-preview"
-      specialty: "multimodal"
-      capabilities: ["vision_language", "medium_size"]
-      prompt_types: ["multimodal"]  
-    - name: "gemma-7b-it"
-      specialty: "general"
-      capabilities: ["instruction_following", "compact_size", "italian_language_proficiency"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    
     - name: "llama3-70b-8192"
       specialty: "general"
       capabilities: ["large_context", "advanced_reasoning"]  
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]  
-    - name: "mixtral-8x7b-32768"
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    
+    - name: "llama3-8b-8192"
       specialty: "general"
-      capabilities: ["large_context", "diverse_knowledge"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
+      capabilities: ["fast_response", "medium_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    
+    - name: "gemma2-9b-it"
+      specialty: "general"
+      capabilities: ["instruction_following", "medium_size"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+    
+    - name: "llama-guard-3-8b"
+      specialty: "content_moderation"
+      capabilities: ["content_filtering", "safety_evaluation"]
+      prompt_types: ["content_moderation", "ethical"]
+    
+    # Modelos de Vista Previa
+    - name: "qwen-qwq-32b"
+      specialty: "creative"
+      capabilities: ["creative_writing", "storytelling", "instruction_following"]
+      prompt_types: ["creative", "general", "cultural"]
+    
+    - name: "mistral-saba-24b"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "diverse_knowledge"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical"]
+    
+    - name: "qwen-2.5-coder-32b"
+      specialty: "coding"
+      capabilities: ["code_generation", "technical_analysis"]
+      prompt_types: ["coding", "technical"]
+    
+    - name: "qwen-2.5-32b"
+      specialty: "general"
+      capabilities: ["advanced_reasoning", "large_context"]
+      prompt_types: ["general", "scientific", "historical", "philosophical"]
+    
+    - name: "deepseek-r1-distill-qwen-32b"
+      specialty: "general"
+      capabilities: ["instruction_following", "large_context", "efficiency"]
+      prompt_types: ["general", "scientific", "historical", "philosophical"]
+    
+    - name: "deepseek-r1-distill-llama-70b-specdec"
+      specialty: "general"
+      capabilities: ["fast_inference", "large_context", "advanced_reasoning"]
+      prompt_types: ["general", "legal", "scientific", "historical"]
+    
+    - name: "deepseek-r1-distill-llama-70b"
+      specialty: "general"
+      capabilities: ["versatile_tasks", "advanced_reasoning", "large_context"]
+      prompt_types: ["general", "legal", "scientific", "historical", "philosophical"]
+    
+    - name: "llama-3.3-70b-specdec"
+      specialty: "general"
+      capabilities: ["fast_inference", "advanced_reasoning"]
+      prompt_types: ["general", "scientific", "analytical"]
+    
+    - name: "llama-3.2-1b-preview"
+      specialty: "general"
+      capabilities: ["fast_response", "low_resource_requirements"]
+      prompt_types: ["general", "basic_tasks"]
+    
+    - name: "llama-3.2-3b-preview"
+      specialty: "general"
+      capabilities: ["compact_size", "efficiency"]
+      prompt_types: ["general", "basic_tasks"]
+    
+    - name: "llama-3.2-11b-vision-preview"
+      specialty: "multimodal"
+      capabilities: ["vision_language", "medium_size"]
+      prompt_types: ["multimodal", "visual_analysis"]
+    
+    - name: "llama-3.2-90b-vision-preview"
+      specialty: "multimodal"
+      capabilities: ["vision_language", "advanced_reasoning", "large_context"]
+      prompt_types: ["multimodal", "visual_analysis", "general"]
+  
   max_tokens: 8000
   temperature: 0.7
 
@@ -1053,85 +1105,85 @@ specialized_assistants:
   - id: "asst_bhP2DkheIoBrZ0EIsV3TlTFw"
     name: "Asesor en Gestión de Calidad en Salud"
     keywords: [
-    "Calidad",
-    "Acreditación",
-    "PAMEC",
-    "Gestión de Salud",
-    "Mejoramiento Continuo",
-    "Auditoría",
-    "Normativa de Salud",
-    "Salud Ambulatoria",
-    "Salud Hospitalaria",
-    "Sistemas de Calidad",
-    "Seguridad del Paciente",
-    "Gestión del Riesgo",
-    "Atención al Usuario",
-    "Estandarización",
-    "Cumplimiento Normativo",
-    "Interoperabilidad",
-    "Plan de Mejoramiento",
-    "Equipos de Mejoramiento",
-    "Estrategias de Mejora",
-    "Gestión de Procesos",
-    "Evidencia Clínica",
-    "Resultados en Salud",
-    "Mejoramiento de Procesos",
-    "Calidad Asistencial",
-    "Educación Continua",
-    "Satisfacción del Paciente",
-    "Gestión de Información",
-    "Monitoreo y Evaluación",
-    "Protocolos de Atención",
-    "Indicadores de Calidad",
-    "Gestión de Recursos",
-    "Auditorías Internas",
-    "Acreditación Institucional",
-    "Calidad de la Atención",
-    "Prácticas Seguras",
-    "Manejo de Incidencias",
-    "Responsabilidad Profesional",
-    "Acciones Correctivas",
-    "Planificación Estratégica",
-    "Desarrollo Organizacional",
-    "Gestión de Proyectos",
-    "Cultura de Calidad",
-    "Mejoramiento de la Atención",
-    "Aseguramiento de la Calidad",
-    "Competencia Profesional",
-    "Sistemas de Gestión",
-    "Trabajo en Equipo",
-    "Liderazgo en Salud",
-    "Políticas de Calidad",
-    "Evaluación Externa",
-    "Autocontrol",
-    "Eficiencia Administrativa",
-    "Construcción de Conocimiento",
-    "Sistemas de Información en Salud",
-    "Reducción de Riesgos",
-    "Transparencia",
-    "Accesibilidad a Servicios",
-    "Compromiso Institucional",
-    "Gestión del Cambio",
-    "Enfoque en el Paciente",
-    "Benchmarking en Salud",
-    "Ética Profesional",
-    "Red de Atención Integral",
-    "Optimización de Procesos",
-    "Estrategias de Participación",
-    "Calidad Percibida",
-    "Estándares de Referencia",
-    "Patologías Crónicas",
-    "Investigación en Salud",
-    "Evaluación de Programas",
-    "Colaboración Interinstitucional",
-    "Regulación Sanitaria",
-    "Innovación en Salud",
-    "TECNOLOGÍAS de la Información",
-    "Sistemas de Salud",
-    "Rendimiento del Personal",
-    "Closure de Procesos",
-    "Calidad en la Comunicación",
-    "Desempeño Organizacional"]
+        "Calidad",
+        "Acreditación",
+        "PAMEC",
+        "Gestión de Salud",
+        "Mejoramiento Continuo",
+        "Auditoría",
+        "Normativa de Salud",
+        "Salud Ambulatoria",
+        "Salud Hospitalaria",
+        "Sistemas de Calidad",
+        "Seguridad del Paciente",
+        "Gestión del Riesgo",
+        "Atención al Usuario",
+        "Estandarización",
+        "Cumplimiento Normativo",
+        "Interoperabilidad",
+        "Plan de Mejoramiento",
+        "Equipos de Mejoramiento",
+        "Estrategias de Mejora",
+        "Gestión de Procesos",
+        "Evidencia Clínica",
+        "Resultados en Salud",
+        "Mejoramiento de Procesos",
+        "Calidad Asistencial",
+        "Educación Continua",
+        "Satisfacción del Paciente",
+        "Gestión de Información",
+        "Monitoreo y Evaluación",
+        "Protocolos de Atención",
+        "Indicadores de Calidad",
+        "Gestión de Recursos",
+        "Auditorías Internas",
+        "Acreditación Institucional",
+        "Calidad de la Atención",
+        "Prácticas Seguras",
+        "Manejo de Incidencias",
+        "Responsabilidad Profesional",
+        "Acciones Correctivas",
+        "Planificación Estratégica",
+        "Desarrollo Organizacional",
+        "Gestión de Proyectos",
+        "Cultura de Calidad",
+        "Mejoramiento de la Atención",
+        "Aseguramiento de la Calidad",
+        "Competencia Profesional",
+        "Sistemas de Gestión",
+        "Trabajo en Equipo",
+        "Liderazgo en Salud",
+        "Políticas de Calidad",
+        "Evaluación Externa",
+        "Autocontrol",
+        "Eficiencia Administrativa",
+        "Construcción de Conocimiento",
+        "Sistemas de Información en Salud",
+        "Reducción de Riesgos",
+        "Transparencia",
+        "Accesibilidad a Servicios",
+        "Compromiso Institucional",
+        "Gestión del Cambio",
+        "Enfoque en el Paciente",
+        "Benchmarking en Salud",
+        "Ética Profesional",
+        "Red de Atención Integral",
+        "Optimización de Procesos",
+        "Estrategias de Participación",
+        "Calidad Percibida",
+        "Estándares de Referencia",
+        "Patologías Crónicas",
+        "Investigación en Salud",
+        "Evaluación de Programas",
+        "Colaboración Interinstitucional",
+        "Regulación Sanitaria",
+        "Innovación en Salud",
+        "TECNOLOGÍAS de la Información",
+        "Sistemas de Salud",
+        "Rendimiento del Personal",
+        "Closure de Procesos",
+        "Calidad en la Comunicación",
+        "Desempeño Organizacional"]
   - id: "asst_hFL7ZJI9yJm71GM6JOZSwLkr"
     name: "Asesor en Traslados de Servidores Judiciales en Colombia"
     keywords: ["sistema judicial", "traslados", "servidores judiciales", "Colombia", "legislación", "normativa", "derechos", "procedimientos", "recursos legales", "Ley 270 de 1996", "Ley 771 de 2002", "Acuerdo PCSJA17-10754", "Acuerdo PCSJA22-11956", "Código de Procedimiento Administrativo", "salud", "seguridad", "traslado recíproco", "requisitos", "plazos", "solicitudes", "denegación", "modificaciones"]
@@ -1233,7 +1285,7 @@ thresholds:
 evaluation_models:
   initial:
     api: "groq"
-    model: "deepseek-r1-distill-llama-70b"
+    model: "deepseek-r1-distill-qwen-32b"
     backup_api: "openrouter"
     backup_model: "deepseek/deepseek-r1:free"
     backup_api2: "openai"
@@ -1242,7 +1294,7 @@ evaluation_models:
     api: "openai"
     model: "gpt-4o-mini"
     backup_api: "groq"
-    backup_model: "deepseek-r1-distill-llama-70b"
+    backup_model: "deepseek-r1-distill-qwen-32b"
     backup_api2: "deepseek"
     backup_model2: "deepseek-reasoner"
   meta_analysis:
