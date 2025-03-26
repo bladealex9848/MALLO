@@ -3,71 +3,7 @@ openrouter:
   fast_models: "google/gemini-2.0-flash-thinking-exp:free"
   default_model: "deepseek/deepseek-r1:free"
   models:
-    - name: "deepseek/deepseek-r1:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "google/gemini-2.0-flash-thinking-exp:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "google/gemini-2.0-flash-thinking-exp-1219:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "google/gemini-2.0-flash-exp:free"
-      specialty: "general"
-      capabilities: [
-        "advanced_reasoning",
-        "multi_task",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "google/gemini-exp-1206:free"
-      specialty: "analytical"
-      capabilities: [
-        "vision_understanding",
-        "critical_thinking",
-        "self_reflection",
-        "large_scale"
-      ]
-      prompt_types: ["analytical", "philosophical", "ethical", "visual"]
-    
-    - name: "meta-llama/llama-3.2-11b-vision-instruct:free"
-      specialty: "analytical"
-      capabilities: [
-        "vision_understanding",
-        "critical_thinking",
-        "self_reflection"
-      ]
-      prompt_types: ["analytical", "philosophical", "ethical", "visual"]
-    
-    - name: "google/learnlm-1.5-pro-experimental:free"
-      specialty: "general"
-      capabilities: [
-        "fast_inference",
-        "efficient_processing",
-        "multilingual_support"
-      ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    
-    - name: "google/gemini-exp-1114:free"
+    - name: "google/gemini-2.5-pro-exp-03-25:free"
       specialty: "general"
       capabilities: [
         "advanced_reasoning",
@@ -76,36 +12,202 @@ openrouter:
         "large_scale"
       ]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-    
-    - name: "qwen/qwen-2-7b-instruct:free"
-      specialty: "general"
+      
+    - name: "qwen/qwen2.5-vl-32b-instruct:free"
+      specialty: "multimodal"
       capabilities: [
+        "vision_understanding",
         "instruction_optimized",
-        "efficient_inference",
+        "multilingual_support",
         "chinese_language_proficiency"
       ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    
-    - name: "microsoft/phi-3-medium-128k-instruct:free"
+      prompt_types: ["general", "scientific", "visual", "analytical", "cultural"]
+      
+    - name: "deepseek/deepseek-chat-v3-0324:free"
       specialty: "general"
       capabilities: [
-        "long_context",
-        "instruction_optimized",
-        "efficient_processing"
+        "advanced_reasoning",
+        "multi_task",
+        "instruction_optimized"
       ]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-    
-    - name: "gryphe/mythomax-l2-13b:free"
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "featherless/qwerky-72b:free"
       specialty: "creative"
       capabilities: [
         "creative_writing",
         "storytelling",
         "roleplaying",
-        "narrative_generation"
+        "large_scale"
       ]
       prompt_types: ["creative", "cultural", "philosophical", "ethical"]
+      
+    - name: "mistralai/mistral-small-3.1-24b-instruct:free"
+      specialty: "general"
+      capabilities: [
+        "instruction_optimized",
+        "efficient_processing",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "analytical"]
+      
+    - name: "open-r1/olympiccoder-32b:free"
+      specialty: "coding"
+      capabilities: [
+        "code_generation",
+        "technical_documentation",
+        "debugging",
+        "software_architecture"
+      ]
+      prompt_types: ["technical", "analytical", "coding", "scientific"]
+      
+    - name: "google/gemma-3-12b-it:free"
+      specialty: "general"
+      capabilities: [
+        "instruction_optimized",
+        "efficient_processing",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "cultural", "analytical"]
+      
+    - name: "deepseek/deepseek-r1-zero:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "zero_shot_learning"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "qwen/qwq-32b:free"
+      specialty: "general"
+      capabilities: [
+        "instruction_optimized",
+        "chinese_language_proficiency",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "cultural", "analytical"]
+      
+    - name: "moonshotai/moonlight-16b-a3b-instruct:free"
+      specialty: "general"
+      capabilities: [
+        "instruction_optimized",
+        "multi_task",
+        "efficiency"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical"]
+      
+    - name: "cognitivecomputations/dolphin3.0-r1-mistral-24b:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "instruction_optimized"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "cognitivecomputations/dolphin3.0-mistral-24b:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "instruction_optimized"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "qwen/qwen2.5-vl-72b-instruct:free"
+      specialty: "multimodal"
+      capabilities: [
+        "vision_understanding",
+        "instruction_optimized",
+        "large_scale",
+        "chinese_language_proficiency"
+      ]
+      prompt_types: ["general", "scientific", "visual", "analytical", "cultural"]
+      
+    - name: "deepseek/deepseek-r1-distill-qwen-32b:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "efficient_processing",
+        "knowledge_distillation"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "deepseek/deepseek-r1-distill-qwen-14b:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "efficient_processing",
+        "knowledge_distillation"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "deepseek/deepseek-r1-distill-llama-70b:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "large_scale",
+        "knowledge_distillation"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "google/gemini-2.0-flash-thinking-exp:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+      
+    - name: "deepseek/deepseek-r1:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+      
+    - name: "deepseek/deepseek-chat:free"
+      specialty: "general"
+      capabilities: [
+        "instruction_optimized",
+        "multi_task",
+        "conversational"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "analytical", "coding"]
+      
+    - name: "google/gemini-2.0-flash-thinking-exp-1219:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "multi_task",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+      
+    - name: "meta-llama/llama-3.3-70b-instruct:free"
+      specialty: "general"
+      capabilities: [
+        "advanced_reasoning",
+        "instruction_optimized",
+        "large_scale",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
+      
+    - name: "qwen/qwq-32b-preview:free"
+      specialty: "general"
+      capabilities: [
+        "instruction_optimized",
+        "chinese_language_proficiency",
+        "multilingual_support"
+      ]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "cultural", "analytical"]
 
-temperature: 0.7
+  temperature: 0.7
 
 # Configuración de Groq
 groq:
