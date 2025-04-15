@@ -32,6 +32,7 @@ import polars as pl
 import random
 import logging
 import traceback
+import requests
 from typing import Tuple, Dict, Any, Optional
 from load_secrets import load_secrets, get_secret, secrets
 
@@ -138,27 +139,6 @@ def load_config():
         st.stop()
 
 
-def load_speed_test_results():
-    """Carga los resultados de las pruebas de velocidad."""
-    try:
-        with open("model_speeds.json", "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return None
-
-
-def display_speed_test_results(results):
-    """Muestra los resultados de las pruebas de velocidad en la barra lateral."""
-    data = [
-        {"API": api, "Modelo": model["model"], "Velocidad": f"{model['speed']:.4f}"}
-        for api, models in results.items()
-        for model in models
-    ]
-    df = pl.DataFrame(data).sort("Velocidad")
-    with st.sidebar.expander("📊 Resultados de Velocidad", expanded=False):
-        st.dataframe(df, use_container_width=True, hide_index=True)
-
-
 def _initialize_session_state():
     """Inicializa el estado de la sesión con valores predeterminados."""
     default_states = {
@@ -184,7 +164,13 @@ def render_response_details(details: Dict):
         return
 
     tabs = st.tabs(
-        ["📊 Métricas", "💭 Razonamiento", "⚖️ Evaluación Ética", "🔄 Meta-análisis"]
+        [
+            "📊 Métricas",
+            "💭 Razonamiento",
+            "🎯 Mejora de Prompt",
+            "⚖️ Evaluación Ética",
+            "🔄 Meta-análisis",
+        ]
     )
 
     with tabs[0]:
@@ -223,17 +209,52 @@ def render_response_details(details: Dict):
 
     with tabs[1]:
         st.markdown("### Proceso de Razonamiento")
-        st.markdown(details["initial_evaluation"])
+        if (
+            details.get("stages_executed", {}).get("initial_evaluation", True)
+            and details.get("initial_evaluation")
+            and details["initial_evaluation"]
+            != "No se pudo realizar la evaluación debido a múltiples errores en los modelos de evaluación."
+            and details["initial_evaluation"]
+            != "No se realizó evaluación inicial para esta respuesta."
+        ):
+            st.markdown(details["initial_evaluation"])
+        else:
+            st.info("No se realizó razonamiento para esta respuesta.")
 
     with tabs[2]:
-        st.markdown("### Evaluación Ética")
-        st.json(details["ethical_evaluation"])
-        if details.get("improved_response"):
-            st.info("Respuesta mejorada éticamente:")
-            st.write(details["improved_response"])
+        st.markdown("### Mejora de Prompt")
+        if details.get("stages_executed", {}).get(
+            "prompt_improvement", True
+        ) and details.get("prompt_type"):
+            st.markdown(f"**Tipo de prompt detectado:** {details['prompt_type']}")
+            st.markdown(f"**Complejidad:** {details.get('complexity', 'N/A')}")
+            st.markdown(
+                f"**Requiere búsqueda web:** {'Sí' if details.get('needs_web_search', False) else 'No'}"
+            )
+            st.markdown(
+                f"**Requiere meta-análisis:** {'Sí' if details.get('needs_moa', False) else 'No'}"
+            )
+        else:
+            st.info("No se realizó mejora de prompt para esta respuesta.")
 
     with tabs[3]:
-        if details.get("meta_analysis"):
+        st.markdown("### Evaluación Ética")
+        if (
+            details.get("stages_executed", {}).get("ethical_evaluation", True)
+            and details.get("ethical_evaluation")
+            and details["ethical_evaluation"]
+        ):
+            st.json(details["ethical_evaluation"])
+            if details.get("improved_response"):
+                st.info("Respuesta mejorada éticamente:")
+                st.write(details["improved_response"])
+        else:
+            st.info("No se realizó evaluación ética para esta respuesta.")
+
+    with tabs[4]:
+        if details.get("stages_executed", {}).get(
+            "meta_analysis", False
+        ) and details.get("meta_analysis"):
             st.markdown("### Meta-análisis")
             st.markdown(details["meta_analysis"])
         else:
@@ -344,6 +365,7 @@ def render_sidebar_content(
                     "enabled": False,
                     "stages": {
                         "initial_evaluation": True,
+                        "prompt_improvement": True,
                         "web_search": True,
                         "meta_analysis": True,
                         "ethical_evaluation": True,
@@ -371,6 +393,16 @@ def render_sidebar_content(
                         "initial_evaluation"
                     ],
                     help="Evalúa la complejidad y tipo de la consulta",
+                )
+
+                st.session_state.custom_processing_config["stages"][
+                    "prompt_improvement"
+                ] = st.checkbox(
+                    "Mejora de prompt",
+                    value=st.session_state.custom_processing_config["stages"][
+                        "prompt_improvement"
+                    ],
+                    help="Analiza la consulta y determina la categoría y modelo idóneo",
                 )
 
                 st.session_state.custom_processing_config["stages"]["web_search"] = (
@@ -420,83 +452,80 @@ def render_sidebar_content(
                 # Cargar modelos desde config.yaml
                 config = agent_manager.config
 
+                # Función para procesar modelos de diferentes proveedores
+                def process_provider_models(provider_name):
+                    if provider_name in config and "models" in config[provider_name]:
+                        provider_models = []
+                        for model in config[provider_name]["models"]:
+                            if isinstance(model, dict) and "name" in model:
+                                provider_models.append(
+                                    f"{provider_name}:{model['name']}"
+                                )
+                            elif isinstance(model, str):
+                                provider_models.append(f"{provider_name}:{model}")
+                        return provider_models
+                    return []
+
                 # Agregar modelos de API (OpenAI, etc.)
-                if "openai" in config and "models" in config["openai"]:
-                    for model in config["openai"]["models"]:
-                        available_models.append(f"api:{model}")
+                available_models.extend(process_provider_models("openai"))
+                # Usar "api" como alias para OpenAI para compatibilidad
+                available_models.extend(
+                    [
+                        f"api:{model.split(':')[1]}"
+                        for model in process_provider_models("openai")
+                    ]
+                )
 
-                # Agregar modelos de Groq
-                if "groq" in config and "models" in config["groq"]:
-                    for model in config["groq"]["models"]:
-                        available_models.append(f"groq:{model}")
-
-                # Agregar modelos de Together
-                if "together" in config and "models" in config["together"]:
-                    for model in config["together"]["models"]:
-                        available_models.append(f"together:{model}")
-
-                # Agregar modelos de DeepInfra
-                if "deepinfra" in config and "models" in config["deepinfra"]:
-                    for model in config["deepinfra"]["models"]:
-                        available_models.append(f"deepinfra:{model}")
-
-                # Agregar modelos de Anthropic
-                if "anthropic" in config and "models" in config["anthropic"]:
-                    for model in config["anthropic"]["models"]:
-                        available_models.append(f"anthropic:{model}")
-
-                # Agregar modelos de DeepSeek
-                if "deepseek" in config and "models" in config["deepseek"]:
-                    for model in config["deepseek"]["models"]:
-                        available_models.append(f"deepseek:{model}")
-
-                # Agregar modelos de Mistral
-                if "mistral" in config and "models" in config["mistral"]:
-                    for model in config["mistral"]["models"]:
-                        available_models.append(f"mistral:{model}")
-
-                # Agregar modelos de Cohere
-                if "cohere" in config and "models" in config["cohere"]:
-                    for model in config["cohere"]["models"]:
-                        available_models.append(f"cohere:{model}")
-
-                # Agregar modelos de OpenRouter
-                if "openrouter" in config and "models" in config["openrouter"]:
-                    for model in config["openrouter"]["models"]:
-                        available_models.append(f"openrouter:{model}")
+                # Agregar modelos de otros proveedores
+                available_models.extend(process_provider_models("groq"))
+                available_models.extend(process_provider_models("together"))
+                available_models.extend(process_provider_models("deepinfra"))
+                available_models.extend(process_provider_models("anthropic"))
+                available_models.extend(process_provider_models("deepseek"))
+                available_models.extend(process_provider_models("mistral"))
+                available_models.extend(process_provider_models("cohere"))
+                available_models.extend(process_provider_models("openrouter"))
 
                 # Agregar modelos locales (Ollama)
                 try:
-                    import subprocess
-
-                    result = subprocess.run(
-                        ["ollama", "list"], capture_output=True, text=True
+                    # Usar la API de Ollama para obtener los modelos disponibles
+                    response = requests.get(
+                        f"{config['ollama']['base_url']}/api/tags", timeout=5
                     )
-                    if result.returncode == 0:
-                        lines = result.stdout.strip().split("\n")
-                        if (
-                            len(lines) > 1
-                        ):  # Hay al menos un modelo (ignorando la cabecera)
-                            for line in lines[1:]:  # Saltar la cabecera
-                                parts = line.split()
-                                if parts:  # Asegurarse de que la línea no está vacía
-                                    model_name = parts[0]
-                                    available_models.append(f"local:{model_name}")
+                    if response.status_code == 200:
+                        ollama_models = response.json().get("models", [])
+                        for model in ollama_models:
+                            model_name = model.get("name", "")
+                            if model_name:
+                                available_models.append(f"local:{model_name}")
+                    else:
+                        st.warning(
+                            f"Error al obtener modelos de Ollama: {response.status_code}"
+                        )
                 except Exception as e:
                     st.warning(f"No se pudieron cargar los modelos locales: {str(e)}")
 
                 # Agregar agentes especializados
-                if "specialized_assistants" in config and isinstance(
-                    config["specialized_assistants"], dict
-                ):
-                    for assistant_id, assistant_info in config[
-                        "specialized_assistants"
-                    ].items():
-                        if (
-                            isinstance(assistant_info, dict)
-                            and "name" in assistant_info
-                        ):
-                            available_models.append(f"assistant:{assistant_id}")
+                if "specialized_assistants" in config:
+                    if isinstance(config["specialized_assistants"], dict):
+                        # Formato antiguo: diccionario de asistentes
+                        for assistant_id, assistant_info in config[
+                            "specialized_assistants"
+                        ].items():
+                            if (
+                                isinstance(assistant_info, dict)
+                                and "name" in assistant_info
+                            ):
+                                available_models.append(f"assistant:{assistant_id}")
+                    elif isinstance(config["specialized_assistants"], list):
+                        # Formato nuevo: lista de asistentes
+                        for assistant in config["specialized_assistants"]:
+                            if (
+                                isinstance(assistant, dict)
+                                and "id" in assistant
+                                and "name" in assistant
+                            ):
+                                available_models.append(f"assistant:{assistant['id']}")
 
                 # Modelos principales
                 st.markdown("##### Modelos Principales")
@@ -583,9 +612,13 @@ def render_sidebar_content(
 
                         # Agregar modelos de Ollama
                         for model in ollama_models:
-                            model_id = model.get("id", "")
-                            if model_id:
-                                updated_models.append(f"local:{model_id}")
+                            # Manejar diferentes formatos de respuesta
+                            if isinstance(model, dict):
+                                model_id = model.get("id", model.get("name", ""))
+                                if model_id:
+                                    updated_models.append(f"local:{model_id}")
+                            elif isinstance(model, str):
+                                updated_models.append(f"local:{model}")
 
                         # Agregar los modelos actualizados a la lista existente
                         for model in updated_models:
@@ -890,14 +923,20 @@ def process_user_input(
             initial_evaluation = evaluate_response(
                 agent_manager, config, "initial", enriched_query
             )
+        else:
+            initial_evaluation = "No se realizó evaluación inicial para esta respuesta."
 
+        # Mejora de prompt (análisis de complejidad y categorización)
+        if not use_custom_config or custom_config["stages"].get(
+            "prompt_improvement", True
+        ):
             # Análisis de complejidad y necesidades
             complexity, needs_web_search, needs_moa, prompt_type = (
                 evaluate_query_complexity(initial_evaluation, "")
             )
             prompt_type = agent_manager.validate_prompt_type(user_input, prompt_type)
         else:
-            # Valores por defecto si se omite la evaluación inicial
+            # Valores por defecto si se omite la mejora de prompt
             complexity = 0.5
             needs_web_search = False
             needs_moa = False
@@ -928,11 +967,25 @@ def process_user_input(
                         parts = model_str.split(":", 1)
                         if len(parts) == 2:
                             agent_type, agent_id = parts
+                            # Obtener nombre más descriptivo para el modelo
+                            model_name = agent_id
+
+                            # Buscar nombre más descriptivo en config.yaml si está disponible
+                            if agent_type in config and "models" in config[agent_type]:
+                                for model in config[agent_type]["models"]:
+                                    if (
+                                        isinstance(model, dict)
+                                        and "name" in model
+                                        and model["name"] == agent_id
+                                    ):
+                                        model_name = f"{model['name']} ({model.get('specialty', 'general')})"
+                                        break
+
                             prioritized_agents.append(
                                 (
                                     agent_type,
                                     agent_id,
-                                    f"{agent_type.capitalize()} {agent_id}",
+                                    f"{agent_type.capitalize()} {model_name}",
                                 )
                             )
                         else:
@@ -1002,7 +1055,24 @@ def process_user_input(
                             parts = fallback_model_str.split(":", 1)
                             if len(parts) == 2:
                                 fallback_agent_type, fallback_agent_id = parts
-                                fallback_agent_name = f"{fallback_agent_type.capitalize()} {fallback_agent_id} (Respaldo)"
+                                # Obtener nombre más descriptivo para el modelo de respaldo
+                                model_name = fallback_agent_id
+
+                                # Buscar nombre más descriptivo en config.yaml si está disponible
+                                if (
+                                    fallback_agent_type in config
+                                    and "models" in config[fallback_agent_type]
+                                ):
+                                    for model in config[fallback_agent_type]["models"]:
+                                        if (
+                                            isinstance(model, dict)
+                                            and "name" in model
+                                            and model["name"] == fallback_agent_id
+                                        ):
+                                            model_name = f"{model['name']} ({model.get('specialty', 'general')})"
+                                            break
+
+                                fallback_agent_name = f"{fallback_agent_type.capitalize()} {model_name} (Respaldo)"
                                 progress_placeholder.write(
                                     f"⚙️ Intentando con respaldo: {fallback_agent_name}..."
                                 )
@@ -1156,6 +1226,25 @@ def process_user_input(
             "meta_analysis": meta_analysis_result,
             "final_response": final_response,
             "custom_config_used": use_custom_config,
+            "stages_executed": {
+                "initial_evaluation": not use_custom_config
+                or custom_config["stages"].get("initial_evaluation", True),
+                "prompt_improvement": not use_custom_config
+                or custom_config["stages"].get("prompt_improvement", True),
+                "web_search": needs_web_search
+                and (
+                    not use_custom_config
+                    or custom_config["stages"].get("web_search", True)
+                ),
+                "meta_analysis": needs_moa
+                and len(successful_responses) > 1
+                and (
+                    not use_custom_config
+                    or custom_config["stages"].get("meta_analysis", True)
+                ),
+                "ethical_evaluation": not use_custom_config
+                or custom_config["stages"].get("ethical_evaluation", True),
+            },
         }
 
         # Actualizar contexto
@@ -1194,7 +1283,6 @@ def initialize_core_components() -> Dict[str, Any]:
         config = load_config()
         system_status = initialize_system(config)
         agent_manager = AgentManager(config)
-        speed_test_results = load_speed_test_results()
 
         initialization_time = time.time() - start_time
         logger.info(
@@ -1205,7 +1293,6 @@ def initialize_core_components() -> Dict[str, Any]:
             "config": config,
             "system_status": system_status,
             "agent_manager": agent_manager,
-            "speed_test_results": speed_test_results,
         }
     except Exception as e:
         error_msg = f"Error en la inicialización de componentes: {str(e)}"
@@ -1242,7 +1329,6 @@ def main():
         config = core_components["config"]
         system_status = core_components["system_status"]
         agent_manager = core_components["agent_manager"]
-        speed_test_results = core_components["speed_test_results"]
 
         # Renderizar barra lateral
         render_sidebar_content(system_status, agent_manager)

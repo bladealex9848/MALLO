@@ -2,7 +2,7 @@
 openrouter:
   fast_models: "google/gemini-2.0-flash-thinking-exp:free"
   default_model: "deepseek/deepseek-r1-distill-qwen-14b:free"
-  models:    
+  models:
     - name: "meta-llama/llama-4-maverick:free"
       specialty: "multimodal"
       capabilities: [
@@ -189,6 +189,21 @@ openrouter:
       ]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
 
+    - name: "openai/gpt-3.5-turbo:free"
+      specialty: "general"
+      capabilities: ["fast_inference", "broad_knowledge"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "perplexity/pplx-7b-online:free"
+      specialty: "general"
+      capabilities: ["fast_inference", "broad_knowledge", "web_search"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "cohere/command-r:free"
+      specialty: "general"
+      capabilities: ["fast_inference", "broad_knowledge"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
     - name: "deepseek/deepseek-r1:free"
       specialty: "general"
       capabilities: [
@@ -247,128 +262,128 @@ groq:
       specialty: "audio_transcription"
       capabilities: ["speech_to_text", "english_audio", "efficient_processing"]
       prompt_types: ["audio_transcription"]
-      
+
     - name: "gemma2-9b-it"
       specialty: "general"
       capabilities: ["instruction_following", "medium_size", "context_window_8k"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-      
+
     - name: "llama-3.3-70b-versatile"
       specialty: "general"
       capabilities: ["versatile_tasks", "advanced_reasoning", "large_context", "context_window_128k", "max_completion_32k"]
       prompt_types: ["general", "legal", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
-      
+
     - name: "llama-3.1-8b-instant"
       specialty: "general"
       capabilities: ["instant_response", "low_latency", "context_window_128k", "max_completion_8k"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-      
+
     - name: "llama-guard-3-8b"
       specialty: "content_moderation"
       capabilities: ["content_filtering", "safety_evaluation", "context_window_8k"]
       prompt_types: ["content_moderation", "ethical"]
-      
+
     - name: "llama3-70b-8192"
       specialty: "general"
       capabilities: ["large_context", "advanced_reasoning", "context_window_8k"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-      
+
     - name: "llama3-8b-8192"
       specialty: "general"
       capabilities: ["fast_response", "medium_context", "context_window_8k"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-      
+
     - name: "whisper-large-v3"
       specialty: "audio_transcription"
       capabilities: ["speech_to_text", "multilingual_audio", "max_file_size_25mb"]
       prompt_types: ["audio_transcription"]
-      
+
     - name: "whisper-large-v3-turbo"
       specialty: "audio_transcription"
       capabilities: ["speech_to_text", "multilingual_audio", "faster_processing", "max_file_size_25mb"]
       prompt_types: ["audio_transcription"]
-      
+
     # MODELOS DE VISTA PREVIA
     - name: "meta-llama/llama-4-scout-17b-16e-instruct"
       specialty: "general"
       capabilities: ["instruction_following", "advanced_reasoning", "context_window_131k", "max_completion_8k"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "analytical"]
-      
+
     - name: "meta-llama/llama-4-maverick-17b-128e-instruct"
       specialty: "general"
       capabilities: ["instruction_following", "advanced_reasoning", "context_window_131k", "max_completion_8k"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "analytical"]
-      
+
     - name: "playai-tts"
       specialty: "text_to_speech"
       capabilities: ["voice_synthesis", "text_to_audio", "context_window_10k"]
       prompt_types: ["audio_generation"]
-      
+
     - name: "playai-tts-arabic"
       specialty: "text_to_speech"
       capabilities: ["voice_synthesis", "text_to_audio", "arabic_language", "context_window_10k"]
       prompt_types: ["audio_generation"]
-      
+
     - name: "qwen-qwq-32b"
       specialty: "creative"
       capabilities: ["creative_writing", "storytelling", "instruction_following", "context_window_128k"]
       prompt_types: ["creative", "general", "cultural"]
-      
+
     - name: "mistral-saba-24b"
       specialty: "general"
       capabilities: ["advanced_reasoning", "diverse_knowledge", "context_window_32k"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical"]
-      
+
     - name: "qwen-2.5-coder-32b"
       specialty: "coding"
       capabilities: ["code_generation", "technical_analysis", "context_window_128k"]
       prompt_types: ["coding", "technical"]
-      
+
     - name: "qwen-2.5-32b"
       specialty: "general"
       capabilities: ["advanced_reasoning", "large_context", "context_window_128k"]
       prompt_types: ["general", "scientific", "historical", "philosophical"]
-      
+
     - name: "deepseek-r1-distill-qwen-32b"
       specialty: "general"
       capabilities: ["instruction_following", "large_context", "efficiency", "context_window_128k", "max_completion_16k"]
       prompt_types: ["general", "scientific", "historical", "philosophical"]
-      
+
     - name: "deepseek-r1-distill-llama-70b"
       specialty: "general"
       capabilities: ["versatile_tasks", "advanced_reasoning", "large_context", "context_window_128k"]
       prompt_types: ["general", "legal", "scientific", "historical", "philosophical"]
-      
+
     - name: "deepseek-r1-distill-llama-70b-specdec"
       specialty: "general"
       capabilities: ["fast_inference", "large_context", "advanced_reasoning"]
       prompt_types: ["general", "legal", "scientific", "historical"]
-      
+
     - name: "llama-3.3-70b-specdec"
       specialty: "general"
       capabilities: ["fast_inference", "advanced_reasoning", "context_window_8k"]
       prompt_types: ["general", "scientific", "analytical"]
-      
+
     - name: "llama-3.2-1b-preview"
       specialty: "general"
       capabilities: ["fast_response", "low_resource_requirements", "context_window_128k", "max_completion_8k"]
       prompt_types: ["general", "basic_tasks"]
-      
+
     - name: "llama-3.2-3b-preview"
       specialty: "general"
       capabilities: ["compact_size", "efficiency", "context_window_128k", "max_completion_8k"]
       prompt_types: ["general", "basic_tasks"]
-      
+
     - name: "llama-3.2-11b-vision-preview"
       specialty: "multimodal"
       capabilities: ["vision_language", "medium_size", "context_window_128k", "max_completion_8k"]
       prompt_types: ["multimodal", "visual_analysis"]
-      
+
     - name: "llama-3.2-90b-vision-preview"
       specialty: "multimodal"
       capabilities: ["vision_language", "advanced_reasoning", "large_context", "context_window_128k", "max_completion_8k"]
       prompt_types: ["multimodal", "visual_analysis", "general"]
-      
+
     - name: "allam-2-7b"
       specialty: "general"
       capabilities: ["compact_size", "efficiency", "instruction_following"]
@@ -523,70 +538,70 @@ ollama:
   base_url: "http://localhost:11434"
   default_model: "phi3.5:latest"
   models:
-    - name: "codegemma:2b"
+    - name: "gemma3:latest"
       specialty: "general"
-      capabilities: ["compact_size", "efficient_inference"]
+      capabilities: ["instruction_following", "advanced_reasoning"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
-    - name: "qwen2.5:0.5b"
+    - name: "llava:7b"
+      specialty: "multimodal"
+      capabilities: ["vision_understanding", "image_reasoning", "medium_size"]
+      prompt_types: ["multimodal", "general", "visual_analysis"]
+
+    - name: "deepseek-r1:1.5b"
       specialty: "general"
       capabilities: ["instruction_following", "compact_size"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
+    - name: "deepseek-r1:8b"
+      specialty: "general"
+      capabilities: ["instruction_following", "medium_size"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
+    - name: "codegemma:2b"
+      specialty: "coding"
+      capabilities: ["code_generation", "code_completion", "compact_size"]
+      prompt_types: ["coding", "technical"]
+
+    - name: "qwen2.5:0.5b"
+      specialty: "general"
+      capabilities: ["instruction_following", "very_compact"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+
     - name: "qwen2.5:1.5b"
       specialty: "general"
-      capabilities: ["instruction_following", "efficient_inference"]
+      capabilities: ["instruction_following", "very_compact"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
     - name: "qwen2.5:3b"
       specialty: "general"
-      capabilities: ["instruction_following", "large_context"]
+      capabilities: ["instruction_following", "compact_size"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
     - name: "qwen2.5:latest"
       specialty: "general"
-      capabilities: ["instruction_following", "chinese_language_proficiency"]
+      capabilities: ["instruction_following", "multilingual_support", "improved_reasoning"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "qwen2.5-coder:latest"
-      specialty: "coding"
-      capabilities: ["code_generation", "technical_analysis"]
-      prompt_types: ["coding"]
 
     - name: "llama3.2:latest"
       specialty: "general"
-      capabilities: ["advanced_reasoning", "large_context"]
+      capabilities: ["advanced_reasoning", "large_context", "improved_instruction_following"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
 
     - name: "minicpm-v:latest"
-      specialty: "general"
-      capabilities: ["large_model", "efficient_inference"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
+      specialty: "multimodal"
+      capabilities: ["vision_understanding", "compact_size"]
+      prompt_types: ["multimodal", "general", "visual_analysis"]
 
     - name: "phi3.5:latest"
       specialty: "general"
-      capabilities: ["instruction_following", "diverse_tasks"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "phi4:latest"
-      specialty: "general"
-      capabilities: ["instruction_following", "diverse_tasks"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "gemma2:2b"
-      specialty: "general"
-      capabilities: ["compact_size", "efficient_inference"]
+      capabilities: ["instruction_following", "efficient_inference", "compact_size"]
       prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
 
     - name: "llava:latest"
       specialty: "multimodal"
-      capabilities: ["vision_language", "image_understanding"]
+      capabilities: ["vision_understanding", "image_reasoning"]
       prompt_types: ["multimodal", "general", "visual_analysis"]
-
-    - name: "deepseek-r1:latest"
-      specialty: "general"
-      capabilities: ["advanced_reasoning", "large_context"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic", "analytical"]
 
 # Configuración de prompts de análisis crítico
 critical_analysis:
@@ -1379,9 +1394,9 @@ specialized_assistants:
   - id: "asst_xisQZwJ1bbmvXET8YG0eiAmb"
     name: "TutelaBot - Asistente Especializado en Acción de Tutela y Derecho de Petición"
     keywords: [
-      "Acción de Tutela", "Derecho de Petición", "Constitución Política 1991", 
-      "Decreto 2591 de 1991", "Ley 1755 de 2015", "derechos fundamentales", 
-      "protección constitucional", "mecanismos judiciales", "procedibilidad", 
+      "Acción de Tutela", "Derecho de Petición", "Constitución Política 1991",
+      "Decreto 2591 de 1991", "Ley 1755 de 2015", "derechos fundamentales",
+      "protección constitucional", "mecanismos judiciales", "procedibilidad",
       "subsidiariedad", "inmediatez", "legitimación", "impugnación",
       "incidente de desacato", "silencio administrativo", "Corte Constitucional",
       "peticiones de información", "consultas jurídicas", "modelos de documentos",
@@ -1419,7 +1434,7 @@ utilities:
     model: "llava:latest"
   file_handling:
     enabled: true
-    allowed_extensions: [".txt", ".pdf", ".docx", ".jpg", ".jpeg", ".png"]
+    allowed_extensions: [".txt", ".pdf", ".jpg", ".jpeg", ".png"]
   ocr:
     enabled: true
     provider: "mistral"

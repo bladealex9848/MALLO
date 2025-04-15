@@ -38,6 +38,11 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
 - Solución al error relacionado con el formato de modelos de OpenRouter.
 - Corrección del error en la función `render_sidebar_content` al procesar agentes especializados.
 - Mejora en el manejo de diferentes formatos de tiempo de procesamiento en la visualización de detalles.
+- Corrección de errores en la inicialización de clientes de API y verificación de modelos:
+  - Mejor manejo de diccionarios y objetos en las funciones `verify_models` y `test_model_availability`.
+  - Corrección de la inicialización de clientes de API para verificar su funcionamiento antes de usarlos.
+  - Mejora en la forma de obtener modelos locales de Ollama usando la API en lugar del comando CLI.
+  - Optimización de la función `get_available_agents` para manejar diferentes formatos de modelos.
 
 ## [2.7.0] - 2025-04-14
 

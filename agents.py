@@ -126,18 +126,46 @@ class AgentManager:
         )
 
         # Inicializar los clientes de API
-        self.clients = {
-            "openai": self.init_openai_client(),
-            "together": self.init_together_client(),
-            "groq": self.init_groq_client(),
-            "deepinfra": self.init_deepinfra_client(),
-            "anthropic": self.init_anthropic_client(),
-            "deepseek": self.init_deepseek_client(),
-            "mistral": self.init_mistral_client(),
-            "cohere": self.init_cohere_client(),
-            "openrouter": self.init_openrouter_client(),
-            # Agrega más clientes de API según sea necesario
-        }
+        self.clients = {}
+
+        # Inicializar cliente de OpenAI (API)
+        openai_client = self.init_openai_client()
+        if openai_client:
+            self.clients["openai"] = openai_client
+            self.clients["api"] = openai_client  # Alias para compatibilidad
+
+        # Inicializar otros clientes
+        together_client = self.init_together_client()
+        if together_client:
+            self.clients["together"] = together_client
+
+        groq_client = self.init_groq_client()
+        if groq_client:
+            self.clients["groq"] = groq_client
+
+        deepinfra_client = self.init_deepinfra_client()
+        if deepinfra_client:
+            self.clients["deepinfra"] = deepinfra_client
+
+        anthropic_client = self.init_anthropic_client()
+        if anthropic_client:
+            self.clients["anthropic"] = anthropic_client
+
+        deepseek_client = self.init_deepseek_client()
+        if deepseek_client:
+            self.clients["deepseek"] = deepseek_client
+
+        mistral_client = self.init_mistral_client()
+        if mistral_client:
+            self.clients["mistral"] = mistral_client
+
+        cohere_client = self.init_cohere_client()
+        if cohere_client:
+            self.clients["cohere"] = cohere_client
+
+        openrouter_client = self.init_openrouter_client()
+        if openrouter_client:
+            self.clients["openrouter"] = openrouter_client
 
     def get_specialized_assistant(self, assistant_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -316,7 +344,7 @@ class AgentManager:
     # Determinar el tipo de prompt crítico a utilizar
     def get_available_models(self, agent_type: str = None) -> List[str]:
         if agent_type:
-            return {
+            models = {
                 "api": self.openai_models,
                 "groq": self.config["groq"]["models"],
                 "together": self.together_models,
@@ -328,6 +356,15 @@ class AgentManager:
                 "mistral": self.config["mistral"]["models"],
                 "cohere": self.config["cohere"]["models"],
             }.get(agent_type, [])
+
+            # Procesar los modelos para manejar diferentes formatos
+            processed_models = []
+            for model in models:
+                if isinstance(model, dict) and "name" in model:
+                    processed_models.append(model["name"])
+                elif isinstance(model, str):
+                    processed_models.append(model)
+            return processed_models
         else:
             all_agents = []
             for agent_type in [
@@ -505,6 +542,21 @@ class AgentManager:
         self, query: str, prioritized_agents: List[Tuple[str, str]]
     ) -> Tuple[str, Dict[str, Any]]:
         for agent_type, agent_id in prioritized_agents:
+            # Manejar el caso en que agent_id sea un diccionario
+            if isinstance(agent_id, dict):
+                if "name" in agent_id:
+                    agent_id = agent_id["name"]
+                else:
+                    logging.warning(f"Formato de modelo incorrecto: {agent_id}")
+                    continue
+
+            # Verificar si el cliente está inicializado
+            if agent_type not in ["local", "assistant"] and not self.clients.get(
+                agent_type
+            ):
+                logging.warning(f"Cliente {agent_type} no inicializado, omitiendo")
+                continue
+
             try:
                 response = self.process_query(query, agent_type, agent_id)
                 return response, {"agent": agent_type, "model": agent_id}
@@ -533,7 +585,15 @@ class AgentManager:
 
     # Inicializar el cliente de OpenAI
     def init_openai_client(self):
-        return self.init_client("OpenAI", OpenAI, get_secret("OPENAI_API_KEY"))
+        client = self.init_client("OpenAI", OpenAI, get_secret("OPENAI_API_KEY"))
+        if client:
+            # Verificar que el cliente funciona
+            try:
+                client.models.list()
+                return client
+            except Exception as e:
+                logging.error(f"Error checking OpenAI API: {str(e)}")
+        return None
 
     # Inicializar el cliente de Together
     def init_together_client(self):
@@ -544,13 +604,15 @@ class AgentManager:
         client = self.init_client("Groq", Groq, get_secret("GROQ_API_KEY"))
         if client:
             try:
+                # Usar un modelo que sabemos que existe en Groq
                 client.chat.completions.create(
                     model="llama3-8b-8192",
                     messages=[{"role": "user", "content": "Test"}],
+                    max_tokens=5,  # Usar pocos tokens para la prueba
                 )
                 return client
             except Exception as e:
-                logging.warning(f"Error al probar Groq client: {str(e)}")
+                logging.error(f"Error checking Groq API: {str(e)}")
         return None
 
     # Inicializar el cliente de DeepInfra
@@ -585,7 +647,24 @@ class AgentManager:
 
     # Inicializar el cliente de OpenRouter
     def init_openrouter_client(self):
-        return get_secret("OPENROUTER_API_KEY")
+        client = self.init_client(
+            "OpenRouter",
+            OpenAI,
+            get_secret("OPENROUTER_API_KEY"),
+            base_url="https://openrouter.ai/api/v1",
+        )
+        if client:
+            try:
+                # Probar el cliente con un modelo gratuito
+                client.chat.completions.create(
+                    model="openai/gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": "Test"}],
+                    max_tokens=5,  # Usar pocos tokens para la prueba
+                )
+                return client
+            except Exception as e:
+                logging.error(f"Error checking OpenRouter API: {str(e)}")
+        return None
 
     # Procesar la consulta con el agente seleccionado
     def get_ollama_models(self) -> List[str]:
@@ -603,23 +682,62 @@ class AgentManager:
     # Verificar la disponibilidad de los modelos
     def verify_models(self) -> Dict[str, List[str]]:
         available_models = {"local": self.ollama_models}
-        for agent_type in ["api", "groq", "together"]:
-            available_models[agent_type] = [
-                model
-                for model in self.get_available_agents(agent_type)
-                if self.test_model_availability(agent_type, model)
-            ]
+        for agent_type in [
+            "api",
+            "groq",
+            "together",
+            "openrouter",
+            "deepinfra",
+            "anthropic",
+            "deepseek",
+            "mistral",
+            "cohere",
+        ]:
+            available_models[agent_type] = []
+            models = self.get_available_agents(agent_type)
+            for model in models:
+                if isinstance(model, dict) and "name" in model:
+                    model_name = model["name"]
+                    if self.test_model_availability(agent_type, model_name):
+                        available_models[agent_type].append(model_name)
+                elif isinstance(model, str):
+                    if self.test_model_availability(agent_type, model):
+                        available_models[agent_type].append(model)
         return available_models
 
     # Probar la disponibilidad de un modelo
     def test_model_availability(self, agent_type: str, model: str) -> bool:
         if agent_type == "local":
             return True
+
+        # Verificar si el cliente está inicializado
+        if not self.clients.get(agent_type):
+            logging.warning(f"Cliente {agent_type} no inicializado")
+            return False
+
+        # Para modelos de audio o visión, no intentar probarlos con texto
+        if any(
+            keyword in model.lower()
+            for keyword in ["whisper", "tts", "vision", "audio"]
+        ):
+            logging.info(
+                f"Modelo {agent_type}:{model} es un modelo de audio/visión, no se prueba con texto"
+            )
+            return False
+
+        # Para modelos de OpenRouter, verificar que tengan el formato correcto
+        if agent_type == "openrouter" and "/" not in model:
+            logging.warning(
+                f"Modelo de OpenRouter {model} no tiene el formato correcto (proveedor/modelo)"
+            )
+            return False
+
         try:
-            self.process_query("Test query", agent_type, model)
+            # Usar una consulta muy corta para la prueba
+            self.process_query("Test", agent_type, model)
             return True
         except Exception as e:
-            logging.warning(f"Model {agent_type}:{model} is not available: {str(e)}")
+            logging.warning(f"Modelo {agent_type}:{model} no está disponible: {str(e)}")
             return False
 
     # Actualizar los modelos fiables
@@ -727,6 +845,13 @@ class AgentManager:
         )
 
         try:
+            # Manejar el caso en que agent_id sea un diccionario
+            if isinstance(agent_id, dict):
+                if "name" in agent_id:
+                    agent_id = agent_id["name"]
+                else:
+                    raise ValueError(f"Formato de modelo incorrecto: {agent_id}")
+
             # Aplicar el prompt especializado si se proporciona
             if prompt_type and prompt_type in self.critical_analysis_prompts:
                 specialized_prompt = self.critical_analysis_prompts[prompt_type]
@@ -953,92 +1078,54 @@ class AgentManager:
 
     def process_with_openrouter(self, query: str, model: str) -> str:
         try:
-            # Verificar primero si la API key existe
-            if not secrets.get("OPENROUTER_API_KEY"):
-                logging.warning("OpenRouter API key no configurada")
-                return {"error": "API key de OpenRouter no configurada"}
-
-            # Intentar primero verificar si la API está disponible
-            try:
-                models_response = requests.get(
-                    url="https://openrouter.ai/api/v1/models",
-                    headers={
-                        "Authorization": f"Bearer {secrets['OPENROUTER_API_KEY']}",
-                        "Content-Type": "application/json",
-                    },
-                    timeout=5,  # Timeout corto para verificación rápida
-                )
-                models_response.raise_for_status()
-                # Si llegamos aquí, la API está disponible, podemos continuar
-            except requests.exceptions.RequestException as models_error:
-                logging.error(
-                    f"Error al verificar disponibilidad de OpenRouter: {str(models_error)}"
-                )
-                return {"error": f"OpenRouter API no disponible: {str(models_error)}"}
-
-            # Configurar la solicitud
-            url = "https://openrouter.ai/api/v1/chat/completions"
-            headers = {
-                "Authorization": f"Bearer {secrets['OPENROUTER_API_KEY']}",
-                "HTTP-Referer": get_secret("YOUR_SITE_URL", "http://localhost:8501"),
-                "X-Title": "MALLO",
-                "Content-Type": "application/json",
-            }
+            # Verificar primero si el cliente existe
+            if not self.clients.get("openrouter"):
+                logging.warning("Cliente de OpenRouter no inicializado")
+                return {"error": "Cliente de OpenRouter no inicializado"}
 
             # Asegurarse de que el modelo tenga el formato correcto (con prefijo del proveedor)
             if "/" not in model:
-                # Si no tiene formato de proveedor/modelo, usar un modelo por defecto seguro
-                model = "openai/gpt-3.5-turbo"
-                logging.warning(
-                    f"Formato de modelo incorrecto, usando modelo por defecto: {model}"
-                )
-
-            data = {
-                "model": model,
-                "messages": [{"role": "user", "content": query}],
-                "temperature": self.config["general"]["temperature"],
-                "max_tokens": self.config["general"]["max_tokens"],
-            }
-
-            # Realizar la solicitud con timeout
-            response = requests.post(url, headers=headers, json=data, timeout=30)
-            response.raise_for_status()
-            response_data = response.json()
-
-            # Procesar la respuesta
-            if "choices" in response_data and len(response_data["choices"]) > 0:
+                # Buscar el modelo en la configuración para obtener el nombre completo
+                found = False
                 if (
-                    "message" in response_data["choices"][0]
-                    and "content" in response_data["choices"][0]["message"]
+                    "openrouter" in self.config
+                    and "models" in self.config["openrouter"]
                 ):
-                    return response_data["choices"][0]["message"]["content"]
-                else:
-                    logging.error(
-                        f"Formato de respuesta inesperado de OpenRouter: {response_data}"
-                    )
-                    return {"error": "Formato de respuesta inesperado de OpenRouter"}
-            else:
-                logging.error(f"Respuesta inesperada de OpenRouter: {response_data}")
-                return {"error": "Respuesta inesperada de OpenRouter"}
+                    for model_config in self.config["openrouter"]["models"]:
+                        if (
+                            isinstance(model_config, dict)
+                            and "name" in model_config
+                            and model_config["name"] == model
+                        ):
+                            model = model_config["name"]
+                            found = True
+                            break
 
-        except requests.exceptions.RequestException as e:
-            # Manejar errores de red y API de forma más específica
-            if "404" in str(e):
-                error_msg = "Endpoint no encontrado (404). La API de OpenRouter puede haber cambiado. Verifica la documentación en https://openrouter.ai/docs"
-                logging.error(f"Error al procesar con OpenRouter API: {error_msg}")
-                return {"error": error_msg}
-            elif "401" in str(e):
-                error_msg = (
-                    "Autenticación fallida (401). Verificar API key de OpenRouter."
-                )
-                logging.error(f"Error al procesar con OpenRouter API: {error_msg}")
-                return {"error": error_msg}
-            else:
-                logging.error(f"Error al procesar con OpenRouter API: {str(e)}")
-                return {"error": f"Error de conexión con OpenRouter API: {str(e)}"}
+                # Si no se encuentra, usar un modelo por defecto seguro
+                if not found:
+                    model = "deepseek/deepseek-r1-distill-qwen-14b:free"
+                    logging.warning(
+                        f"Modelo '{model}' no encontrado en la configuración, usando modelo por defecto: {model}"
+                    )
+
+            # Usar el cliente de OpenAI con la API de OpenRouter
+            response = self.clients["openrouter"].chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": query}],
+                temperature=self.config["general"]["temperature"],
+                max_tokens=self.config["general"]["max_tokens"],
+                headers={
+                    "HTTP-Referer": get_secret(
+                        "YOUR_SITE_URL", "http://localhost:8501"
+                    ),
+                    "X-Title": "MALLO",
+                },
+            )
+            return response.choices[0].message.content
+
         except Exception as e:
-            logging.error(f"Error inesperado al procesar con OpenRouter API: {str(e)}")
-            return {"error": f"Error al procesar con OpenRouter API: {str(e)}"}
+            logging.error(f"Error al procesar con OpenRouter API: {str(e)}")
+            return f"Error al procesar con OpenRouter API: {str(e)}"
 
     def _process_with_openai_like_client(self, client, query: str, model: str) -> str:
         try:
@@ -1150,7 +1237,7 @@ class AgentManager:
 
     def get_available_agents(self, agent_type: str = None) -> List[str]:
         if agent_type:
-            return {
+            models = {
                 "api": self.openai_models,
                 "groq": self.config["groq"]["models"],
                 "together": self.together_models,
@@ -1162,6 +1249,15 @@ class AgentManager:
                 "mistral": self.config["mistral"]["models"],
                 "cohere": self.config["cohere"]["models"],
             }.get(agent_type, [])
+
+            # Procesar los modelos para manejar diferentes formatos
+            processed_models = []
+            for model in models:
+                if isinstance(model, dict) and "name" in model:
+                    processed_models.append(model["name"])
+                elif isinstance(model, str):
+                    processed_models.append(model)
+            return processed_models
         else:
             all_agents = []
             for agent_type in [
@@ -1170,7 +1266,12 @@ class AgentManager:
                 "together",
                 "local",
                 "openrouter",
-            ]:  # Añadido OpenRouter
+                "deepinfra",
+                "anthropic",
+                "deepseek",
+                "mistral",
+                "cohere",
+            ]:
                 all_agents.extend(self.get_available_agents(agent_type))
             return all_agents
 
@@ -1191,13 +1292,26 @@ class AgentManager:
                 "together",
                 "local",
                 "openrouter",
-            ]:  # Añadido OpenRouter
-                agents.extend(
-                    [
-                        (agent_type, model)
-                        for model in self.get_available_agents(agent_type)
-                    ]
-                )
+                "deepinfra",
+                "anthropic",
+                "deepseek",
+                "mistral",
+                "cohere",
+            ]:
+                # Verificar si el cliente está inicializado
+                if agent_type not in ["local"] and not self.clients.get(agent_type):
+                    logging.warning(
+                        f"Cliente {agent_type} no inicializado, omitiendo en prioridad"
+                    )
+                    continue
+
+                # Obtener modelos disponibles
+                models = self.get_available_agents(agent_type)
+                if not models:
+                    logging.warning(f"No hay modelos disponibles para {agent_type}")
+                    continue
+
+                agents.extend([(agent_type, model) for model in models])
         return agents
 
 
