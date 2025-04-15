@@ -20,6 +20,16 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
   - Nombres descriptivos para todos los modelos en la interfaz de usuario.
   - Separación entre ID interno y nombre de visualización para mejor experiencia de usuario.
   - Formato consistente para todos los proveedores de modelos (Ollama, OpenAI, Groq, etc.).
+- Nuevo tab de "Búsqueda Web" en la sección de detalles:
+  - Muestra el proveedor de búsqueda utilizado (YOU Search, Tavily o DuckDuckGo).
+  - Presenta los resultados completos de la búsqueda web realizada.
+- Botón para limpiar la conversación y el contexto:
+  - Permite reiniciar la sesión sin necesidad de refrescar la página.
+  - Limpia todos los mensajes, contexto y documentos cargados.
+- Mejora en la exportación de conversaciones:
+  - Incluye toda la información generada durante el procesamiento.
+  - Organiza la información en secciones claras y bien estructuradas.
+  - Añade detalles sobre búsqueda web, respuestas de agentes y documentos procesados.
 
 ### Cambiado
 - Reorganización de archivos del proyecto:
@@ -68,6 +78,8 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
 - Mejoras en la selección automática de modelos:
   - Implementación de selección automática de modelos principales cuando no se selecciona ninguno.
   - Implementación de selección automática de modelos de respaldo cuando no se selecciona ninguno.
+  - Selección inteligente de modelos basada en el tipo de consulta cuando solo está activa la mejora de prompt.
+  - Visualización en tiempo real del proceso de selección de modelos según el tipo de consulta.
 
 ## [2.7.0] - 2025-04-14
 

@@ -170,6 +170,7 @@ def render_response_details(details: Dict):
             "🎯 Mejora de Prompt",
             "⚖️ Evaluación Ética",
             "🔄 Meta-análisis",
+            "🔍 Búsqueda Web",
         ]
     )
 
@@ -260,6 +261,31 @@ def render_response_details(details: Dict):
         else:
             st.info("No se realizó meta-análisis para esta respuesta.")
 
+    with tabs[5]:
+        st.markdown("### Búsqueda Web")
+        if details.get("stages_executed", {}).get("web_search", False) and details.get(
+            "web_context"
+        ):
+            # Mostrar el proveedor de búsqueda utilizado
+            search_provider = "No especificado"
+            web_context = details.get("web_context", "")
+
+            # Intentar determinar el proveedor basado en patrones en el contexto web
+            if "YOU Search API" in web_context or "api.ydc-index.io" in web_context:
+                search_provider = "YOU Search"
+            elif "Tavily API" in web_context or "tavily" in web_context:
+                search_provider = "Tavily"
+            elif "DuckDuckGo" in web_context:
+                search_provider = "DuckDuckGo"
+
+            st.markdown(f"**Proveedor de búsqueda:** {search_provider}")
+
+            # Mostrar los resultados de la búsqueda
+            st.markdown("**Resultados de la búsqueda:**")
+            st.markdown(web_context)
+        else:
+            st.info("No se realizó búsqueda web para esta respuesta.")
+
 
 def display_conversation_context():
     """Muestra el contexto de la conversación en una sección separada."""
@@ -269,7 +295,7 @@ def display_conversation_context():
 
 
 def export_conversation_to_md(messages, details):
-    """Exporta la conversación completa a Markdown."""
+    """Exporta la conversación completa a Markdown con toda la información disponible."""
     md_content = "# Conversación con MALLO\n\n"
     md_content += f"Fecha: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
@@ -282,36 +308,129 @@ def export_conversation_to_md(messages, details):
             if details:
                 md_content += "### 🔍 Detalles del Proceso\n\n"
 
+                # Tipo de prompt y complejidad
+                if details.get("prompt_type") or details.get("complexity"):
+                    md_content += "#### 🎯 Mejora de Prompt\n\n"
+                    if details.get("prompt_type"):
+                        md_content += f"**Tipo de prompt detectado:** {details['prompt_type']}\n\n"
+                    if details.get("complexity"):
+                        md_content += (
+                            f"**Complejidad:** {details.get('complexity')}\n\n"
+                        )
+                    if "needs_web_search" in details:
+                        md_content += f"**Requiere búsqueda web:** {'Sí' if details.get('needs_web_search', False) else 'No'}\n\n"
+                    if "needs_moa" in details:
+                        md_content += f"**Requiere meta-análisis:** {'Sí' if details.get('needs_moa', False) else 'No'}\n\n"
+
                 # Razonamiento (evaluación inicial)
-                if details.get("initial_evaluation"):
-                    md_content += (
-                        f"#### Razonamiento\n\n{details['initial_evaluation']}\n\n"
-                    )
-                else:
-                    md_content += f"#### Razonamiento\n\nNo se realizó evaluación inicial para esta respuesta.\n\n"
+                if details.get("stages_executed", {}).get("initial_evaluation", True):
+                    md_content += "#### 💭 Razonamiento\n\n"
+                    if (
+                        details.get("initial_evaluation")
+                        and details["initial_evaluation"]
+                        != "No se realizó evaluación inicial para esta respuesta."
+                    ):
+                        md_content += f"{details['initial_evaluation']}\n\n"
+                    else:
+                        md_content += (
+                            "No se realizó evaluación inicial para esta respuesta.\n\n"
+                        )
 
-                # Evaluación ética
-                if details.get("ethical_evaluation"):
-                    md_content += f"#### Evaluación Ética\n\n```json\n{json.dumps(details['ethical_evaluation'], indent=2)}\n```\n\n"
-                else:
-                    md_content += f"#### Evaluación Ética\n\nNo se realizó evaluación ética para esta respuesta.\n\n"
+                # Búsqueda web
+                if details.get("stages_executed", {}).get("web_search", False):
+                    md_content += "#### 🔍 Búsqueda Web\n\n"
+                    if details.get("web_context"):
+                        # Determinar el proveedor de búsqueda
+                        search_provider = "No especificado"
+                        web_context = details.get("web_context", "")
 
-                # Respuesta mejorada
-                if details.get("improved_response"):
-                    md_content += f"#### ✨ Respuesta Mejorada\n\n{details['improved_response']}\n\n"
+                        if (
+                            "YOU Search API" in web_context
+                            or "api.ydc-index.io" in web_context
+                        ):
+                            search_provider = "YOU Search"
+                        elif "Tavily API" in web_context or "tavily" in web_context:
+                            search_provider = "Tavily"
+                        elif "DuckDuckGo" in web_context:
+                            search_provider = "DuckDuckGo"
+
+                        md_content += (
+                            f"**Proveedor de búsqueda:** {search_provider}\n\n"
+                        )
+                        md_content += (
+                            f"**Resultados de la búsqueda:**\n\n{web_context}\n\n"
+                        )
+                    else:
+                        md_content += (
+                            "No se encontraron resultados de búsqueda web.\n\n"
+                        )
+
+                # Respuestas de los agentes
+                if details.get("agent_processing"):
+                    md_content += "#### 🤖 Respuestas de los Agentes\n\n"
+                    for i, agent_result in enumerate(details["agent_processing"]):
+                        agent_type = agent_result.get("agent_type", "Desconocido")
+                        agent_model = agent_result.get("agent_model", "Desconocido")
+                        agent_response = agent_result.get("response", "Sin respuesta")
+                        agent_error = agent_result.get("error", None)
+
+                        md_content += f"##### Agente {i+1}: {agent_type.capitalize()} - {agent_model}\n\n"
+                        if agent_error:
+                            md_content += f"**Error:** {agent_error}\n\n"
+                        else:
+                            md_content += f"{agent_response}\n\n"
 
                 # Meta-análisis
-                if details.get("meta_analysis"):
-                    md_content += (
-                        f"#### 🔄 Meta-análisis\n\n{details['meta_analysis']}\n\n"
-                    )
+                if details.get("stages_executed", {}).get("meta_analysis", False):
+                    md_content += "#### 🔄 Meta-análisis\n\n"
+                    if details.get("meta_analysis"):
+                        md_content += f"{details['meta_analysis']}\n\n"
+                    else:
+                        md_content += (
+                            "No se realizó meta-análisis para esta respuesta.\n\n"
+                        )
+
+                # Evaluación ética
+                if details.get("stages_executed", {}).get("ethical_evaluation", True):
+                    md_content += "#### ⚖️ Evaluación Ética\n\n"
+                    if details.get("ethical_evaluation"):
+                        md_content += f"```json\n{json.dumps(details['ethical_evaluation'], indent=2)}\n```\n\n"
+                    else:
+                        md_content += (
+                            "No se realizó evaluación ética para esta respuesta.\n\n"
+                        )
+
+                # Respuesta mejorada éticamente
+                if details.get("improved_response"):
+                    md_content += f"#### ✨ Respuesta Mejorada Éticamente\n\n{details['improved_response']}\n\n"
 
                 # Métricas de rendimiento
                 if details.get("performance_metrics"):
-                    md_content += f"#### 📝 Métricas de Rendimiento\n\n```json\n{json.dumps(details['performance_metrics'], indent=2)}\n```\n\n"
+                    md_content += f"#### 📊 Métricas de Rendimiento\n\n```json\n{json.dumps(details['performance_metrics'], indent=2)}\n```\n\n"
 
                 # Contexto de la conversación
-                md_content += f"#### 🌐 Contexto de la Conversación\n\n{st.session_state.get('context', 'No disponible')}\n\n"
+                md_content += f"#### 💬 Contexto de la Conversación\n\n{st.session_state.get('context', 'No disponible')}\n\n"
+
+                # Contexto de documentos
+                if st.session_state.get("document_contents"):
+                    md_content += "#### 📚 Documentos Procesados\n\n"
+                    for doc_name, doc_content in st.session_state.get(
+                        "document_contents", {}
+                    ).items():
+                        md_content += f"**Documento:** {doc_name}\n\n"
+                        if isinstance(doc_content, dict) and "text" in doc_content:
+                            # Limitar el texto para no hacer el archivo demasiado grande
+                            doc_text = (
+                                doc_content["text"][:1000] + "..."
+                                if len(doc_content["text"]) > 1000
+                                else doc_content["text"]
+                            )
+                            md_content += f"```\n{doc_text}\n```\n\n"
+
+                # Etapas ejecutadas
+                if details.get("stages_executed"):
+                    md_content += f"#### ⚙️ Etapas Ejecutadas\n\n```json\n{json.dumps(details['stages_executed'], indent=2)}\n```\n\n"
+
                 md_content += "---\n\n"
 
     # Escribir el contenido al archivo temporal
@@ -920,6 +1039,22 @@ def render_sidebar_content(
                     except Exception as e:
                         st.error(f"Error al actualizar modelos: {str(e)}")
 
+        # Limpiar conversación
+        with st.expander("🔄 Reiniciar", expanded=False):
+            st.caption("Reiniciar la conversación y limpiar el contexto")
+            if st.button("🗑️ Limpiar conversación", use_container_width=True):
+                # Reiniciar el estado de la sesión
+                st.session_state.messages = []
+                st.session_state.context = ""
+                st.session_state.last_details = {}
+                st.session_state.error_count = 0
+                st.session_state.last_successful_response = None
+                st.session_state.uploaded_files = []
+                st.session_state.document_contents = {}
+                st.session_state.file_metadata = {}
+                st.success("Conversación reiniciada correctamente")
+                st.rerun()
+
         # Capacidades
         with st.expander("💡 Capacidades", expanded=False):
             features = {
@@ -1238,8 +1373,14 @@ def process_user_input(
         # Determinar qué agentes usar
         prioritized_agents = []
 
+        # Variable para controlar si se debe usar la selección automática basada en el tipo de consulta
+        use_auto_selection = True
+
+        # Verificar si se debe usar la selección manual de modelos o la automática
         if use_custom_config and custom_config["models"]["primary"]:
-            # Usar modelos personalizados
+            # Usar modelos personalizados (selección manual)
+            use_auto_selection = False
+
             for model_str in custom_config["models"]["primary"]:
                 if len(prioritized_agents) < custom_config["agent_count"]:
                     # Manejar el formato de modelo de manera más robusta
@@ -1288,9 +1429,20 @@ def process_user_input(
                     )
                 except Exception as e:
                     logging.error(f"Error al configurar agente de respaldo: {str(e)}")
-        else:
-            # Usar selección estándar de agentes
+
+        # Usar selección automática basada en el tipo de consulta
+        if use_auto_selection:
+            logging.info(
+                f"Usando selección automática de modelos basada en el tipo de consulta: {prompt_type}"
+            )
+            progress_placeholder.write(
+                f"🔍 Seleccionando modelos adecuados para consulta de tipo: {prompt_type}"
+            )
+
+            # Obtener agente especializado si existe
             specialized_agent = agent_manager.select_specialized_agent(enriched_query)
+
+            # Obtener agentes priorizados según el tipo de consulta
             general_agents = agent_manager.get_prioritized_agents(
                 enriched_query, complexity, prompt_type
             )
@@ -1304,6 +1456,9 @@ def process_user_input(
                         specialized_agent["name"],
                     )
                 )
+                progress_placeholder.write(
+                    f"✅ Seleccionado agente especializado: {specialized_agent['name']}"
+                )
 
             # Añadir agentes generales
             max_agents = 2
@@ -1314,7 +1469,9 @@ def process_user_input(
                 if len(prioritized_agents) >= max_agents:
                     break
                 if agent not in prioritized_agents:
+                    agent_type, model_id, model_name = agent
                     prioritized_agents.append(agent)
+                    progress_placeholder.write(f"✅ Seleccionado modelo: {model_name}")
 
             prioritized_agents = prioritized_agents[:max_agents]
 

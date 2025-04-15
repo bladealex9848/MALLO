@@ -293,6 +293,7 @@ class AgentManager:
         return recommended_agent if confidence == "alta" else initial_agent
 
     # Extraer la recomendación y la confianza de la respuesta generada
+    @staticmethod
     def extract_recommendation_(response: str) -> Tuple[str, str]:
         agent_match = re.search(r"Agente recomendado:\s*(\w+)", response)
         recommended_agent = agent_match.group(1) if agent_match else None
