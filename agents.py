@@ -13,7 +13,13 @@ from anthropic import Anthropic
 import cohere
 import json
 import random
-from utilities import log_error
+
+
+# Definir función log_error localmente para evitar importación circular
+def log_error(message):
+    """Registra un mensaje de error en el log."""
+    logging.error(message)
+
 
 from load_secrets import load_secrets, get_secret, secrets
 

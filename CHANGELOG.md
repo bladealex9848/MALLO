@@ -30,6 +30,12 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
   - Incluye toda la información generada durante el procesamiento.
   - Organiza la información en secciones claras y bien estructuradas.
   - Añade detalles sobre búsqueda web, respuestas de agentes y documentos procesados.
+- Mejoras en la interfaz de usuario:
+  - Visualización mejorada del proveedor de búsqueda web (solo se muestra cuando se puede determinar).
+  - Sección de créditos del desarrollador con etiquetas más atractivas y consistentes.
+  - Enlaces de contacto transformados en etiquetas visuales con iconos.
+  - Nueva sección de guía de uso con instrucciones claras para los usuarios.
+  - Reorganización de la barra lateral para una mejor experiencia de usuario.
 
 ### Cambiado
 - Reorganización de archivos del proyecto:
@@ -80,6 +86,10 @@ y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/
   - Implementación de selección automática de modelos de respaldo cuando no se selecciona ninguno.
   - Selección inteligente de modelos basada en el tipo de consulta cuando solo está activa la mejora de prompt.
   - Visualización en tiempo real del proceso de selección de modelos según el tipo de consulta.
+- Limpieza de código:
+  - Eliminación de importaciones no utilizadas.
+  - Corrección de variables declaradas pero no utilizadas.
+  - Optimización general del código para reducir advertencias.
 
 ## [2.7.0] - 2025-04-14
 

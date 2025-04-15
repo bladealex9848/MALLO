@@ -13,28 +13,21 @@ from utilities import (
     initialize_system,
     cache_response,
     get_cached_response,
-    summarize_text,
     perform_web_search,
     log_error,
-    log_warning,
-    log_info,
     evaluate_query_complexity,
 )
 from document_processor import (
     validate_file_format,
-    detect_document_type,
     process_document_with_mistral_ocr,
     manage_document_context,
 )
 import time
-import asyncio
-import polars as pl
-import random
 import logging
 import traceback
 import requests
-from typing import Tuple, Dict, Any, Optional
-from load_secrets import load_secrets, get_secret, secrets
+from typing import Tuple, Dict, Any
+from load_secrets import load_secrets, get_secret
 
 # Configuración de logging
 logging.basicConfig(
@@ -267,10 +260,10 @@ def render_response_details(details: Dict):
             "web_context"
         ):
             # Mostrar el proveedor de búsqueda utilizado
-            search_provider = "No especificado"
             web_context = details.get("web_context", "")
 
             # Intentar determinar el proveedor basado en patrones en el contexto web
+            search_provider = None
             if "YOU Search API" in web_context or "api.ydc-index.io" in web_context:
                 search_provider = "YOU Search"
             elif "Tavily API" in web_context or "tavily" in web_context:
@@ -278,7 +271,9 @@ def render_response_details(details: Dict):
             elif "DuckDuckGo" in web_context:
                 search_provider = "DuckDuckGo"
 
-            st.markdown(f"**Proveedor de búsqueda:** {search_provider}")
+            # Solo mostrar el proveedor si se pudo determinar
+            if search_provider:
+                st.markdown(f"**Proveedor de búsqueda:** {search_provider}")
 
             # Mostrar los resultados de la búsqueda
             st.markdown("**Resultados de la búsqueda:**")
@@ -341,9 +336,9 @@ def export_conversation_to_md(messages, details):
                     md_content += "#### 🔍 Búsqueda Web\n\n"
                     if details.get("web_context"):
                         # Determinar el proveedor de búsqueda
-                        search_provider = "No especificado"
                         web_context = details.get("web_context", "")
 
+                        search_provider = None
                         if (
                             "YOU Search API" in web_context
                             or "api.ydc-index.io" in web_context
@@ -354,9 +349,11 @@ def export_conversation_to_md(messages, details):
                         elif "DuckDuckGo" in web_context:
                             search_provider = "DuckDuckGo"
 
-                        md_content += (
-                            f"**Proveedor de búsqueda:** {search_provider}\n\n"
-                        )
+                        # Solo incluir el proveedor si se pudo determinar
+                        if search_provider:
+                            md_content += (
+                                f"**Proveedor de búsqueda:** {search_provider}\n\n"
+                            )
                         md_content += (
                             f"**Resultados de la búsqueda:**\n\n{web_context}\n\n"
                         )
@@ -475,9 +472,17 @@ def render_sidebar_content(
         # Enlaces principales
         st.markdown(
             """
-        [![ver código fuente](https://img.shields.io/badge/Repositorio%20GitHub-gris?logo=github)](https://github.com/bladealex9848/MALLO)
-        ![Visitantes](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fmallollm.streamlit.app&label=Visitantes&labelColor=%235d5d5d&countColor=%231e7ebf&style=flat)
-        """
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+            <a href="https://github.com/bladealex9848/MALLO" target="_blank">
+                <img src="https://img.shields.io/badge/GitHub-Repositorio-gray?logo=github&style=flat" alt="GitHub Repo">
+            </a>
+            <a href="https://www.malloia.com" target="_blank">
+                <img src="https://img.shields.io/badge/MALLO-Web-blue?logo=streamlit&style=flat" alt="MALLO Web">
+            </a>
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fmallollm.streamlit.app&label=Visitantes&labelColor=%235d5d5d&countColor=%231e7ebf&style=flat" alt="Visitantes">
+        </div>
+        """,
+            unsafe_allow_html=True,
         )
 
         # Estado del Sistema
@@ -1055,6 +1060,26 @@ def render_sidebar_content(
                 st.success("Conversación reiniciada correctamente")
                 st.rerun()
 
+        # Guía de uso
+        with st.expander("📖 Guía de Uso", expanded=False):
+            st.markdown(
+                """
+            ### Cómo usar MALLO
+
+            1. **Escribe tu consulta** en el campo de texto en la parte inferior.
+            2. **Adjunta archivos** (opcional) directamente en el campo de texto.
+            3. **Personaliza el procesamiento** (opcional) en la configuración de la barra lateral.
+            4. **Explora los resultados** en las diferentes pestañas de la respuesta.
+            5. **Exporta la conversación** usando las opciones en la pestaña "Exportar".
+
+            #### Tipos de consultas recomendadas:
+            - Preguntas complejas que requieren análisis profundo
+            - Consultas que necesitan información actualizada de la web
+            - Análisis de documentos y textos
+            - Problemas que se benefician de múltiples perspectivas
+            """
+            )
+
         # Capacidades
         with st.expander("💡 Capacidades", expanded=False):
             features = {
@@ -1093,20 +1118,41 @@ def render_sidebar_content(
             st.image("assets/profile.jpg", width=60)
         with col2:
             st.markdown("#### Alexander Oviedo Fadul")
-            st.caption("Developer & Legal Tech")
+            st.markdown(
+                """
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <a href="https://www.linkedin.com/in/alexanderoviedofadul/" target="_blank">
+                        <img src="https://img.shields.io/badge/LinkedIn-Perfil-blue?logo=linkedin&style=flat" alt="LinkedIn">
+                    </a>
+                    <a href="https://github.com/bladealex9848" target="_blank">
+                        <img src="https://img.shields.io/badge/GitHub-Perfil-gray?logo=github&style=flat" alt="GitHub">
+                    </a>
+                    <a href="https://marduk.pro" target="_blank">
+                        <img src="https://img.shields.io/badge/Web-Marduk.pro-green?logo=web&style=flat" alt="Web">
+                    </a>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
         # Enlaces sociales
         st.markdown("##### Contacto")
-        social_links = {
-            "🌐 Website": "https://alexanderoviedofadul.dev",
-            "💼 LinkedIn": "https://linkedin.com/in/alexander-oviedo-fadul",
-            "📱 WhatsApp": "https://wa.me/573015930519",
-            "📧 Email": "mailto:alexander.oviedo.fadul@gmail.com",
-            "🐙 GitHub": "https://github.com/bladealex9848",
-        }
-
-        for platform, link in social_links.items():
-            st.markdown(f"[{platform}]({link})")
+        st.markdown(
+            """
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                <a href="https://alexanderoviedofadul.dev" target="_blank">
+                    <img src="https://img.shields.io/badge/Website-alexanderoviedofadul.dev-green?logo=web&style=flat" alt="Website">
+                </a>
+                <a href="https://wa.me/573015930519" target="_blank">
+                    <img src="https://img.shields.io/badge/WhatsApp-Contacto-25D366?logo=whatsapp&style=flat" alt="WhatsApp">
+                </a>
+                <a href="mailto:alexander.oviedo.fadul@gmail.com" target="_blank">
+                    <img src="https://img.shields.io/badge/Email-Contacto-red?logo=gmail&style=flat" alt="Email">
+                </a>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 # Resumen de la conversación con un límite de longitud máximo (500 caracteres)
@@ -1147,13 +1193,12 @@ def summarize_conversation(
     return updated_context
 
 
-def evaluate_ethical_compliance(response: str, prompt_type: str) -> Dict[str, Any]:
+def evaluate_ethical_compliance(response: str) -> Dict[str, Any]:
     """
     Evalúa el cumplimiento ético y legal de la respuesta generada.
 
     Args:
     response (str): La respuesta generada por el sistema.
-    prompt_type (str): El tipo de prompt utilizado para generar la respuesta.
 
     Returns:
     Dict[str, Any]: Un diccionario con los resultados de la evaluación.
@@ -1469,7 +1514,9 @@ def process_user_input(
                 if len(prioritized_agents) >= max_agents:
                     break
                 if agent not in prioritized_agents:
-                    agent_type, model_id, model_name = agent
+                    agent_type, _, model_name = (
+                        agent  # Usamos _ para indicar que no usamos el valor
+                    )
                     prioritized_agents.append(agent)
                     progress_placeholder.write(f"✅ Seleccionado modelo: {model_name}")
 
@@ -1637,9 +1684,7 @@ def process_user_input(
             "ethical_evaluation", True
         ):
             progress_placeholder.write("⚖️ Evaluando cumplimiento ético...")
-            ethical_evaluation = evaluate_ethical_compliance(
-                final_response, prompt_type
-            )
+            ethical_evaluation = evaluate_ethical_compliance(final_response)
 
             # Mejora ética si es necesaria
             if any(not value for value in ethical_evaluation.values()):
@@ -1662,7 +1707,7 @@ def process_user_input(
                     enhancement_prompt, "assistant", specialized_assistant["id"]
                 )
                 improved_ethical_evaluation = evaluate_ethical_compliance(
-                    improved_response, prompt_type
+                    improved_response
                 )
 
         # Evaluación final
