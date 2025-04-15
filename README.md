@@ -142,31 +142,47 @@ MALLO/
 │
 ├── agents.py                   # Implementación de la clase AgentManager y lógica de agentes
 ├── config.yaml                 # Configuración general del sistema
+├── config_streamlit.py         # Configuración de la interfaz de Streamlit
+├── custom_config.json          # Configuración personalizada guardada por el usuario
+├── document_processor.py       # Procesamiento de documentos y OCR
+├── error_recovery.json         # Registro de errores para recuperación
+├── load_secrets.py             # Carga de secretos y claves API
 ├── main.py                     # Punto de entrada principal y UI de Streamlit
+├── model_loader.py             # Carga de modelos desde diferentes fuentes
+├── model_speeds.json           # Índice de velocidad de modelos locales y en la nube
 ├── README.md                   # Documentación del proyecto (este archivo)
 ├── utilities.py                # Funciones de utilidad y helpers
-├── model_speeds.json           # Índice de velocidad de modelos locales y en la nube
 ├── CHANGELOG.md                # Registro de cambios y versiones
-├── mallo_enhancer.py           # Lógica experimental para mejorar y evaluar respuestas
 │
-├── .streamlit/
+├── .streamlit/                 # Configuración de Streamlit
 │   └── secrets.toml            # Almacenamiento seguro de claves API (no incluido en el repositorio)
 │
-├── tests/                      # Directorio para pruebas unitarias y de integración
-│
-├── logs/                       # Directorio para archivos de log
-│
 ├── assets/                     # Directorio para recursos estáticos (imágenes, estilos, etc.)
-|
-├── tools/                      # Directorio utilidades externas
-│   └── test_model_speeds.py    # Pequeño script para medir la velocidad de los modelos
 │
-├── docs/
-│   ├── informes/               # Informes técnicos, de investigación y otros documentos relacionados con el proyecto
+├── docs/                       # Documentación adicional
+│   ├── informes/               # Informes técnicos, de investigación y otros documentos
 │   │
-│   └── ejemplos_consultas/     # Ejemplos de consultas y respuestas para demostración y prueba
-|
-└── requirements.txt            # Dependencias del proyecto
+│   └── ejemplos_consultas/     # Ejemplos de consultas y respuestas para demostración
+│
+├── legacy_code/                # Código histórico y no esencial
+│   ├── cache_manager.py        # Sistema de caché (versión anterior)
+│   ├── cached_init.py          # Inicialización en caché (versión anterior)
+│   ├── compatibility_check.py  # Verificación de compatibilidad
+│   ├── groq_model_speeds.json  # Velocidades de modelos Groq
+│   ├── mallo.log               # Archivo de registro
+│   └── mallo_enhancer.py       # Lógica experimental para mejorar respuestas
+│
+├── static/                     # Archivos estáticos para la interfaz
+│
+├── temp/                       # Directorio para archivos temporales
+│
+├── tools/                      # Utilidades externas
+│   ├── test_groq_model_speed.py    # Script para medir velocidad de modelos Groq
+│   ├── test_model_speeds.py        # Script para medir velocidad de modelos
+│   └── test_replicate_model_speed.py # Script para medir velocidad de modelos Replicate
+│
+├── packages.txt                # Dependencias del sistema
+└── requirements.txt            # Dependencias de Python
 ```
 
 ## Requisitos Previos

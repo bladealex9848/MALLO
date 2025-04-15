@@ -4,6 +4,41 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [2.8.0] - 2025-04-15
+
+### Añadido
+- Implementación de personalización de etapas de procesamiento y selección de modelos:
+  - Nueva sección en la barra lateral para configurar etapas de procesamiento (evaluación inicial, búsqueda web, meta-análisis, evaluación ética).
+  - Posibilidad de seleccionar modelos principales y de respaldo para el procesamiento.
+  - Sistema de guardado y carga de configuraciones personalizadas.
+  - Botón para actualizar modelos disponibles desde APIs externas.
+- Nuevo módulo `model_loader.py` para cargar modelos desde diferentes fuentes:
+  - Carga de modelos gratuitos desde OpenRouter.
+  - Carga de todos los modelos disponibles desde Groq.
+  - Carga de modelos locales desde Ollama con fallback a comando CLI.
+
+### Cambiado
+- Reorganización de archivos del proyecto:
+  - Creación de directorio `legacy_code/` para código histórico y no esencial.
+  - Movimiento de archivos no esenciales al directorio `legacy_code/`.
+- Modificación de la función `process_user_input` para respetar la configuración personalizada:
+  - Ejecución condicional de etapas según la configuración del usuario.
+  - Uso de modelos seleccionados por el usuario.
+  - Implementación de sistema de respaldo para modelos que fallan.
+
+### Mejorado
+- Mejor manejo de errores en la carga y procesamiento de modelos:
+  - Implementación de sistema robusto para manejar modelos con múltiples ":" en su ID.
+  - Mejor manejo de errores en la visualización de detalles de respuesta.
+- Optimización de la interfaz de usuario:
+  - Eliminación de la visualización de resultados de velocidad (datos estáticos).
+  - Mejor organización de la barra lateral.
+
+### Corregido
+- Solución al error relacionado con el formato de modelos de OpenRouter.
+- Corrección del error en la función `render_sidebar_content` al procesar agentes especializados.
+- Mejora en el manejo de diferentes formatos de tiempo de procesamiento en la visualización de detalles.
+
 ## [2.7.0] - 2025-04-14
 
 ### Mejorado

@@ -190,13 +190,36 @@ def render_response_details(details: Dict):
     with tabs[0]:
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Tiempo", f"{float(details['processing_time'].split()[0]):.2f}s")
+            # Manejar diferentes formatos de processing_time
+            try:
+                if isinstance(details.get("processing_time"), str):
+                    if " " in details["processing_time"]:
+                        # Formato "X.XX segundos"
+                        time_value = float(details["processing_time"].split()[0])
+                    else:
+                        # Formato "X.XX"
+                        time_value = float(details["processing_time"])
+                elif isinstance(details.get("processing_time"), (int, float)):
+                    time_value = float(details["processing_time"])
+                else:
+                    time_value = 0.0
+                st.metric("Tiempo", f"{time_value:.2f}s")
+            except (KeyError, ValueError, TypeError) as e:
+                st.metric("Tiempo", "N/A")
+                logging.warning(f"Error al procesar tiempo: {str(e)}")
         with col2:
-            st.metric(
-                "Agentes", str(details["performance_metrics"]["total_agents_called"])
-            )
+            try:
+                st.metric(
+                    "Agentes",
+                    str(details["performance_metrics"]["total_agents_called"]),
+                )
+            except (KeyError, TypeError):
+                st.metric("Agentes", "N/A")
         with col3:
-            st.metric("Complejidad", f"{details['complexity']:.2f}")
+            try:
+                st.metric("Complejidad", f"{details['complexity']:.2f}")
+            except (KeyError, TypeError, ValueError):
+                st.metric("Complejidad", "N/A")
 
     with tabs[1]:
         st.markdown("### Proceso de Razonamiento")
@@ -272,7 +295,8 @@ def export_conversation_to_md(messages, details):
 
 
 def render_sidebar_content(
-    system_status: Dict[str, bool], speed_test_results: Optional[Dict]
+    system_status: Dict[str, bool],
+    agent_manager: Any,
 ):
     """Renderiza el contenido de la barra lateral con diseño mejorado."""
     with st.sidebar:
@@ -309,9 +333,270 @@ def render_sidebar_content(
                 else:
                     st.error(key, icon="❌")
 
-            if speed_test_results:
-                st.markdown("##### Rendimiento")
-                display_speed_test_results(speed_test_results)
+            # Eliminamos la visualización de resultados de velocidad
+            # ya que se toman de un archivo estático
+
+        # Configuración de Procesamiento
+        with st.expander("⚙️ Configuración de Procesamiento", expanded=False):
+            # Inicializar configuración personalizada en session_state si no existe
+            if "custom_processing_config" not in st.session_state:
+                st.session_state.custom_processing_config = {
+                    "enabled": False,
+                    "stages": {
+                        "initial_evaluation": True,
+                        "web_search": True,
+                        "meta_analysis": True,
+                        "ethical_evaluation": True,
+                    },
+                    "models": {"primary": [], "fallback": []},
+                    "agent_count": 3,
+                }
+
+            # Activar/desactivar configuración personalizada
+            st.session_state.custom_processing_config["enabled"] = st.toggle(
+                "Activar configuración personalizada",
+                value=st.session_state.custom_processing_config["enabled"],
+                help="Activa o desactiva la configuración personalizada de procesamiento",
+            )
+
+            if st.session_state.custom_processing_config["enabled"]:
+                st.markdown("#### Etapas de Procesamiento")
+
+                # Configuración de etapas
+                st.session_state.custom_processing_config["stages"][
+                    "initial_evaluation"
+                ] = st.checkbox(
+                    "Evaluación inicial",
+                    value=st.session_state.custom_processing_config["stages"][
+                        "initial_evaluation"
+                    ],
+                    help="Evalúa la complejidad y tipo de la consulta",
+                )
+
+                st.session_state.custom_processing_config["stages"]["web_search"] = (
+                    st.checkbox(
+                        "Búsqueda web",
+                        value=st.session_state.custom_processing_config["stages"][
+                            "web_search"
+                        ],
+                        help="Realiza búsqueda web para enriquecer el contexto",
+                    )
+                )
+
+                st.session_state.custom_processing_config["stages"]["meta_analysis"] = (
+                    st.checkbox(
+                        "Meta-análisis",
+                        value=st.session_state.custom_processing_config["stages"][
+                            "meta_analysis"
+                        ],
+                        help="Realiza un análisis combinando múltiples respuestas",
+                    )
+                )
+
+                st.session_state.custom_processing_config["stages"][
+                    "ethical_evaluation"
+                ] = st.checkbox(
+                    "Evaluación ética",
+                    value=st.session_state.custom_processing_config["stages"][
+                        "ethical_evaluation"
+                    ],
+                    help="Evalúa el cumplimiento ético de la respuesta",
+                )
+
+                # Número de agentes a utilizar
+                st.session_state.custom_processing_config["agent_count"] = st.slider(
+                    "Número de agentes",
+                    min_value=1,
+                    max_value=5,
+                    value=st.session_state.custom_processing_config["agent_count"],
+                    help="Número de agentes a utilizar para procesar la consulta",
+                )
+
+                st.markdown("#### Selección de Modelos")
+
+                # Obtener modelos disponibles
+                available_models = []
+
+                # Cargar modelos desde config.yaml
+                config = agent_manager.config
+
+                # Agregar modelos de API (OpenAI, etc.)
+                if "openai" in config and "models" in config["openai"]:
+                    for model in config["openai"]["models"]:
+                        available_models.append(f"api:{model}")
+
+                # Agregar modelos de Groq
+                if "groq" in config and "models" in config["groq"]:
+                    for model in config["groq"]["models"]:
+                        available_models.append(f"groq:{model}")
+
+                # Agregar modelos de Together
+                if "together" in config and "models" in config["together"]:
+                    for model in config["together"]["models"]:
+                        available_models.append(f"together:{model}")
+
+                # Agregar modelos de DeepInfra
+                if "deepinfra" in config and "models" in config["deepinfra"]:
+                    for model in config["deepinfra"]["models"]:
+                        available_models.append(f"deepinfra:{model}")
+
+                # Agregar modelos de Anthropic
+                if "anthropic" in config and "models" in config["anthropic"]:
+                    for model in config["anthropic"]["models"]:
+                        available_models.append(f"anthropic:{model}")
+
+                # Agregar modelos de DeepSeek
+                if "deepseek" in config and "models" in config["deepseek"]:
+                    for model in config["deepseek"]["models"]:
+                        available_models.append(f"deepseek:{model}")
+
+                # Agregar modelos de Mistral
+                if "mistral" in config and "models" in config["mistral"]:
+                    for model in config["mistral"]["models"]:
+                        available_models.append(f"mistral:{model}")
+
+                # Agregar modelos de Cohere
+                if "cohere" in config and "models" in config["cohere"]:
+                    for model in config["cohere"]["models"]:
+                        available_models.append(f"cohere:{model}")
+
+                # Agregar modelos de OpenRouter
+                if "openrouter" in config and "models" in config["openrouter"]:
+                    for model in config["openrouter"]["models"]:
+                        available_models.append(f"openrouter:{model}")
+
+                # Agregar modelos locales (Ollama)
+                try:
+                    import subprocess
+
+                    result = subprocess.run(
+                        ["ollama", "list"], capture_output=True, text=True
+                    )
+                    if result.returncode == 0:
+                        lines = result.stdout.strip().split("\n")
+                        if (
+                            len(lines) > 1
+                        ):  # Hay al menos un modelo (ignorando la cabecera)
+                            for line in lines[1:]:  # Saltar la cabecera
+                                parts = line.split()
+                                if parts:  # Asegurarse de que la línea no está vacía
+                                    model_name = parts[0]
+                                    available_models.append(f"local:{model_name}")
+                except Exception as e:
+                    st.warning(f"No se pudieron cargar los modelos locales: {str(e)}")
+
+                # Agregar agentes especializados
+                if "specialized_assistants" in config and isinstance(
+                    config["specialized_assistants"], dict
+                ):
+                    for assistant_id, assistant_info in config[
+                        "specialized_assistants"
+                    ].items():
+                        if (
+                            isinstance(assistant_info, dict)
+                            and "name" in assistant_info
+                        ):
+                            available_models.append(f"assistant:{assistant_id}")
+
+                # Modelos principales
+                st.markdown("##### Modelos Principales")
+                selected_primary = st.multiselect(
+                    "Selecciona los modelos principales",
+                    options=available_models,
+                    default=st.session_state.custom_processing_config["models"][
+                        "primary"
+                    ],
+                    help="Modelos que se utilizarán como primera opción",
+                )
+                st.session_state.custom_processing_config["models"][
+                    "primary"
+                ] = selected_primary
+
+                # Modelos de respaldo
+                st.markdown("##### Modelos de Respaldo")
+                selected_fallback = st.multiselect(
+                    "Selecciona los modelos de respaldo",
+                    options=available_models,
+                    default=st.session_state.custom_processing_config["models"][
+                        "fallback"
+                    ],
+                    help="Modelos que se utilizarán si los principales fallan",
+                )
+                st.session_state.custom_processing_config["models"][
+                    "fallback"
+                ] = selected_fallback
+
+                # Botones para guardar/cargar configuración
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Guardar configuración"):
+                        try:
+                            with open("custom_config.json", "w") as f:
+                                json.dump(
+                                    st.session_state.custom_processing_config,
+                                    f,
+                                    indent=2,
+                                )
+                            st.success("Configuración guardada correctamente")
+                        except Exception as e:
+                            st.error(f"Error al guardar la configuración: {str(e)}")
+
+                with col2:
+                    if st.button("Cargar configuración"):
+                        try:
+                            if os.path.exists("custom_config.json"):
+                                with open("custom_config.json", "r") as f:
+                                    st.session_state.custom_processing_config = (
+                                        json.load(f)
+                                    )
+                                st.success("Configuración cargada correctamente")
+                            else:
+                                st.warning("No hay configuración guardada")
+                        except Exception as e:
+                            st.error(f"Error al cargar la configuración: {str(e)}")
+
+                # Botón para actualizar modelos
+                if st.button("Actualizar modelos disponibles"):
+                    try:
+                        # Importar el módulo model_loader
+                        import model_loader
+
+                        # Actualizar caché de modelos
+                        openrouter_models = model_loader.load_models_from_openrouter()
+                        groq_models = model_loader.load_models_from_groq()
+                        ollama_models = model_loader.load_models_from_ollama()
+
+                        # Actualizar la lista de modelos disponibles
+                        updated_models = []
+
+                        # Agregar modelos de OpenRouter
+                        for model in openrouter_models:
+                            model_id = model.get("id", "")
+                            if model_id:
+                                updated_models.append(f"openrouter:{model_id}")
+
+                        # Agregar modelos de Groq
+                        for model in groq_models:
+                            model_id = model.get("id", "")
+                            if model_id:
+                                updated_models.append(f"groq:{model_id}")
+
+                        # Agregar modelos de Ollama
+                        for model in ollama_models:
+                            model_id = model.get("id", "")
+                            if model_id:
+                                updated_models.append(f"local:{model_id}")
+
+                        # Agregar los modelos actualizados a la lista existente
+                        for model in updated_models:
+                            if model not in available_models:
+                                available_models.append(model)
+
+                        st.success(
+                            f"Modelos actualizados: OpenRouter ({len(openrouter_models)}), Groq ({len(groq_models)}), Ollama ({len(ollama_models)})"
+                        )
+                    except Exception as e:
+                        st.error(f"Error al actualizar modelos: {str(e)}")
 
         # Capacidades
         with st.expander("💡 Capacidades", expanded=False):
@@ -532,6 +817,13 @@ def process_user_input(
         Tuple[str, Dict[str, Any]]: (respuesta, detalles del procesamiento)
     """
     try:
+        # Verificar si se está usando configuración personalizada
+        use_custom_config = False
+        custom_config = None
+        if "custom_processing_config" in st.session_state:
+            custom_config = st.session_state.custom_processing_config
+            use_custom_config = custom_config.get("enabled", False)
+
         conversation_context = st.session_state.get("context", "")
 
         # Incluir contexto de documentos si existen
@@ -591,48 +883,93 @@ def process_user_input(
         progress_placeholder.write("🔍 Evaluando consulta...")
 
         # Evaluación inicial
-        initial_evaluation = evaluate_response(
-            agent_manager, config, "initial", enriched_query
-        )
+        initial_evaluation = ""
+        if not use_custom_config or custom_config["stages"].get(
+            "initial_evaluation", True
+        ):
+            initial_evaluation = evaluate_response(
+                agent_manager, config, "initial", enriched_query
+            )
 
-        # Análisis de complejidad y necesidades
-        complexity, needs_web_search, needs_moa, prompt_type = (
-            evaluate_query_complexity(initial_evaluation, "")
-        )
-        prompt_type = agent_manager.validate_prompt_type(user_input, prompt_type)
+            # Análisis de complejidad y necesidades
+            complexity, needs_web_search, needs_moa, prompt_type = (
+                evaluate_query_complexity(initial_evaluation, "")
+            )
+            prompt_type = agent_manager.validate_prompt_type(user_input, prompt_type)
+        else:
+            # Valores por defecto si se omite la evaluación inicial
+            complexity = 0.5
+            needs_web_search = False
+            needs_moa = False
+            prompt_type = "general"
 
         # Búsqueda web si es necesaria
         web_context = ""
-        if needs_web_search:
+        if needs_web_search and (
+            not use_custom_config or custom_config["stages"].get("web_search", True)
+        ):
             progress_placeholder.write("🌐 Realizando búsqueda web...")
             web_context = perform_web_search(user_input)
             enriched_query = f"{enriched_query}\nContexto web: {web_context}"
 
         # Selección de agentes
         progress_placeholder.write("🤖 Seleccionando agentes...")
-        specialized_agent = agent_manager.select_specialized_agent(enriched_query)
-        general_agents = agent_manager.get_prioritized_agents(
-            enriched_query, complexity, prompt_type
-        )
 
-        # Priorización de agentes
+        # Determinar qué agentes usar
         prioritized_agents = []
-        if specialized_agent:
-            prioritized_agents.append(
-                (
-                    specialized_agent["type"],
-                    specialized_agent["id"],
-                    specialized_agent["name"],
-                )
+
+        if use_custom_config and custom_config["models"]["primary"]:
+            # Usar modelos personalizados
+            for model_str in custom_config["models"]["primary"]:
+                if len(prioritized_agents) < custom_config["agent_count"]:
+                    # Manejar el formato de modelo de manera más robusta
+                    try:
+                        # Dividir solo en la primera ocurrencia de ":"
+                        parts = model_str.split(":", 1)
+                        if len(parts) == 2:
+                            agent_type, agent_id = parts
+                            prioritized_agents.append(
+                                (
+                                    agent_type,
+                                    agent_id,
+                                    f"{agent_type.capitalize()} {agent_id}",
+                                )
+                            )
+                        else:
+                            logging.warning(
+                                f"Formato de modelo incorrecto: {model_str}"
+                            )
+                    except Exception as e:
+                        logging.error(f"Error al procesar modelo {model_str}: {str(e)}")
+        else:
+            # Usar selección estándar de agentes
+            specialized_agent = agent_manager.select_specialized_agent(enriched_query)
+            general_agents = agent_manager.get_prioritized_agents(
+                enriched_query, complexity, prompt_type
             )
 
-        for agent in general_agents:
-            if len(prioritized_agents) >= 2:
-                break
-            if agent not in prioritized_agents:
-                prioritized_agents.append(agent)
+            # Priorización de agentes
+            if specialized_agent:
+                prioritized_agents.append(
+                    (
+                        specialized_agent["type"],
+                        specialized_agent["id"],
+                        specialized_agent["name"],
+                    )
+                )
 
-        prioritized_agents = prioritized_agents[:2]
+            # Añadir agentes generales
+            max_agents = 2
+            if use_custom_config:
+                max_agents = custom_config["agent_count"]
+
+            for agent in general_agents:
+                if len(prioritized_agents) >= max_agents:
+                    break
+                if agent not in prioritized_agents:
+                    prioritized_agents.append(agent)
+
+            prioritized_agents = prioritized_agents[:max_agents]
 
         # Procesamiento con agentes
         agent_results = []
@@ -656,15 +993,61 @@ def process_user_input(
                 )
             except Exception as e:
                 logger.error(f"Error en el procesamiento con {agent_name}: {str(e)}")
-                agent_results.append(
-                    {
-                        "agent": agent_type,
-                        "model": agent_id,
-                        "name": agent_name,
-                        "status": "error",
-                        "response": str(e),
-                    }
-                )
+                # Intentar con modelos de respaldo si están configurados
+                fallback_success = False
+                if use_custom_config and custom_config["models"]["fallback"]:
+                    for fallback_model_str in custom_config["models"]["fallback"]:
+                        try:
+                            # Dividir solo en la primera ocurrencia de ":"
+                            parts = fallback_model_str.split(":", 1)
+                            if len(parts) == 2:
+                                fallback_agent_type, fallback_agent_id = parts
+                                fallback_agent_name = f"{fallback_agent_type.capitalize()} {fallback_agent_id} (Respaldo)"
+                                progress_placeholder.write(
+                                    f"⚙️ Intentando con respaldo: {fallback_agent_name}..."
+                                )
+                            else:
+                                logging.warning(
+                                    f"Formato de modelo de respaldo incorrecto: {fallback_model_str}"
+                                )
+                                continue
+
+                            result = agent_manager.process_query(
+                                enriched_query_with_prompt,
+                                fallback_agent_type,
+                                fallback_agent_id,
+                                prompt_type,
+                            )
+
+                            agent_results.append(
+                                {
+                                    "agent": fallback_agent_type,
+                                    "model": fallback_agent_id,
+                                    "name": fallback_agent_name,
+                                    "status": "success",
+                                    "response": result,
+                                }
+                            )
+                            # Si el respaldo funciona, salir del bucle
+                            fallback_success = True
+                            break
+                        except Exception as fallback_e:
+                            logger.error(
+                                f"Error en el respaldo {fallback_agent_name}: {str(fallback_e)}"
+                            )
+                            continue
+
+                # Si no hay respaldo o todos fallaron, registrar el error original
+                if not fallback_success:
+                    agent_results.append(
+                        {
+                            "agent": agent_type,
+                            "model": agent_id,
+                            "name": agent_name,
+                            "status": "error",
+                            "response": str(e),
+                        }
+                    )
 
         # Verificar respuestas exitosas
         successful_responses = [r for r in agent_results if r["status"] == "success"]
@@ -673,7 +1056,15 @@ def process_user_input(
             raise ValueError("No se pudo obtener una respuesta válida de ningún agente")
 
         # Meta-análisis si es necesario
-        if needs_moa and len(successful_responses) > 1:
+        meta_analysis_result = None
+        if (
+            needs_moa
+            and len(successful_responses) > 1
+            and (
+                not use_custom_config
+                or custom_config["stages"].get("meta_analysis", True)
+            )
+        ):
             progress_placeholder.write("🔄 Realizando meta-análisis...")
             meta_analysis_result = agent_manager.meta_analysis(
                 user_input,
@@ -690,41 +1081,50 @@ def process_user_input(
             final_response = successful_responses[0]["response"]
 
         # Evaluación ética
-        progress_placeholder.write("⚖️ Evaluando cumplimiento ético...")
-        ethical_evaluation = evaluate_ethical_compliance(final_response, prompt_type)
-
-        # Mejora ética si es necesaria
-        if any(not value for value in ethical_evaluation.values()):
-            progress_placeholder.write("✨ Mejorando respuesta...")
-            specialized_assistant = agent_manager.get_specialized_assistant(
-                "asst_F33bnQzBVqQLcjveUTC14GaM"
+        ethical_evaluation = {}
+        improved_response = None
+        improved_ethical_evaluation = None
+        if not use_custom_config or custom_config["stages"].get(
+            "ethical_evaluation", True
+        ):
+            progress_placeholder.write("⚖️ Evaluando cumplimiento ético...")
+            ethical_evaluation = evaluate_ethical_compliance(
+                final_response, prompt_type
             )
-            enhancement_prompt = f"""
-            Analiza la siguiente respuesta y su evaluación ética:
 
-            Respuesta: {final_response}
+            # Mejora ética si es necesaria
+            if any(not value for value in ethical_evaluation.values()):
+                progress_placeholder.write("✨ Mejorando respuesta...")
+                specialized_assistant = agent_manager.get_specialized_assistant(
+                    "asst_F33bnQzBVqQLcjveUTC14GaM"
+                )
+                enhancement_prompt = f"""
+                Analiza la siguiente respuesta y su evaluación ética:
 
-            Evaluación ética: {json.dumps(ethical_evaluation, indent=2)}
+                Respuesta: {final_response}
 
-            Por favor, modifica la respuesta para mejorar su alineación con principios éticos y legales,
-            abordando cualquier preocupación identificada en la evaluación. Asegúrate de que la respuesta sea
-            transparente sobre el uso de IA, libre de sesgos, y respetuosa de los derechos humanos y la privacidad.
-            """
-            improved_response = agent_manager.process_query(
-                enhancement_prompt, "assistant", specialized_assistant["id"]
-            )
-            improved_ethical_evaluation = evaluate_ethical_compliance(
-                improved_response, prompt_type
-            )
-        else:
-            improved_response = None
-            improved_ethical_evaluation = None
+                Evaluación ética: {json.dumps(ethical_evaluation, indent=2)}
+
+                Por favor, modifica la respuesta para mejorar su alineación con principios éticos y legales,
+                abordando cualquier preocupación identificada en la evaluación. Asegúrate de que la respuesta sea
+                transparente sobre el uso de IA, libre de sesgos, y respetuosa de los derechos humanos y la privacidad.
+                """
+                improved_response = agent_manager.process_query(
+                    enhancement_prompt, "assistant", specialized_assistant["id"]
+                )
+                improved_ethical_evaluation = evaluate_ethical_compliance(
+                    improved_response, prompt_type
+                )
 
         # Evaluación final
-        progress_placeholder.write("📝 Evaluación final...")
-        final_evaluation = evaluate_response(
-            agent_manager, config, "final", user_input, final_response
-        )
+        final_evaluation = ""
+        if not use_custom_config or custom_config["stages"].get(
+            "initial_evaluation", True
+        ):
+            progress_placeholder.write("📝 Evaluación final...")
+            final_evaluation = evaluate_response(
+                agent_manager, config, "final", user_input, final_response
+            )
 
         # Cálculo del tiempo de procesamiento
         processing_time = time.time() - start_time
@@ -753,12 +1153,9 @@ def process_user_input(
                 "failed_responses": len(agent_results) - len(successful_responses),
                 "average_response_time": f"{processing_time:.2f} segundos",
             },
-            "meta_analysis": (
-                meta_analysis_result
-                if needs_moa and len(successful_responses) > 1
-                else None
-            ),
+            "meta_analysis": meta_analysis_result,
             "final_response": final_response,
+            "custom_config_used": use_custom_config,
         }
 
         # Actualizar contexto
@@ -848,7 +1245,7 @@ def main():
         speed_test_results = core_components["speed_test_results"]
 
         # Renderizar barra lateral
-        render_sidebar_content(system_status, speed_test_results)
+        render_sidebar_content(system_status, agent_manager)
 
         # Interfaz principal
         st.title("MALLO: MultiAgent LLM Orchestrator")
