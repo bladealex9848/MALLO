@@ -653,11 +653,16 @@ def render_sidebar_content(
                                     f"local:{model_name}|{display_name}"
                                 )
                     else:
-                        st.warning(
+                        # Registrar el error en el log pero no mostrar advertencia al usuario
+                        logging.warning(
                             f"Error al obtener modelos de Ollama: {response.status_code}"
                         )
                 except Exception as e:
-                    st.warning(f"No se pudieron cargar los modelos locales: {str(e)}")
+                    # Registrar el error en el log pero no mostrar advertencia al usuario
+                    # ya que el check del sistema ya muestra que los modelos locales no están disponibles
+                    logging.warning(
+                        f"No se pudieron cargar los modelos locales: {str(e)}"
+                    )
 
                 # Agregar agentes especializados
                 if "specialized_assistants" in config:

@@ -277,7 +277,8 @@ def load_models_from_ollama() -> List[Dict[str, Any]]:
         return api_models
 
     except Exception as e:
-        logging.error(f"Error al cargar modelos desde Ollama API: {str(e)}")
+        # Registrar como warning en lugar de error, ya que es esperado que Ollama no esté disponible en algunos entornos
+        logging.warning(f"Error al cargar modelos desde Ollama API: {str(e)}")
         # Intentar obtener modelos mediante el comando ollama list
         return get_ollama_models_from_command()
 
@@ -329,7 +330,10 @@ def get_ollama_models_from_command() -> List[Dict[str, Any]]:
         return models
 
     except Exception as e:
-        logging.error(f"Error al obtener modelos de Ollama mediante comando: {str(e)}")
+        # Registrar como warning en lugar de error, ya que es esperado que Ollama no esté disponible en algunos entornos
+        logging.warning(
+            f"Error al obtener modelos de Ollama mediante comando: {str(e)}"
+        )
         return []
 
 
