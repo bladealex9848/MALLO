@@ -12,9 +12,11 @@ python-docx==1.1.2
 duckduckgo-search==6.2.9
 pyyaml==6.0.2
 requests==2.32.3
-together==1.2.7
+# Cambiado para resolver conflicto de dependencias
+together>=1.0.0,<1.2.0
 groq==0.9.0
 spacy==3.7.5
+setuptools>=68.0.0
 
 # OCR y procesamiento de documentos
 fpdf2>=2.7.8
@@ -27,9 +29,9 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0
 https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.7.0/es_core_news_sm-3.7.0.tar.gz
 
 # Async and networking
-asyncio==3.4.3
+# asyncio (parte de la biblioteca estándar de Python en Python 3.7+)
 aiohttp>=3.9.3
-polars==1.5.0
+polars>=0.19.0,<1.5.0
 
 # AI/ML providers
 anthropic==0.34.1
@@ -37,12 +39,12 @@ mistralai==1.0.3
 cohere==5.8.1
 
 # ML and data processing
-scikit-learn==1.5.1
-numpy==1.24.3
+scikit-learn>=1.3.0,<1.5.0
+numpy>=1.26.0,<2.0.0
 replicate
 
 # Utils
-Counter
+# Counter (parte de collections en la biblioteca estándar de Python)
 tavily-python
 
 # New optimization dependencies

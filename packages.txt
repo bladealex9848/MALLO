@@ -1,0 +1,5 @@
+tesseract-ocr
+libtesseract-dev
+python3-distutils
+python3-dev
+build-essential
