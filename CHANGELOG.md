@@ -4,6 +4,34 @@ Todos los cambios notables en el proyecto MALLO serán documentados en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [2.7.0] - 2025-04-14
+
+### Mejorado
+- Implementación de un sistema robusto de manejo de errores para OpenRouter API:
+  - Verificación previa de disponibilidad de la API mediante el endpoint de modelos.
+  - Mensajes de error más detallados y útiles para el usuario.
+  - Mejor manejo de casos de error específicos (404, 401, etc.).
+  - Validación del formato de modelo para asegurar compatibilidad con la API.
+
+### Corregido
+- Eliminación de la sección redundante "Cargar documentos para análisis" en la interfaz de usuario.
+- Solución al error relacionado con el método interno `st._is_in_expander` en el procesamiento de documentos.
+- Mejora en la gestión de errores de API para proporcionar mensajes más amigables para el usuario.
+
+### Optimizado
+- Implementación de un sistema de verificación en dos pasos para APIs externas:
+  - Verificación ligera inicial usando endpoints de menor carga.
+  - Fallback a verificación completa solo cuando es necesario.
+- Reducción de tiempos de espera en verificaciones de API para mejorar la experiencia de usuario.
+
+### Seguridad
+- Mejora en la validación de respuestas de API para prevenir procesamiento de datos malformados.
+- Mejor manejo de credenciales y verificación de su existencia antes de realizar solicitudes.
+
+### Documentación
+- Actualización de mensajes de error para incluir referencias a documentación relevante.
+- Mejora en los logs para facilitar la depuración de problemas con APIs externas.
+
 ## [2.6.0] - 2025-04-11
 
 ### Añadido

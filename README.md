@@ -44,12 +44,14 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Pipeline de procesamiento paralelo para múltiples agentes
   - Sistema de votación y consenso para respuestas múltiples
   - Mecanismos de fallback y recuperación automática
+  - Sistema robusto de manejo de errores para APIs externas
 
 - **Integración de Modelos**:
   - Modelos locales vía Ollama para baja latencia (offline-capable)
   - APIs cloud premium (OpenAI, Anthropic, Groq)
   - Proveedores especializados (Together, DeepInfra, DeepSeek)
   - Modelos open-source optimizados (Mistral, Cohere)
+  - Acceso a modelos avanzados vía OpenRouter con manejo robusto de errores
 
 ### 2. Sistema de Procesamiento Inteligente
 - **Análisis de Complejidad**:
@@ -90,11 +92,13 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Framework Streamlit con diseño optimizado
   - Componentes dinámicos de visualización
   - Sistema de progreso en tiempo real
+  - Interfaz simplificada con carga de documentos integrada en el chat
 
 - **Logging y Observabilidad**:
   - Logging estructurado con niveles configurables
   - Métricas Prometheus para monitoreo
   - Sistema de alertas para eventos críticos
+  - Mensajes de error amigables y detallados para el usuario
 
 ### 6. Configuración y Extensibilidad
 - **Sistema de Configuración Robusto**:
@@ -112,11 +116,13 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Encriptación en tránsito y en reposo
   - Sanitización de entradas y salidas
   - Gestión segura de credenciales
+  - Verificación previa de disponibilidad de APIs
 
 - **Auditoría y Compliance**:
   - Registro detallado de operaciones
   - Trazabilidad de decisiones del sistema
   - Reportes de cumplimiento normativo
+  - Validación de respuestas de APIs externas
 
 ### 8. Optimización de Rendimiento
 - **Sistema de Caché Avanzado**:
@@ -194,7 +200,7 @@ MALLO/
    ```toml
    OPENAI_API_KEY = "tu_clave_openai_aqui"
    GROQ_API_KEY = "tu_clave_groq_aqui"
-   TOGETHER_API_KEY = "tu_clave_together_aqui"   
+   TOGETHER_API_KEY = "tu_clave_together_aqui"
    DEEPINFRA_API_KEY="tu_clave_deepinfra_aqui"
    ANTHROPIC_API_KEY="tu_clave_anthropic_aqui"
    DEEPSEEK_API_KEY="tu_clave_deepseek_aqui"
@@ -227,7 +233,7 @@ ollama:
 
 openai:
   default_model: "gpt-4.1-nano"
-  models:  
+  models:
     - "gpt-4.1-nano"
 
 # ... (otras configuraciones)
@@ -325,34 +331,34 @@ Esta implementación asegura que MALLO opere bajo los más altos estándares ét
 
 MALLO está diseñado para detectar automáticamente el tipo de consulta y aplicar prompts especializados. Sin embargo, puedes ayudar al sistema a seleccionar el prompt más adecuado incluyendo ciertas palabras clave en tu consulta. Aquí te presentamos algunas sugerencias:
 
-1. **Matemáticas**: 
+1. **Matemáticas**:
    Palabras clave: "cálculo", "ecuación", "álgebra", "geometría", "estadística", "probabilidad"
 
-2. **Programación**: 
+2. **Programación**:
    Palabras clave: "código", "algoritmo", "función", "debug", "software", "desarrollo"
 
-3. **Legal**: 
+3. **Legal**:
    Palabras clave: "ley", "legislación", "jurídico", "contrato", "demanda", "jurisprudencia"
 
-4. **Científico**: 
+4. **Científico**:
    Palabras clave: "experimento", "hipótesis", "teoría", "investigación", "método científico"
 
-5. **Histórico**: 
+5. **Histórico**:
    Palabras clave: "época", "siglo", "período", "civilización", "evento histórico"
 
-6. **Filosófico**: 
+6. **Filosófico**:
    Palabras clave: "ética", "metafísica", "epistemología", "lógica", "existencialismo"
 
-7. **Contexto Colombiano**: 
+7. **Contexto Colombiano**:
    Palabras clave: "Colombia", "Bogotá", "Medellín", "Andes", "Caribe", "cultura colombiana"
 
-8. **Cultural**: 
+8. **Cultural**:
    Palabras clave: "arte", "literatura", "música", "tradición", "costumbres"
 
-9. **Político**: 
+9. **Político**:
    Palabras clave: "gobierno", "elecciones", "política pública", "partidos políticos", "constitución"
 
-10. **Económico**: 
+10. **Económico**:
     Palabras clave: "mercado", "inflación", "PIB", "finanzas", "economía"
 
 Incluir estas palabras clave en tu consulta puede ayudar a MALLO a aplicar el prompt especializado más adecuado, lo que potencialmente mejorará la precisión y relevancia de las respuestas.
@@ -385,7 +391,7 @@ MALLO utiliza una arquitectura de microservicios basada en agentes, donde cada a
 ## Componentes Principales
 
 ### agents.py
-- **Clase AgentManager**: 
+- **Clase AgentManager**:
   - Gestiona la inicialización y selección de agentes.
   - Implementa la lógica de procesamiento de consultas.
   - Maneja la integración con diferentes APIs de LLM.
@@ -462,6 +468,13 @@ Las contribuciones son bienvenidas. Por favor, sigue estos pasos:
 ## Registro de Cambios
 
 Consulta [CHANGELOG.md](CHANGELOG.md) para ver el historial detallado de cambios del proyecto.
+
+### Versiones Recientes
+
+- **v2.7.0** (14/04/2025): Implementación de sistema robusto de manejo de errores para OpenRouter API y mejora de la interfaz de usuario.
+- **v2.6.0** (11/04/2025): Integración de nuevos modelos avanzados de OpenRouter.
+- **v2.5.0** (05/04/2025): Implementación de sistema de OCR con Mistral para análisis de imágenes y documentos.
+- **v2.4.0** (28/03/2025): Mejoras en el sistema de procesamiento de documentos y soporte para formatos adicionales.
 
 ## ExperimentaLABs
 
