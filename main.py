@@ -908,166 +908,116 @@ def main():
                 with info_tabs[2]:
                     display_conversation_context()
 
-        # Sección para cargar archivos
-        with st.expander("📄 Cargar documentos para análisis", expanded=False):
-            # Obtener la clave API de Mistral
-            mistral_api_key = get_secret("MISTRAL_API_KEY")
+        # Mostrar documentos cargados
+        if "uploaded_files" in st.session_state and st.session_state.uploaded_files:
+            with st.expander("📄 Documentos cargados", expanded=False):
+                st.subheader("📚 Documentos disponibles")
+                for filename in st.session_state.uploaded_files:
+                    st.markdown(f"📄 **{filename}**")
 
-            if not mistral_api_key:
-                st.warning(
-                    "Se requiere una clave API de Mistral para procesar documentos. Por favor, configura la clave en tus secretos."
-                )
-            else:
-                # Mostrar formatos permitidos
-                st.caption(
-                    "Formatos permitidos: PDF (.pdf), Texto (.txt), Imágenes (.jpg, .jpeg, .png)"
-                )
+                if st.button("Limpiar documentos"):
+                    st.session_state.uploaded_files = []
+                    st.session_state.document_contents = {}
+                    st.session_state.file_metadata = {}
+                    st.success("Documentos eliminados correctamente")
+                    st.rerun()
 
-                # Cargar archivos
-                uploaded_files = st.file_uploader(
-                    "Selecciona documentos para procesar",
-                    accept_multiple_files=True,
-                    type=["pdf", "jpg", "jpeg", "png", "txt"],
-                )
+        # Input del usuario con soporte para archivos
+        user_prompt = st.chat_input(
+            "¿En qué puedo ayudarte hoy? También puedes adjuntar archivos",
+            accept_file=True,
+            file_type=["pdf", "jpg", "jpeg", "png", "txt"],
+        )
 
-                if uploaded_files:
-                    if st.button("Procesar documentos"):
-                        with st.spinner("Procesando documentos..."):
-                            valid_files = 0
-                            invalid_files = 0
-                            current_doc_contents = {}
-
-                            for file in uploaded_files:
-                                # Validar el formato del archivo
-                                is_valid, file_type, error_message = (
-                                    validate_file_format(file)
-                                )
-
-                                if not is_valid:
-                                    st.error(
-                                        f"Error en archivo {file.name}: {error_message}"
-                                    )
-                                    invalid_files += 1
-                                    continue
-
-                                # Si el archivo es válido, procesarlo
-                                if file.name not in st.session_state.uploaded_files:
-                                    st.session_state.uploaded_files.append(file.name)
-
-                                # Leer el contenido del archivo
-                                file_bytes = file.read()
-                                file.seek(0)  # Restaurar el puntero del archivo
-
-                                # Procesar con OCR de Mistral
-                                try:
-                                    ocr_results = process_document_with_mistral_ocr(
-                                        mistral_api_key,
-                                        file_bytes,
-                                        file_type,
-                                        file.name,
-                                    )
-
-                                    if ocr_results and "error" not in ocr_results:
-                                        current_doc_contents[file.name] = ocr_results
-                                        # Guardar en la sesión para referencia futura
-                                        st.session_state.document_contents[
-                                            file.name
-                                        ] = ocr_results
-                                        st.success(
-                                            f"Documento {file.name} procesado correctamente"
-                                        )
-                                        valid_files += 1
-                                    else:
-                                        error_msg = ocr_results.get(
-                                            "error",
-                                            "Error desconocido durante el procesamiento",
-                                        )
-                                        st.warning(
-                                            f"No se pudo extraer texto completo de {file.name}: {error_msg}"
-                                        )
-                                        # Aún así, guardamos el resultado para potencial depuración y recuperación parcial
-                                        st.session_state.document_contents[
-                                            file.name
-                                        ] = ocr_results
-                                except Exception as e:
-                                    st.error(f"Error procesando {file.name}: {str(e)}")
-
-                            # Mostrar resumen de procesamiento
-                            if valid_files > 0:
-                                st.success(
-                                    f"{valid_files} documento(s) procesado(s) correctamente"
-                                )
-
-                                # Generar mensaje automático para el chat
-                                file_names = [
-                                    f for f in st.session_state.uploaded_files
-                                ]
-                                auto_message = f"He cargado los siguientes documentos para análisis: {', '.join(file_names)}. Por favor, análiza su contenido."
-
-                                # Procesar la consulta automática
-                                with st.spinner("Analizando documentos..."):
-                                    response, details = process_user_input(
-                                        auto_message, config, agent_manager
-                                    )
-                                    st.session_state["last_details"] = details
-
-                                    if response:
-                                        # Actualizar el historial de la conversación
-                                        st.session_state["messages"].append(
-                                            {
-                                                "role": "user",
-                                                "content": auto_message,
-                                                "timestamp": time.strftime(
-                                                    "%Y-%m-%d %H:%M:%S"
-                                                ),
-                                            }
-                                        )
-                                        st.session_state["messages"].append(
-                                            {
-                                                "role": "assistant",
-                                                "content": response,
-                                                "timestamp": time.strftime(
-                                                    "%Y-%m-%d %H:%M:%S"
-                                                ),
-                                            }
-                                        )
-                                        st.session_state["last_successful_response"] = (
-                                            response
-                                        )
-
-                                        # Recargar la página para mostrar la nueva respuesta
-                                        st.rerun()
-
-                            if invalid_files > 0:
-                                st.warning(
-                                    f"{invalid_files} archivo(s) no válido(s) fueron omitidos."
-                                )
-
-                # Mostrar documentos cargados
-                if (
-                    "uploaded_files" in st.session_state
-                    and st.session_state.uploaded_files
-                ):
-                    st.subheader("📚 Documentos disponibles")
-                    for filename in st.session_state.uploaded_files:
-                        st.markdown(f"📄 **{filename}**")
-
-                    if st.button("Limpiar documentos"):
-                        st.session_state.uploaded_files = []
-                        st.session_state.document_contents = {}
-                        st.session_state.file_metadata = {}
-                        st.success("Documentos eliminados correctamente")
-                        st.rerun()
-
-        # Input del usuario
-        user_input = st.chat_input("¿En qué puedo ayudarte hoy?")
-
-        if user_input:
+        if user_prompt:
             try:
+                # Procesar texto y archivos adjuntos
+                user_text = (
+                    user_prompt.text if hasattr(user_prompt, "text") else user_prompt
+                )
+                user_files = user_prompt.files if hasattr(user_prompt, "files") else []
+
                 # Mostrar indicador de procesamiento
                 with st.spinner("Procesando tu consulta..."):
+                    # Procesar archivos adjuntos si existen
+                    if user_files:
+                        mistral_api_key = get_secret("MISTRAL_API_KEY")
+                        if not mistral_api_key:
+                            st.warning(
+                                "Se requiere una clave API de Mistral para procesar documentos. Por favor, configura la clave en tus secretos."
+                            )
+                        else:
+                            with st.status("Procesando archivos adjuntos..."):
+                                valid_files = 0
+                                file_names = []
+
+                                for file in user_files:
+                                    # Validar el formato del archivo
+                                    is_valid, file_type, error_message = (
+                                        validate_file_format(file)
+                                    )
+
+                                    if not is_valid:
+                                        st.error(
+                                            f"Error en archivo {file.name}: {error_message}"
+                                        )
+                                        continue
+
+                                    # Si el archivo es válido, procesarlo
+                                    if file.name not in st.session_state.uploaded_files:
+                                        st.session_state.uploaded_files.append(
+                                            file.name
+                                        )
+
+                                    # Leer el contenido del archivo
+                                    file_bytes = file.read()
+                                    file.seek(0)  # Restaurar el puntero del archivo
+
+                                    try:
+                                        ocr_results = process_document_with_mistral_ocr(
+                                            mistral_api_key,
+                                            file_bytes,
+                                            file_type,
+                                            file.name,
+                                        )
+
+                                        if ocr_results and "error" not in ocr_results:
+                                            st.session_state.document_contents[
+                                                file.name
+                                            ] = ocr_results
+                                            st.success(
+                                                f"Documento {file.name} procesado correctamente"
+                                            )
+                                            valid_files += 1
+                                            file_names.append(file.name)
+                                        else:
+                                            error_msg = ocr_results.get(
+                                                "error",
+                                                "Error desconocido durante el procesamiento",
+                                            )
+                                            st.warning(
+                                                f"No se pudo extraer texto completo de {file.name}: {error_msg}"
+                                            )
+                                            st.session_state.document_contents[
+                                                file.name
+                                            ] = ocr_results
+                                    except Exception as e:
+                                        st.error(
+                                            f"Error procesando {file.name}: {str(e)}"
+                                        )
+
+                                # Agregar información de archivos al mensaje del usuario si se procesaron archivos
+                                if valid_files > 0:
+                                    file_info = f"\n\n[Archivos adjuntos: {', '.join(file_names)}]"
+                                    user_text = (
+                                        f"{user_text}{file_info}"
+                                        if user_text
+                                        else f"He adjuntado los siguientes documentos: {', '.join(file_names)}. Por favor, análiza su contenido."
+                                    )
+
+                    # Procesar la consulta del usuario
                     response, details = process_user_input(
-                        user_input, config, agent_manager
+                        user_text, config, agent_manager
                     )
                     st.session_state["last_details"] = details
                     st.session_state["error_count"] = 0
@@ -1077,7 +1027,7 @@ def main():
                         st.session_state["messages"].append(
                             {
                                 "role": "user",
-                                "content": user_input,
+                                "content": user_text,
                                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                             }
                         )
@@ -1103,14 +1053,18 @@ def main():
 def handle_error(e: Exception):
     """Maneja errores durante el procesamiento de la consulta."""
     st.session_state["error_count"] += 1
+
+    # Registrar el error completo en el log para depuración
     logger.error(f"Error procesando entrada del usuario: {str(e)}")
     logger.error(traceback.format_exc())
 
+    # Mensaje de error más amigable para el usuario
     error_message = (
         "Ha ocurrido un error al procesar tu consulta. "
         "Por favor, intenta de nuevo o reformula tu pregunta."
     )
 
+    # Si hay errores persistentes, dar más información
     if st.session_state["error_count"] > 3:
         error_message += (
             "\n\n⚠️ Parece que estamos teniendo problemas técnicos persistentes. "
@@ -1126,8 +1080,10 @@ def handle_error(e: Exception):
                 "o exportar la conversación hasta este punto."
             )
 
+    # Mostrar el mensaje de error al usuario
     st.error(error_message)
 
+    # Registrar información adicional para depuración
     logger.error(f"Error Count: {st.session_state['error_count']}")
     logger.error(
         f"Last Successful Response Available: {bool(st.session_state.get('last_successful_response'))}"
