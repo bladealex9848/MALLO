@@ -8,8 +8,12 @@
     "ethical_evaluation": false
   },
   "models": {
-    "primary": [],
-    "fallback": []
+    "primary": [
+      "openai:gpt-4.1-nano"
+    ],
+    "fallback": [
+      "groq:gemma2-9b-it"
+    ]
   },
   "agent_count": 1
 }

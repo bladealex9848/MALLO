@@ -257,12 +257,7 @@ groq:
   fast_model: "gemma2-9b-it"  # Modelo rápido para respuestas inmediatas
   default_model: "deepseek-r1-distill-qwen-32b"  # Modelo predeterminado de alta calidad
   models:
-    # MODELOS DE PRODUCCIÓN
-    - name: "distil-whisper-large-v3-en"
-      specialty: "audio_transcription"
-      capabilities: ["speech_to_text", "english_audio", "efficient_processing"]
-      prompt_types: ["audio_transcription"]
-
+    # MODELOS DE PRODUCCIÓN 
     - name: "gemma2-9b-it"
       specialty: "general"
       capabilities: ["instruction_following", "medium_size", "context_window_8k"]
@@ -291,17 +286,7 @@ groq:
     - name: "llama3-8b-8192"
       specialty: "general"
       capabilities: ["fast_response", "medium_context", "context_window_8k"]
-      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]
-
-    - name: "whisper-large-v3"
-      specialty: "audio_transcription"
-      capabilities: ["speech_to_text", "multilingual_audio", "max_file_size_25mb"]
-      prompt_types: ["audio_transcription"]
-
-    - name: "whisper-large-v3-turbo"
-      specialty: "audio_transcription"
-      capabilities: ["speech_to_text", "multilingual_audio", "faster_processing", "max_file_size_25mb"]
-      prompt_types: ["audio_transcription"]
+      prompt_types: ["general", "scientific", "historical", "philosophical", "ethical", "cultural", "political", "economic"]    
 
     # MODELOS DE VISTA PREVIA
     - name: "meta-llama/llama-4-scout-17b-16e-instruct"

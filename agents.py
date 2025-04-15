@@ -1,4 +1,3 @@
-import openai
 import requests
 import streamlit as st
 from typing import Tuple, Dict, Any, Optional, List
@@ -12,7 +11,6 @@ import logging
 from openai import OpenAI
 from anthropic import Anthropic
 import cohere
-import requests
 import json
 import random
 from utilities import log_error
@@ -1109,18 +1107,29 @@ class AgentManager:
                     )
 
             # Usar el cliente de OpenAI con la API de OpenRouter
-            response = self.clients["openrouter"].chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": query}],
-                temperature=self.config["general"]["temperature"],
-                max_tokens=self.config["general"]["max_tokens"],
-                headers={
+            # Crear un diccionario con los parámetros base
+            params = {
+                "model": model,
+                "messages": [{"role": "user", "content": query}],
+                "temperature": self.config["general"]["temperature"],
+                "max_tokens": self.config["general"]["max_tokens"],
+            }
+
+            # Usar el cliente de OpenAI con la API de OpenRouter
+            # Crear una instancia temporal con las cabeceras correctas
+            openrouter_client = OpenAI(
+                api_key=get_secret("OPENROUTER_API_KEY"),
+                base_url="https://openrouter.ai/api/v1",
+                default_headers={
                     "HTTP-Referer": get_secret(
                         "YOUR_SITE_URL", "http://localhost:8501"
                     ),
                     "X-Title": "MALLO",
                 },
             )
+
+            # Llamar a la API con el cliente temporal
+            response = openrouter_client.chat.completions.create(**params)
             return response.choices[0].message.content
 
         except Exception as e:

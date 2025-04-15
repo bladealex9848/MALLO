@@ -281,20 +281,36 @@ def export_conversation_to_md(messages, details):
 
             if details:
                 md_content += "### 🔍 Detalles del Proceso\n\n"
-                md_content += (
-                    f"#### Razonamiento\n\n{details['initial_evaluation']}\n\n"
-                )
-                md_content += f"#### Evaluación Ética\n\n```json\n{json.dumps(details['ethical_evaluation'], indent=2)}\n```\n\n"
 
+                # Razonamiento (evaluación inicial)
+                if details.get("initial_evaluation"):
+                    md_content += (
+                        f"#### Razonamiento\n\n{details['initial_evaluation']}\n\n"
+                    )
+                else:
+                    md_content += f"#### Razonamiento\n\nNo se realizó evaluación inicial para esta respuesta.\n\n"
+
+                # Evaluación ética
+                if details.get("ethical_evaluation"):
+                    md_content += f"#### Evaluación Ética\n\n```json\n{json.dumps(details['ethical_evaluation'], indent=2)}\n```\n\n"
+                else:
+                    md_content += f"#### Evaluación Ética\n\nNo se realizó evaluación ética para esta respuesta.\n\n"
+
+                # Respuesta mejorada
                 if details.get("improved_response"):
                     md_content += f"#### ✨ Respuesta Mejorada\n\n{details['improved_response']}\n\n"
 
+                # Meta-análisis
                 if details.get("meta_analysis"):
                     md_content += (
                         f"#### 🔄 Meta-análisis\n\n{details['meta_analysis']}\n\n"
                     )
 
-                md_content += f"#### 📝 Métricas de Rendimiento\n\n```json\n{json.dumps(details['performance_metrics'], indent=2)}\n```\n\n"
+                # Métricas de rendimiento
+                if details.get("performance_metrics"):
+                    md_content += f"#### 📝 Métricas de Rendimiento\n\n```json\n{json.dumps(details['performance_metrics'], indent=2)}\n```\n\n"
+
+                # Contexto de la conversación
                 md_content += f"#### 🌐 Contexto de la Conversación\n\n{st.session_state.get('context', 'No disponible')}\n\n"
                 md_content += "---\n\n"
 
@@ -395,14 +411,15 @@ def render_sidebar_content(
                     help="Evalúa la complejidad y tipo de la consulta",
                 )
 
+                # La mejora de prompt siempre está activada (obligatoria)
                 st.session_state.custom_processing_config["stages"][
                     "prompt_improvement"
-                ] = st.checkbox(
+                ] = True
+                st.checkbox(
                     "Mejora de prompt",
-                    value=st.session_state.custom_processing_config["stages"][
-                        "prompt_improvement"
-                    ],
-                    help="Analiza la consulta y determina la categoría y modelo idóneo",
+                    value=True,
+                    disabled=True,
+                    help="Siempre activa (obligatoria) - Analiza la consulta y determina la categoría y modelo idóneo",
                 )
 
                 st.session_state.custom_processing_config["stages"]["web_search"] = (
@@ -457,12 +474,21 @@ def render_sidebar_content(
                     if provider_name in config and "models" in config[provider_name]:
                         provider_models = []
                         for model in config[provider_name]["models"]:
-                            if isinstance(model, dict) and "name" in model:
-                                provider_models.append(
-                                    f"{provider_name}:{model['name']}"
-                                )
+                            if isinstance(model, dict):
+                                if "name" in model and "display_name" in model:
+                                    # Usar el nombre de visualización si está disponible
+                                    provider_models.append(
+                                        f"{provider_name}:{model['name']}|{model['display_name']}"
+                                    )
+                                elif "name" in model:
+                                    # Usar el nombre como identificador y nombre de visualización
+                                    provider_models.append(
+                                        f"{provider_name}:{model['name']}|{provider_name.capitalize()}: {model['name']}"
+                                    )
                             elif isinstance(model, str):
-                                provider_models.append(f"{provider_name}:{model}")
+                                provider_models.append(
+                                    f"{provider_name}:{model}|{provider_name.capitalize()}: {model}"
+                                )
                         return provider_models
                     return []
 
@@ -497,7 +523,11 @@ def render_sidebar_content(
                         for model in ollama_models:
                             model_name = model.get("name", "")
                             if model_name:
-                                available_models.append(f"local:{model_name}")
+                                # Usar un nombre más descriptivo para la visualización
+                                display_name = f"Ollama: {model_name}"
+                                available_models.append(
+                                    f"local:{model_name}|{display_name}"
+                                )
                     else:
                         st.warning(
                             f"Error al obtener modelos de Ollama: {response.status_code}"
@@ -516,7 +546,10 @@ def render_sidebar_content(
                                 isinstance(assistant_info, dict)
                                 and "name" in assistant_info
                             ):
-                                available_models.append(f"assistant:{assistant_id}")
+                                display_name = f"Asistente: {assistant_info['name']}"
+                                available_models.append(
+                                    f"assistant:{assistant_id}|{display_name}"
+                                )
                     elif isinstance(config["specialized_assistants"], list):
                         # Formato nuevo: lista de asistentes
                         for assistant in config["specialized_assistants"]:
@@ -525,35 +558,266 @@ def render_sidebar_content(
                                 and "id" in assistant
                                 and "name" in assistant
                             ):
-                                available_models.append(f"assistant:{assistant['id']}")
+                                display_name = f"Asistente: {assistant['name']}"
+                                available_models.append(
+                                    f"assistant:{assistant['id']}|{display_name}"
+                                )
+
+                # Preparar opciones para el multiselect con formato y valores
+                model_options = []
+                model_display_names = {}
+
+                # Organizar modelos por proveedor
+                providers = {
+                    "openai": "OpenAI",
+                    "api": "OpenAI",
+                    "groq": "Groq",
+                    "local": "Ollama",
+                    "openrouter": "OpenRouter",
+                    "deepinfra": "DeepInfra",
+                    "anthropic": "Anthropic",
+                    "deepseek": "DeepSeek",
+                    "mistral": "Mistral",
+                    "cohere": "Cohere",
+                    "together": "Together",
+                    "assistant": "Asistentes",
+                }
+
+                # Agrupar modelos por proveedor
+                provider_models = {provider: [] for provider in providers.values()}
+
+                for model_entry in available_models:
+                    if "|" in model_entry:
+                        model_id, display_name = model_entry.split("|", 1)
+                        provider = model_id.split(":")[0] if ":" in model_id else ""
+
+                        # Obtener el nombre del proveedor
+                        provider_name = providers.get(provider, "Otros")
+
+                        # Quitar el prefijo del proveedor del nombre de visualización
+                        if display_name.startswith(f"{provider_name}: "):
+                            display_name = display_name[len(f"{provider_name}: ") :]
+
+                        # Agregar al grupo correspondiente
+                        provider_models[provider_name].append(display_name)
+                        model_display_names[display_name] = model_id
+                    else:
+                        # Compatibilidad con formato antiguo
+                        provider = (
+                            model_entry.split(":")[0] if ":" in model_entry else ""
+                        )
+                        provider_name = providers.get(provider, "Otros")
+                        display_name = (
+                            model_entry.split(":")[1]
+                            if ":" in model_entry
+                            else model_entry
+                        )
+                        provider_models[provider_name].append(display_name)
+                        model_display_names[display_name] = model_entry
+
+                # Crear lista de opciones con encabezados de proveedores
+                for provider, models in provider_models.items():
+                    if models:  # Solo agregar proveedores con modelos
+                        model_options.append(f"--- {provider} ---")
+                        model_options.extend(sorted(models))
+
+                # Convertir valores guardados a nombres de visualización para defaults
+                default_primary_display = []
+                for model_id in st.session_state.custom_processing_config["models"][
+                    "primary"
+                ]:
+                    # Buscar el nombre de visualización correspondiente al ID
+                    for display_name, id_value in model_display_names.items():
+                        if id_value == model_id:
+                            default_primary_display.append(display_name)
+                            break
+                    else:
+                        # Si no se encuentra, usar el ID como nombre
+                        provider = model_id.split(":")[0] if ":" in model_id else ""
+                        display_name = (
+                            model_id.split(":")[1] if ":" in model_id else model_id
+                        )
+                        default_primary_display.append(display_name)
 
                 # Modelos principales
                 st.markdown("##### Modelos Principales")
-                selected_primary = st.multiselect(
+                selected_primary_display = st.multiselect(
                     "Selecciona los modelos principales",
-                    options=available_models,
-                    default=st.session_state.custom_processing_config["models"][
-                        "primary"
-                    ],
+                    options=model_options,
+                    default=default_primary_display,
                     help="Modelos que se utilizarán como primera opción",
                 )
+
+                # Filtrar encabezados de la selección
+                filtered_primary_display = [
+                    display
+                    for display in selected_primary_display
+                    if not display.startswith("--- ") and not display.endswith(" ---")
+                ]
+
+                # Convertir nombres de visualización seleccionados a IDs
+                selected_primary_ids = []
+                for display in filtered_primary_display:
+                    if display in model_display_names:
+                        selected_primary_ids.append(model_display_names[display])
+
+                # Asegurarse de que haya al menos un modelo seleccionado
+                if not selected_primary_ids:
+                    # Si no hay modelos seleccionados, seleccionar automáticamente modelos adecuados
+                    logging.info(
+                        "No se seleccionaron modelos principales. Seleccionando modelos automáticamente."
+                    )
+
+                    # Intentar seleccionar modelos de diferentes proveedores en orden de preferencia
+                    preferred_providers = [
+                        "openai",
+                        "groq",
+                        "openrouter",
+                        "deepinfra",
+                        "mistral",
+                        "cohere",
+                        "local",
+                    ]
+
+                    for provider in preferred_providers:
+                        for display, model_id in model_display_names.items():
+                            if not display.startswith("--- ") and model_id.startswith(
+                                f"{provider}:"
+                            ):
+                                selected_primary_ids = [model_id]
+                                st.info(
+                                    f"Se ha seleccionado automáticamente el modelo: {display}"
+                                )
+                                break
+                        if selected_primary_ids:
+                            break
+
+                    # Si aún no hay modelos seleccionados, usar el primer modelo disponible
+                    if not selected_primary_ids:
+                        for display, model_id in model_display_names.items():
+                            if not display.startswith("--- "):
+                                selected_primary_ids = [model_id]
+                                st.info(
+                                    f"Se ha seleccionado automáticamente el modelo: {display}"
+                                )
+                                break
+
                 st.session_state.custom_processing_config["models"][
                     "primary"
-                ] = selected_primary
+                ] = selected_primary_ids
+
+                # Convertir valores guardados a nombres de visualización para defaults de respaldo
+                default_fallback_display = []
+                for model_id in st.session_state.custom_processing_config["models"][
+                    "fallback"
+                ]:
+                    # Buscar el nombre de visualización correspondiente al ID
+                    for display_name, id_value in model_display_names.items():
+                        if id_value == model_id:
+                            default_fallback_display.append(display_name)
+                            break
+                    else:
+                        # Si no se encuentra, usar el ID como nombre
+                        provider = model_id.split(":")[0] if ":" in model_id else ""
+                        display_name = (
+                            model_id.split(":")[1] if ":" in model_id else model_id
+                        )
+                        default_fallback_display.append(display_name)
 
                 # Modelos de respaldo
                 st.markdown("##### Modelos de Respaldo")
-                selected_fallback = st.multiselect(
+                selected_fallback_display = st.multiselect(
                     "Selecciona los modelos de respaldo",
-                    options=available_models,
-                    default=st.session_state.custom_processing_config["models"][
-                        "fallback"
-                    ],
+                    options=model_options,
+                    default=default_fallback_display,
                     help="Modelos que se utilizarán si los principales fallan",
                 )
+
+                # Filtrar encabezados de la selección
+                filtered_fallback_display = [
+                    display
+                    for display in selected_fallback_display
+                    if not display.startswith("--- ") and not display.endswith(" ---")
+                ]
+
+                # Convertir nombres de visualización seleccionados a IDs
+                selected_fallback_ids = []
+                for display in filtered_fallback_display:
+                    if display in model_display_names:
+                        selected_fallback_ids.append(model_display_names[display])
+
+                # Si no hay modelos de respaldo seleccionados pero hay modelos principales, seleccionar automáticamente
+                if not selected_fallback_ids and selected_primary_ids:
+                    # Intentar seleccionar modelos de respaldo diferentes a los principales
+                    logging.info(
+                        "No se seleccionaron modelos de respaldo. Seleccionando automáticamente."
+                    )
+
+                    # Preferir proveedores diferentes a los ya seleccionados en modelos principales
+                    primary_providers = set(
+                        [
+                            model_id.split(":")[0]
+                            for model_id in selected_primary_ids
+                            if ":" in model_id
+                        ]
+                    )
+                    preferred_fallback_providers = [
+                        p
+                        for p in [
+                            "openai",
+                            "groq",
+                            "openrouter",
+                            "deepinfra",
+                            "mistral",
+                            "cohere",
+                            "local",
+                        ]
+                        if p not in primary_providers
+                    ]
+
+                    # Si no hay proveedores diferentes, usar los mismos pero modelos diferentes
+                    if not preferred_fallback_providers:
+                        preferred_fallback_providers = [
+                            "openai",
+                            "groq",
+                            "openrouter",
+                            "deepinfra",
+                            "mistral",
+                            "cohere",
+                            "local",
+                        ]
+
+                    for provider in preferred_fallback_providers:
+                        for display, model_id in model_display_names.items():
+                            if (
+                                not display.startswith("--- ")
+                                and model_id.startswith(f"{provider}:")
+                                and model_id not in selected_primary_ids
+                            ):
+                                selected_fallback_ids = [model_id]
+                                st.info(
+                                    f"Se ha seleccionado automáticamente el modelo de respaldo: {display}"
+                                )
+                                break
+                        if selected_fallback_ids:
+                            break
+
+                    # Si aún no hay modelos seleccionados, usar el primer modelo disponible que no sea principal
+                    if not selected_fallback_ids:
+                        for display, model_id in model_display_names.items():
+                            if (
+                                not display.startswith("--- ")
+                                and model_id not in selected_primary_ids
+                            ):
+                                selected_fallback_ids = [model_id]
+                                st.info(
+                                    f"Se ha seleccionado automáticamente el modelo de respaldo: {display}"
+                                )
+                                break
+
                 st.session_state.custom_processing_config["models"][
                     "fallback"
-                ] = selected_fallback
+                ] = selected_fallback_ids
 
                 # Botones para guardar/cargar configuración
                 col1, col2 = st.columns(2)
@@ -601,14 +865,20 @@ def render_sidebar_content(
                         # Agregar modelos de OpenRouter
                         for model in openrouter_models:
                             model_id = model.get("id", "")
+                            model_name = model.get("name", model_id)
                             if model_id:
-                                updated_models.append(f"openrouter:{model_id}")
+                                display_name = f"OpenRouter: {model_name}"
+                                updated_models.append(
+                                    f"openrouter:{model_id}|{display_name}"
+                                )
 
                         # Agregar modelos de Groq
                         for model in groq_models:
                             model_id = model.get("id", "")
+                            model_name = model.get("name", model_id)
                             if model_id:
-                                updated_models.append(f"groq:{model_id}")
+                                display_name = f"Groq: {model_name}"
+                                updated_models.append(f"groq:{model_id}|{display_name}")
 
                         # Agregar modelos de Ollama
                         for model in ollama_models:
@@ -616,13 +886,32 @@ def render_sidebar_content(
                             if isinstance(model, dict):
                                 model_id = model.get("id", model.get("name", ""))
                                 if model_id:
-                                    updated_models.append(f"local:{model_id}")
+                                    display_name = f"Ollama: {model_id}"
+                                    updated_models.append(
+                                        f"local:{model_id}|{display_name}"
+                                    )
                             elif isinstance(model, str):
-                                updated_models.append(f"local:{model}")
+                                display_name = f"Ollama: {model}"
+                                updated_models.append(f"local:{model}|{display_name}")
 
                         # Agregar los modelos actualizados a la lista existente
                         for model in updated_models:
-                            if model not in available_models:
+                            # Extraer el ID del modelo para comparar
+                            model_id = model.split("|")[0] if "|" in model else model
+
+                            # Verificar si ya existe un modelo con el mismo ID
+                            exists = False
+                            for existing_model in available_models:
+                                existing_id = (
+                                    existing_model.split("|")[0]
+                                    if "|" in existing_model
+                                    else existing_model
+                                )
+                                if existing_id == model_id:
+                                    exists = True
+                                    break
+
+                            if not exists:
                                 available_models.append(model)
 
                         st.success(
@@ -926,21 +1215,13 @@ def process_user_input(
         else:
             initial_evaluation = "No se realizó evaluación inicial para esta respuesta."
 
-        # Mejora de prompt (análisis de complejidad y categorización)
-        if not use_custom_config or custom_config["stages"].get(
-            "prompt_improvement", True
-        ):
-            # Análisis de complejidad y necesidades
-            complexity, needs_web_search, needs_moa, prompt_type = (
-                evaluate_query_complexity(initial_evaluation, "")
-            )
-            prompt_type = agent_manager.validate_prompt_type(user_input, prompt_type)
-        else:
-            # Valores por defecto si se omite la mejora de prompt
-            complexity = 0.5
-            needs_web_search = False
-            needs_moa = False
-            prompt_type = "general"
+        # Mejora de prompt (análisis de complejidad y categorización) - SIEMPRE OBLIGATORIA
+        progress_placeholder.write("🧠 Analizando y mejorando prompt...")
+        # Análisis de complejidad y necesidades
+        complexity, needs_web_search, needs_moa, prompt_type = (
+            evaluate_query_complexity(initial_evaluation, "")
+        )
+        prompt_type = agent_manager.validate_prompt_type(user_input, prompt_type)
 
         # Búsqueda web si es necesaria
         web_context = ""
@@ -994,6 +1275,19 @@ def process_user_input(
                             )
                     except Exception as e:
                         logging.error(f"Error al procesar modelo {model_str}: {str(e)}")
+
+            # Si no se pudo agregar ningún agente, usar un agente por defecto
+            if not prioritized_agents:
+                # Intentar usar un modelo de OpenAI como respaldo
+                try:
+                    prioritized_agents.append(
+                        ("api", "gpt-3.5-turbo", "OpenAI GPT-3.5 Turbo (Respaldo)")
+                    )
+                    logging.warning(
+                        "No se encontraron agentes válidos en la configuración personalizada. Usando modelo de respaldo."
+                    )
+                except Exception as e:
+                    logging.error(f"Error al configurar agente de respaldo: {str(e)}")
         else:
             # Usar selección estándar de agentes
             specialized_agent = agent_manager.select_specialized_agent(enriched_query)
@@ -1122,8 +1416,36 @@ def process_user_input(
         # Verificar respuestas exitosas
         successful_responses = [r for r in agent_results if r["status"] == "success"]
 
+        # Mecanismo de respaldo final si todos los agentes fallan
         if not successful_responses:
-            raise ValueError("No se pudo obtener una respuesta válida de ningún agente")
+            # Intentar generar una respuesta de emergencia usando un sistema de respaldo simple
+            try:
+                emergency_response = {
+                    "agent": "emergency",
+                    "model": "fallback",
+                    "name": "Sistema de Respaldo de Emergencia",
+                    "status": "success",
+                    "response": f"Lo siento, no he podido procesar tu consulta con los modelos disponibles. "
+                    f"Tu pregunta fue: '{user_input}'. "
+                    f"Por favor, intenta reformular tu pregunta o selecciona otros modelos en la configuración.",
+                }
+
+                # Agregar la respuesta de emergencia a los resultados
+                agent_results.append(emergency_response)
+                successful_responses = [emergency_response]
+
+                # Registrar el uso del sistema de emergencia
+                logging.warning(
+                    "Se ha activado el sistema de respaldo de emergencia debido a fallos en todos los agentes."
+                )
+            except Exception as emergency_error:
+                # Si incluso el sistema de emergencia falla, lanzar una excepción
+                logging.error(
+                    f"Error en el sistema de respaldo de emergencia: {str(emergency_error)}"
+                )
+                raise ValueError(
+                    "No se pudo obtener una respuesta válida de ningún agente y el sistema de emergencia también falló."
+                )
 
         # Meta-análisis si es necesario
         meta_analysis_result = None
@@ -1229,8 +1551,7 @@ def process_user_input(
             "stages_executed": {
                 "initial_evaluation": not use_custom_config
                 or custom_config["stages"].get("initial_evaluation", True),
-                "prompt_improvement": not use_custom_config
-                or custom_config["stages"].get("prompt_improvement", True),
+                "prompt_improvement": True,  # Siempre activa
                 "web_search": needs_web_search
                 and (
                     not use_custom_config
