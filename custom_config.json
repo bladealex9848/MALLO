@@ -9,7 +9,7 @@
   },
   "models": {
     "primary": [
-      "openai:gpt-4.1-nano"
+      "openrouter:cohere/command-r:free"
     ],
     "fallback": [
       "groq:gemma2-9b-it"

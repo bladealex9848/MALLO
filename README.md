@@ -45,6 +45,8 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Sistema de votación y consenso para respuestas múltiples
   - Mecanismos de fallback y recuperación automática
   - Sistema robusto de manejo de errores para APIs externas
+  - Selección automática de modelos basada en el tipo de consulta
+  - Personalización de etapas de procesamiento (evaluación inicial, búsqueda web, meta-análisis, evaluación ética)
 
 - **Integración de Modelos**:
   - Modelos locales vía Ollama para baja latencia (offline-capable)
@@ -52,17 +54,23 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Proveedores especializados (Together, DeepInfra, DeepSeek)
   - Modelos open-source optimizados (Mistral, Cohere)
   - Acceso a modelos avanzados vía OpenRouter con manejo robusto de errores
+  - Soporte para modelos multimodales (Llama 4 Maverick/Scout)
+  - Sistema de respaldo para modelos que fallan
 
 ### 2. Sistema de Procesamiento Inteligente
 - **Análisis de Complejidad**:
   - Evaluación heurística de consultas
   - Detección automática de dominio y contexto
   - Selección dinámica de agentes basada en métricas
+  - Identificación de tipo de prompt para procesamiento especializado
+  - Determinación automática de necesidad de búsqueda web y meta-análisis
 
 - **Optimización de Recursos**:
   - Sistema de caché multinivel con validación
   - Balanceo dinámico de carga entre agentes
   - Gestión inteligente de cuotas y límites de API
+  - Inicialización eficiente de componentes con @st.cache_resource
+  - Sistema de respaldo para APIs no disponibles
 
 ### 3. Capacidades Avanzadas de Búsqueda y Contextualización
 - **Motor de Búsqueda Multi-Fuente**:
@@ -70,22 +78,30 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Fallback a Tavily para búsquedas especializadas
   - Sistema de respaldo con DuckDuckGo
   - Agregación y deduplicación de resultados
+  - Visualización detallada de resultados de búsqueda en pestaña dedicada
+  - Identificación automática del proveedor de búsqueda utilizado
 
 - **Procesamiento de Contexto**:
   - Análisis semántico de consultas
   - Extracción de entidades y relaciones
   - Generación de embeddings para búsqueda contextual
+  - Procesamiento de documentos con OCR mediante Mistral
+  - Carga de archivos integrada directamente en el chat
 
 ### 4. Framework de Evaluación y Mejora
 - **Sistema de Evaluación Ética**:
   - Detección automática de sesgos
   - Validación de privacidad y seguridad
   - Alineación con principios éticos configurables
+  - Opción para activar/desactivar la evaluación ética
+  - Visualización detallada de resultados de evaluación ética
 
 - **Mecanismos de Feedback**:
   - Evaluación continua de calidad de respuestas
   - Sistema de aprendizaje basado en retroalimentación
   - Métricas de rendimiento en tiempo real
+  - Exportación detallada de todo el proceso de análisis
+  - Meta-análisis configurable para síntesis de múltiples fuentes
 
 ### 5. Interfaz y Monitoreo
 - **UI Moderna y Responsive**:
@@ -93,23 +109,32 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Componentes dinámicos de visualización
   - Sistema de progreso en tiempo real
   - Interfaz simplificada con carga de documentos integrada en el chat
+  - Personalización de etapas de procesamiento y selección de modelos
+  - Sistema de pestañas para organizar la información (Detalles, Búsqueda Web, Meta-análisis, etc.)
+  - Botón para limpiar la conversación y el contexto sin refrescar la página
+  - Exportación mejorada con toda la información del procesamiento
 
 - **Logging y Observabilidad**:
   - Logging estructurado con niveles configurables
   - Métricas Prometheus para monitoreo
   - Sistema de alertas para eventos críticos
   - Mensajes de error amigables y detallados para el usuario
+  - Visualización en tiempo real del proceso de selección de modelos
 
 ### 6. Configuración y Extensibilidad
 - **Sistema de Configuración Robusto**:
   - Configuración centralizada via YAML
   - Soporte para múltiples entornos
   - Hot-reload de configuraciones
+  - Guardado y carga de configuraciones personalizadas
+  - Interfaz gráfica para personalizar etapas de procesamiento
 
 - **Arquitectura Extensible**:
   - APIs bien documentadas para nuevos agentes
   - Sistema de plugins para funcionalidades adicionales
   - Hooks para personalización de comportamiento
+  - Selección flexible de modelos principales y de respaldo
+  - Organización de modelos por proveedor con nombres descriptivos
 
 ### 7. Seguridad y Cumplimiento
 - **Protección de Datos**:
@@ -117,23 +142,30 @@ La arquitectura del sistema se basa en principios de diseño modular y extensibl
   - Sanitización de entradas y salidas
   - Gestión segura de credenciales
   - Verificación previa de disponibilidad de APIs
+  - Sistema robusto de manejo de errores para APIs externas
 
 - **Auditoría y Compliance**:
   - Registro detallado de operaciones
   - Trazabilidad de decisiones del sistema
   - Reportes de cumplimiento normativo
   - Validación de respuestas de APIs externas
+  - Exportación completa de conversaciones con todos los detalles del procesamiento
+  - Documentación de etapas ejecutadas en cada respuesta
 
 ### 8. Optimización de Rendimiento
 - **Sistema de Caché Avanzado**:
   - Caché multinivel (memoria, disco, distribuido)
   - Políticas de invalidación inteligentes
   - Compresión y optimización de almacenamiento
+  - Inicialización eficiente de componentes con @st.cache_resource
+  - Carga diferida de recursos no críticos
 
 - **Gestión de Recursos**:
   - Límites de consumo configurables
   - Balanceo de carga automático
   - Recuperación graceful ante fallos
+  - Sistema de respaldo para modelos que fallan
+  - Selección automática de modelos basada en disponibilidad y tipo de consulta
 
 ## Estructura del Proyecto
 
@@ -148,7 +180,7 @@ MALLO/
 ├── error_recovery.json         # Registro de errores para recuperación
 ├── load_secrets.py             # Carga de secretos y claves API
 ├── main.py                     # Punto de entrada principal y UI de Streamlit
-├── model_loader.py             # Carga de modelos desde diferentes fuentes
+├── model_loader.py             # Carga de modelos desde diferentes fuentes (OpenRouter, Groq, Ollama)
 ├── model_speeds.json           # Índice de velocidad de modelos locales y en la nube
 ├── README.md                   # Documentación del proyecto (este archivo)
 ├── utilities.py                # Funciones de utilidad y helpers
@@ -270,19 +302,27 @@ streamlit run main.py
 Luego, abre tu navegador y ve a `http://localhost:8501`.
 
 La interfaz de usuario te permitirá:
-1. Ingresar consultas en lenguaje natural.
+1. Ingresar consultas en lenguaje natural y adjuntar archivos directamente en el campo de chat.
 2. Ver las respuestas generadas por el sistema.
 3. Observar el progreso del procesamiento en tiempo real.
-4. Explorar detalles sobre el procesamiento de cada consulta, incluyendo la evaluación ética.
-5. Acceder a información sobre el estado del sistema y rendimiento de los agentes.
-6. Ver la evaluación ética y de cumplimiento de cada respuesta generada.
-7. Ver el contexto de la conversación actual, incluyendo el historial de preguntas y respuestas.
+4. Personalizar las etapas de procesamiento (evaluación inicial, búsqueda web, meta-análisis, evaluación ética).
+5. Seleccionar modelos principales y de respaldo para el procesamiento.
+6. Guardar y cargar configuraciones personalizadas.
+7. Limpiar la conversación y el contexto sin necesidad de refrescar la página.
+8. Exportar la conversación completa con todos los detalles del procesamiento.
 
-La interfaz ahora incluye:
-- Un chat limpio que muestra solo las preguntas y respuestas.
-- Una sección expandible de "Detalles del proceso" que muestra información sobre el procesamiento interno.
-- Una sección expandible de "Evaluación Ética y de Cumplimiento" que muestra los resultados de la evaluación ética de cada respuesta.
-- Una sección expandible de "Contexto de la conversación" que muestra el contexto de la conversación actual, incluyendo el historial de preguntas y respuestas.
+La interfaz incluye:
+- Un chat limpio que muestra las preguntas y respuestas.
+- Una barra lateral con opciones de configuración y personalización.
+- Pestañas organizadas para acceder a diferentes tipos de información:
+  - **💡 Detalles**: Muestra información sobre el procesamiento interno, incluyendo agentes utilizados y tiempos de respuesta.
+  - **🔍 Búsqueda Web**: Presenta los resultados de búsqueda web y el proveedor utilizado.
+  - **🔄 Meta-análisis**: Muestra el análisis combinado de múltiples fuentes cuando está activado.
+  - **⚖️ Evaluación Ética**: Presenta los resultados de la evaluación ética de cada respuesta.
+  - **💬 Contexto**: Muestra el contexto acumulado de la conversación.
+  - **📚 Documentos**: Presenta los documentos procesados cuando se adjuntan archivos.
+  - **📊 Métricas**: Muestra estadísticas de rendimiento del sistema.
+  - **📤 Exportar**: Permite exportar la conversación en diferentes formatos.
 
 ## Evaluación Ética y de Cumplimiento en MALLO
 
@@ -395,14 +435,15 @@ Recuerda que MALLO está diseñado para ser intuitivo y adaptativo, pero proporc
 
 ## Arquitectura del Sistema
 
-MALLO utiliza una arquitectura de microservicios basada en agentes, donde cada agente (modelo de lenguaje o servicio especializado) puede procesar consultas de manera independiente. El componente central, `AgentManager`, orquesta estos agentes basándose en la complejidad de la consulta y la disponibilidad de recursos.
+MALLO utiliza una arquitectura de microservicios basada en agentes, donde cada agente (modelo de lenguaje o servicio especializado) puede procesar consultas de manera independiente. El componente central, `AgentManager`, orquesta estos agentes basándose en la complejidad de la consulta, el tipo de prompt y la disponibilidad de recursos.
 
 ### Componentes Clave:
-1. **Orquestador de Agentes**: Selecciona y gestiona los agentes apropiados para cada consulta.
-2. **Evaluador de Complejidad**: Analiza las consultas para determinar su complejidad y requisitos.
-3. **Sistema de Caché**: Almacena y recupera respuestas para consultas frecuentes.
-4. **Módulo de Búsqueda Web**: Enriquece las respuestas con información actual de la web.
-5. **Interfaz de Usuario**: Proporciona una experiencia interactiva para los usuarios.
+1. **Orquestador de Agentes**: Selecciona y gestiona los agentes apropiados para cada consulta, con sistema de respaldo.
+2. **Evaluador de Complejidad y Tipo**: Analiza las consultas para determinar su complejidad, tipo de prompt y requisitos específicos.
+3. **Sistema de Caché**: Almacena y recupera respuestas para consultas frecuentes, con inicialización eficiente de recursos.
+4. **Módulo de Búsqueda Web**: Enriquece las respuestas con información actual de la web usando múltiples proveedores.
+5. **Interfaz de Usuario**: Proporciona una experiencia interactiva con personalización de etapas y selección de modelos.
+6. **Cargador de Modelos**: Gestiona la carga dinámica de modelos desde diferentes fuentes (OpenRouter, Groq, Ollama).
 
 ## Componentes Principales
 
@@ -411,43 +452,54 @@ MALLO utiliza una arquitectura de microservicios basada en agentes, donde cada a
   - Gestiona la inicialización y selección de agentes.
   - Implementa la lógica de procesamiento de consultas.
   - Maneja la integración con diferentes APIs de LLM.
+  - Sistema de respaldo para modelos que fallan.
 
 ### utilities.py
 - Funciones para evaluación de complejidad de consultas.
-- Implementación de búsqueda web.
+- Implementación de búsqueda web con múltiples proveedores.
 - Sistema de caché para respuestas.
 - Funciones de logging y manejo de errores.
+- Evaluación de tipo de prompt y requisitos.
 
 ### main.py
 - Implementa la interfaz de usuario con Streamlit.
 - Gestiona el flujo principal de la aplicación.
 - Procesa las entradas del usuario y muestra las respuestas.
+- Sistema de pestañas para organizar la información.
+- Personalización de etapas de procesamiento.
+
+### model_loader.py
+- Carga dinámica de modelos desde diferentes fuentes.
+- Integración con OpenRouter para modelos gratuitos.
+- Acceso a todos los modelos disponibles en Groq.
+- Carga de modelos locales desde Ollama.
 
 ## Flujo de Trabajo
 
 1. El usuario ingresa una consulta a través de la interfaz de Streamlit.
-2. La consulta se evalúa para determinar su complejidad y requisitos.
-3. Se selecciona el agente o conjunto de agentes más apropiados.
+2. La consulta se evalúa para determinar su complejidad, tipo de prompt y requisitos.
+3. Se selecciona el agente o conjunto de agentes más apropiados basado en el tipo de consulta.
 4. Si es necesario, se realiza una búsqueda web para enriquecer el contexto.
-5. Los agentes seleccionados procesan la consulta.
-6. Se evalúa y refina la respuesta generada.
-7. La respuesta final se presenta al usuario junto con detalles del proceso.
+5. Los agentes seleccionados procesan la consulta, con sistema de respaldo si alguno falla.
+6. Se evalúa éticamente la respuesta y se refina si es necesario.
+7. Si está activado, se realiza un meta-análisis para sintetizar múltiples perspectivas.
+8. La respuesta final se presenta al usuario junto con detalles del proceso en pestañas organizadas.
 
 ## APIs y Servicios Integrados
 
 MALLO integra varios servicios de LLM y APIs, incluyendo:
-- OpenAI
-- Groq
-- Together
-- DeepInfra
-- Anthropic
-- DeepSeek
-- Mistral
-- Cohere
-- Ollama
-- OpenRouter
+- OpenAI (GPT-4, GPT-3.5)
+- Groq (Llama 3, Mixtral, Gemma)
+- Together (Llama 3, Falcon, Yi)
+- DeepInfra (Llama 3, Mistral)
+- Anthropic (Claude 3)
+- DeepSeek (DeepSeek Coder)
+- Mistral (Mistral Large, Medium, Small)
+- Cohere (Command R+, Command R)
+- Ollama (modelos locales)
+- OpenRouter (acceso a modelos gratuitos y de pago)
 
-Cada servicio se inicializa y gestiona a través de la clase `AgentManager`, permitiendo una fácil expansión a nuevos proveedores en el futuro.
+Cada servicio se inicializa y gestiona a través de la clase `AgentManager` y el módulo `model_loader.py`, permitiendo una fácil expansión a nuevos proveedores en el futuro. Los modelos se organizan por proveedor con nombres descriptivos para facilitar su selección.
 
 ## Manejo de Errores y Logging
 
@@ -455,13 +507,19 @@ El sistema implementa un robusto sistema de logging y manejo de errores:
 - Los errores se registran en el archivo `mallo.log`.
 - Se utilizan diferentes niveles de logging (INFO, WARNING, ERROR) para categorizar los eventos.
 - Los errores críticos se muestran al usuario a través de la interfaz de Streamlit.
+- Sistema de verificación previa de disponibilidad de APIs para prevenir errores.
+- Manejo robusto de errores para APIs externas con mensajes detallados y útiles.
+- Recuperación automática mediante sistemas de respaldo cuando un modelo o servicio falla.
 
 ## Optimización y Caché
 
 Para mejorar el rendimiento y reducir la carga en las APIs externas, MALLO implementa:
 - Un sistema de caché para almacenar respuestas frecuentes.
-- Evaluación de complejidad para evitar el uso innecesario de recursos en consultas simples.
-- Selección inteligente de agentes basada en la disponibilidad y rendimiento histórico.
+- Inicialización eficiente de componentes con @st.cache_resource.
+- Evaluación de complejidad y tipo de prompt para optimizar el uso de recursos.
+- Selección inteligente de agentes basada en el tipo de consulta, disponibilidad y rendimiento histórico.
+- Sistema de respaldo para modelos que fallan, garantizando respuestas incluso cuando algunos servicios no están disponibles.
+- Carga diferida de recursos no críticos para mejorar el tiempo de inicio.
 
 ## Pruebas
 
@@ -487,10 +545,10 @@ Consulta [CHANGELOG.md](CHANGELOG.md) para ver el historial detallado de cambios
 
 ### Versiones Recientes
 
+- **v2.8.0** (15/04/2025): Implementación de personalización de etapas de procesamiento, selección de modelos y mejoras en la interfaz de usuario.
 - **v2.7.0** (14/04/2025): Implementación de sistema robusto de manejo de errores para OpenRouter API y mejora de la interfaz de usuario.
-- **v2.6.0** (11/04/2025): Integración de nuevos modelos avanzados de OpenRouter.
-- **v2.5.0** (05/04/2025): Implementación de sistema de OCR con Mistral para análisis de imágenes y documentos.
-- **v2.4.0** (28/03/2025): Mejoras en el sistema de procesamiento de documentos y soporte para formatos adicionales.
+- **v2.6.0** (11/04/2025): Integración de nuevos modelos avanzados de OpenRouter y soporte para modelos multimodales.
+- **v2.5.0** (22/02/2025): Implementación de sistema de caché optimizado para componentes core y mejoras de rendimiento.
 
 ## ExperimentaLABs
 
